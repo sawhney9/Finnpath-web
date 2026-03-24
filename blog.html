@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Blog — Finnpath Financial Education</title>
+  <meta name="description" content="Plain-English financial education for every stage of life. Investing basics, market news, crypto, tax tips, 401k guides, and more."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="shared.css"/>
+  <style>
+
+    /* ── PAGE HERO ── */
+    .blog-hero {
+      padding: calc(var(--nav-h) + 56px) 56px 48px;
+      background: var(--navy-mid); border-bottom: 1px solid var(--border);
+      position: relative; z-index: 1; overflow: hidden;
+    }
+    .blog-hero::before {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 50% 70% at 95% 40%, rgba(232,96,76,.06) 0%, transparent 65%),
+        radial-gradient(ellipse 45% 55% at 5%  50%, rgba(74,144,217,.06) 0%, transparent 65%);
+    }
+    .blog-hero-inner {
+      max-width: 1160px; margin-inline: auto; position: relative; z-index: 1;
+      display: grid; grid-template-columns: 1fr auto; gap: 40px; align-items: end;
+    }
+    .blog-hero h1 {
+      font-family: 'Playfair Display', serif; font-weight: 900;
+      font-size: clamp(2rem, 4vw, 3rem); letter-spacing: -.03em; line-height: 1.08;
+      animation: fadeUp .5s ease both;
+    }
+    .blog-hero h1 em { font-style: italic; color: var(--coral); }
+    .blog-hero p {
+      font-size: .92rem; color: var(--white-dim); font-weight: 300;
+      line-height: 1.75; margin-top: 10px; max-width: 520px;
+      animation: fadeUp .5s .08s ease both;
+    }
+    .blog-search-wrap { animation: fadeUp .5s .16s ease both; }
+    .blog-search {
+      background: var(--navy-card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 11px 16px; display: flex; align-items: center; gap: 10px;
+      min-width: 260px; transition: border-color .2s;
+    }
+    .blog-search:focus-within { border-color: var(--coral); }
+    .blog-search input {
+      background: transparent; border: none; outline: none; font-size: .88rem;
+      color: var(--white); font-family: 'Plus Jakarta Sans', sans-serif; flex: 1;
+    }
+    .blog-search input::placeholder { color: rgba(250,249,247,.22); }
+    .search-icon { color: var(--white-dim); font-size: .9rem; flex-shrink: 0; }
+
+    /* ── CATEGORY FILTER ── */
+    .cat-bar {
+      background: var(--navy-mid); border-bottom: 1px solid var(--border);
+      position: sticky; top: var(--nav-h); z-index: 99;
+    }
+    .cat-bar-inner {
+      max-width: 1160px; margin-inline: auto;
+      padding: 0 56px;
+      display: flex; gap: 0; overflow-x: auto;
+    }
+    .cat-bar-inner::-webkit-scrollbar { display: none; }
+    .cat-btn {
+      padding: 14px 20px; font-size: .78rem; font-weight: 700;
+      color: var(--white-dim); white-space: nowrap; cursor: pointer;
+      border: none; background: transparent; border-bottom: 2px solid transparent;
+      transition: all .2s; font-family: 'Plus Jakarta Sans', sans-serif;
+      letter-spacing: .01em;
+    }
+    .cat-btn:hover { color: var(--white); }
+    .cat-btn.active { color: var(--coral); border-bottom-color: var(--coral); }
+
+    /* ── MAIN LAYOUT ── */
+    .blog-page { position: relative; z-index: 1; }
+    .blog-inner { max-width: 1160px; margin-inline: auto; padding: 48px 56px 80px; }
+
+    /* ── FEATURED ARTICLE HERO ── */
+    .featured-hero {
+      background: var(--navy-mid); border: 1px solid var(--border);
+      border-radius: 24px; overflow: hidden; margin-bottom: 56px;
+      display: grid; grid-template-columns: 1fr 420px;
+      transition: border-color .25s; cursor: pointer;
+    }
+    .featured-hero:hover { border-color: rgba(250,249,247,.2); }
+    .fh-content { padding: 48px; display: flex; flex-direction: column; gap: 0; }
+    .fh-meta { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .cat-tag {
+      font-size: .66rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+      padding: 4px 12px; border-radius: 100px;
+    }
+    .cat-basics  { background: rgba(74,144,217,.15);  color: var(--sky); }
+    .cat-news    { background: rgba(61,186,126,.12);  color: var(--green); }
+    .cat-crypto  { background: rgba(201,168,76,.12);  color: var(--gold); }
+    .cat-tax     { background: rgba(232,96,76,.12);   color: var(--coral); }
+    .cat-tools   { background: rgba(124,92,252,.12);  color: #9b7dff; }
+
+    .fh-read-time { font-size: .72rem; color: var(--white-dim); }
+    .fh-featured-tag {
+      font-size: .62rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+      background: var(--coral); color: #fff; padding: 3px 10px; border-radius: 100px;
+    }
+    .fh-content h2 {
+      font-family: 'Playfair Display', serif; font-weight: 900;
+      font-size: clamp(1.8rem, 2.8vw, 2.6rem); letter-spacing: -.03em; line-height: 1.1;
+      margin-bottom: 16px;
+    }
+    .fh-content h2 em { font-style: italic; color: var(--coral); }
+    .fh-excerpt { font-size: .95rem; color: var(--white-dim); line-height: 1.8; font-weight: 300; flex: 1; }
+    .fh-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 28px; flex-wrap: wrap; gap: 14px; }
+    .author-row { display: flex; align-items: center; gap: 10px; }
+    .author-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: grid; place-items: center; font-size: 1rem;
+      flex-shrink: 0; border: 1px solid var(--border);
+    }
+    .author-name { font-size: .8rem; font-weight: 600; }
+    .author-date { font-size: .7rem; color: var(--white-dim); }
+    .read-btn {
+      background: var(--coral); color: #fff; font-weight: 700; font-size: .8rem;
+      padding: 10px 22px; border-radius: 8px; border: none; cursor: pointer;
+      font-family: 'Plus Jakarta Sans', sans-serif; transition: background .2s, transform .2s;
+      box-shadow: 0 4px 14px var(--coral-glow); white-space: nowrap;
+    }
+    .read-btn:hover { background: var(--coral-soft); transform: translateY(-1px); }
+
+    /* featured image panel */
+    .fh-image {
+      background: var(--navy-card); border-left: 1px solid var(--border);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 40px 32px; gap: 16px; position: relative; overflow: hidden;
+    }
+    .fh-image::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse 70% 70% at 50% 50%, rgba(232,96,76,.08), transparent);
+    }
+    .fh-illustration { font-size: 5rem; position: relative; z-index: 1; filter: drop-shadow(0 8px 24px rgba(0,0,0,.3)); }
+    .fh-stat-chips { display: flex; flex-direction: column; gap: 8px; width: 100%; position: relative; z-index: 1; }
+    .fh-chip {
+      background: rgba(250,249,247,.06); border: 1px solid var(--border);
+      border-radius: 10px; padding: 10px 14px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .fh-chip-label { font-size: .7rem; color: var(--white-dim); }
+    .fh-chip-val { font-family: 'Playfair Display', serif; font-weight: 700; font-size: .95rem; }
+
+    /* ── SECTION HEADERS ── */
+    .section-hdr {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .section-hdr h3 {
+      font-family: 'Playfair Display', serif; font-weight: 700;
+      font-size: 1.3rem; letter-spacing: -.01em;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .section-hdr h3::before { content: ''; width: 3px; height: 20px; background: var(--coral); border-radius: 2px; }
+    .see-all {
+      font-size: .76rem; font-weight: 700; color: var(--coral); text-decoration: none;
+      transition: letter-spacing .2s;
+    }
+    .see-all:hover { letter-spacing: .03em; }
+
+    /* ── ARTICLE CARD GRID ── */
+    .articles-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; margin-bottom: 56px; }
+    .articles-grid.two-col { grid-template-columns: repeat(2,1fr); }
+
+    .article-card {
+      background: var(--navy-mid); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden; cursor: pointer;
+      transition: transform .22s, border-color .22s;
+      display: flex; flex-direction: column;
+    }
+    .article-card:hover { transform: translateY(-5px); border-color: rgba(250,249,247,.18); }
+    .article-card.large { grid-column: span 2; flex-direction: row; }
+
+    .ac-image {
+      background: var(--navy-card); border-bottom: 1px solid var(--border);
+      padding: 28px; display: flex; align-items: center; justify-content: center;
+      font-size: 3rem; min-height: 140px; position: relative;
+    }
+    .article-card.large .ac-image {
+      border-bottom: none; border-right: 1px solid var(--border);
+      min-width: 180px; min-height: auto; flex-direction: column; gap: 8px;
+    }
+    .ac-image::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(232,96,76,.06), transparent);
+    }
+    .ac-image span { position: relative; z-index: 1; }
+
+    .ac-body { padding: 22px; flex: 1; display: flex; flex-direction: column; gap: 10px; }
+    .ac-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .ac-read-time { font-size: .66rem; color: var(--white-dim); }
+    .ac-title {
+      font-family: 'Playfair Display', serif; font-weight: 700;
+      font-size: 1.05rem; letter-spacing: -.01em; line-height: 1.35;
+    }
+    .article-card.large .ac-title { font-size: 1.25rem; }
+    .ac-excerpt { font-size: .82rem; color: var(--white-dim); line-height: 1.7; flex: 1; }
+    .ac-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);
+    }
+    .ac-author { font-size: .72rem; font-weight: 600; color: var(--white-dim); display: flex; align-items: center; gap: 7px; }
+    .ac-avatar { font-size: .9rem; }
+    .ac-arrow { font-size: .8rem; font-weight: 700; color: var(--coral); }
+
+    /* ── SIDEBAR STRIP ── */
+    .blog-two-col { display: grid; grid-template-columns: 1fr 320px; gap: 32px; margin-bottom: 56px; }
+
+    /* trending */
+    .trending-list { display: flex; flex-direction: column; gap: 2px; }
+    .trending-item {
+      background: var(--navy-mid); border: 1px solid var(--border); border-radius: 12px;
+      padding: 16px 18px; cursor: pointer; transition: all .2s;
+      display: grid; grid-template-columns: 28px 1fr; gap: 12px; align-items: center;
+    }
+    .trending-item:hover { border-color: rgba(250,249,247,.18); transform: translateX(4px); }
+    .trend-num { font-family: 'Playfair Display', serif; font-weight: 900; font-size: 1.2rem; color: rgba(232,96,76,.35); }
+    .trend-title { font-size: .84rem; font-weight: 600; line-height: 1.4; }
+    .trend-meta { font-size: .68rem; color: var(--white-dim); margin-top: 3px; display: flex; gap: 8px; }
+
+    /* newsletter sidebar */
+    .nl-sidebar {
+      background: linear-gradient(160deg, rgba(232,96,76,.10), rgba(74,144,217,.06));
+      border: 1px solid rgba(232,96,76,.2); border-radius: var(--radius); padding: 28px 24px;
+      margin-top: 20px;
+    }
+    .nl-sidebar h4 { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.1rem; margin-bottom: 8px; }
+    .nl-sidebar p { font-size: .8rem; color: var(--white-dim); line-height: 1.65; margin-bottom: 16px; }
+    .nl-input {
+      width: 100%; background: var(--navy-card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 14px; font-size: .84rem; color: var(--white);
+      outline: none; font-family: 'Plus Jakarta Sans', sans-serif; margin-bottom: 8px;
+      transition: border-color .2s;
+    }
+    .nl-input:focus { border-color: var(--coral); }
+    .nl-input::placeholder { color: rgba(250,249,247,.2); }
+    .nl-btn {
+      width: 100%; background: var(--coral); color: #fff; font-weight: 700; font-size: .84rem;
+      padding: 11px; border-radius: 8px; border: none; cursor: pointer;
+      font-family: 'Plus Jakarta Sans', sans-serif; transition: background .2s;
+    }
+    .nl-btn:hover { background: var(--coral-soft); }
+
+    /* ── ARTICLE MODAL READER ── */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(8,8,15,.92);
+      backdrop-filter: blur(12px); z-index: 500;
+      display: none; align-items: flex-start; justify-content: center;
+      padding: 40px 20px; overflow-y: auto;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal-card {
+      background: var(--navy-mid); border: 1px solid var(--border);
+      border-radius: 24px; max-width: 720px; width: 100%;
+      margin: auto; position: relative; overflow: hidden;
+      animation: modalIn .3s ease;
+    }
+    @keyframes modalIn { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+
+    .modal-header {
+      padding: 32px 40px 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+    }
+    .modal-close {
+      width: 36px; height: 36px; border-radius: 50%; background: var(--navy-card);
+      border: 1px solid var(--border); cursor: pointer; font-size: 1rem;
+      display: grid; place-items: center; flex-shrink: 0; transition: all .2s;
+      color: var(--white-dim);
+    }
+    .modal-close:hover { border-color: var(--coral); color: var(--coral); }
+
+    .modal-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+    .modal-body { padding: 0 40px 40px; }
+
+    .modal-body h2 {
+      font-family: 'Playfair Display', serif; font-weight: 900;
+      font-size: clamp(1.6rem, 3vw, 2.2rem); letter-spacing: -.03em; line-height: 1.1;
+      margin-bottom: 6px;
+    }
+    .modal-body h2 em { font-style: italic; color: var(--coral); }
+    .modal-excerpt {
+      font-size: 1rem; color: var(--white-dim); line-height: 1.8; font-weight: 300;
+      margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid var(--border);
+    }
+    .modal-author { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
+    .modal-avatar { font-size: 1.6rem; }
+    .modal-author-name { font-weight: 700; font-size: .88rem; }
+    .modal-author-role { font-size: .72rem; color: var(--white-dim); }
+
+    /* article content */
+    .article-content { display: flex; flex-direction: column; gap: 20px; }
+    .article-content h3 {
+      font-family: 'Playfair Display', serif; font-weight: 700;
+      font-size: 1.25rem; letter-spacing: -.01em; margin-top: 8px;
+    }
+    .article-content p { font-size: .93rem; color: var(--white-dim); line-height: 1.85; font-weight: 300; }
+    .article-content p strong { color: var(--white); font-weight: 600; }
+    .article-content p em { font-style: italic; color: var(--coral); }
+
+    .article-callout {
+      background: var(--navy-card); border: 1px solid var(--border);
+      border-left: 3px solid var(--coral); border-radius: 0 12px 12px 0;
+      padding: 16px 20px;
+    }
+    .article-callout p { margin: 0; font-size: .88rem !important; }
+
+    .article-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .article-list li {
+      font-size: .9rem; color: var(--white-dim); line-height: 1.65;
+      display: flex; gap: 10px; align-items: flex-start;
+    }
+    .article-list li::before { content: '→'; color: var(--coral); font-weight: 700; flex-shrink: 0; margin-top: 2px; }
+    .article-list li strong { color: var(--white); font-weight: 600; }
+
+    .article-stat-row {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 12px;
+    }
+    .ast-cell {
+      background: var(--navy-card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 16px; text-align: center;
+    }
+    .ast-val { font-family: 'Playfair Display', serif; font-weight: 900; font-size: 1.6rem; color: var(--coral); }
+    .ast-label { font-size: .7rem; color: var(--white-dim); margin-top: 4px; line-height: 1.4; }
+
+    .article-cta {
+      background: linear-gradient(135deg,rgba(232,96,76,.10),rgba(74,144,217,.06));
+      border: 1px solid rgba(232,96,76,.2); border-radius: 14px; padding: 20px 24px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    }
+    .article-cta p { font-size: .86rem; color: var(--white-dim); margin: 0; line-height: 1.6; }
+    .article-cta p strong { color: var(--white); font-weight: 600; }
+    .cta-btn {
+      background: var(--coral); color: #fff; font-weight: 700; font-size: .8rem;
+      padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer;
+      font-family: 'Plus Jakarta Sans', sans-serif; white-space: nowrap; transition: background .2s;
+      text-decoration: none; display: inline-block;
+    }
+    .cta-btn:hover { background: var(--coral-soft); }
+
+    /* disclaimer */
+    .article-disclaimer {
+      margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border);
+      font-size: .72rem; color: rgba(250,249,247,.25); line-height: 1.7;
+    }
+
+    /* ── LOAD MORE ── */
+    .load-more-wrap { text-align: center; padding: 8px 0 16px; }
+    .load-more-btn {
+      background: transparent; border: 1px solid var(--border); border-radius: 10px;
+      color: var(--white-dim); font-size: .84rem; font-weight: 600; padding: 13px 32px;
+      cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; transition: all .2s;
+    }
+    .load-more-btn:hover { border-color: var(--coral); color: var(--coral); }
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:1000px){
+      .featured-hero { grid-template-columns: 1fr; }
+      .fh-image { display: none; }
+      .blog-two-col { grid-template-columns: 1fr; }
+      .articles-grid { grid-template-columns: repeat(2,1fr); }
+      .article-card.large { grid-column: span 1; flex-direction: column; }
+      .article-card.large .ac-image { border-right: none; border-bottom: 1px solid var(--border); min-width: auto; }
+      .article-stat-row { grid-template-columns: 1fr 1fr; }
+    }
+    @media(max-width:720px){
+      .blog-hero { padding: calc(var(--nav-h)+32px) 20px 36px; }
+      .blog-hero-inner { grid-template-columns: 1fr; }
+      .blog-inner { padding: 32px 20px 60px; }
+      .cat-bar-inner { padding: 0 20px; }
+      .articles-grid { grid-template-columns: 1fr; }
+      .article-card.large { grid-column: span 1; }
+      .fh-content { padding: 28px 24px; }
+      .modal-body { padding: 0 24px 32px; }
+      .modal-header { padding: 24px 24px 0; }
+      .article-stat-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="logo">Finnpath<span class="logo-dot">.</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="learn.html">Learn</a></li>
+    <li><a href="calculator.html">Calculator</a></li>
+    <li><a href="simulator.html">Simulator</a></li>
+    <li><a href="blog.html" class="active">Blog</a></li>
+    <li><a href="paths.html">Your Path</a></li>
+  </ul>
+  <a href="compete.html" class="nav-cta">Compete</a>
+</nav>
+
+<!-- BLOG HERO -->
+<div class="blog-hero">
+  <div class="blog-hero-inner">
+    <div>
+      <div class="s-eyebrow">The Finnpath Blog</div>
+      <h1>Money explained.<br/><em>No jargon. No fluff.</em></h1>
+      <p>Plain-English articles on investing, markets, crypto, taxes, and real financial decisions — written for people who are just getting started and people who want to go deeper.</p>
+    </div>
+    <div class="blog-search-wrap">
+      <div class="blog-search">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search-input" placeholder="Search articles..." oninput="filterArticles()"/>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CATEGORY BAR -->
+<div class="cat-bar">
+  <div class="cat-bar-inner">
+    <button class="cat-btn active" onclick="setCategory('all',this)">All Articles</button>
+    <button class="cat-btn" onclick="setCategory('basics',this)">📘 Investing Basics</button>
+    <button class="cat-btn" onclick="setCategory('news',this)">📰 Market News</button>
+    <button class="cat-btn" onclick="setCategory('crypto',this)">₿ Crypto</button>
+    <button class="cat-btn" onclick="setCategory('tax',this)">🧾 Tax & Retirement</button>
+    <button class="cat-btn" onclick="setCategory('tools',this)">🧮 Tools & Calculators</button>
+  </div>
+</div>
+
+<!-- BLOG CONTENT -->
+<div class="blog-page">
+  <div class="blog-inner">
+
+    <!-- FEATURED HERO ARTICLE -->
+    <div class="featured-hero reveal" onclick="openArticle('featured')" id="featured-hero-wrap">
+      <div class="fh-content">
+        <div class="fh-meta">
+          <span class="cat-tag cat-basics">📘 Investing Basics</span>
+          <span class="fh-read-time">8 min read</span>
+          <span class="fh-featured-tag">Featured</span>
+        </div>
+        <h2>Why starting to invest at 22 makes you <em>4× richer</em> than starting at 32</h2>
+        <p class="fh-excerpt">The math behind compound interest is ruthless in the best possible way. We break down exactly how $300 a month at 22 grows into over a million dollars — and why waiting just 10 years costs you more than you'd ever guess. This is the one article we wish everyone read before their first paycheck.</p>
+        <div class="fh-footer">
+          <div class="author-row">
+            <div class="author-avatar" style="background:rgba(74,144,217,.15)">👩‍💻</div>
+            <div>
+              <div class="author-name">Priya Sharma</div>
+              <div class="author-date">March 15, 2025 · Finnpath Editor</div>
+            </div>
+          </div>
+          <button class="read-btn">Read Article →</button>
+        </div>
+      </div>
+      <div class="fh-image">
+        <div class="fh-illustration">📈</div>
+        <div class="fh-stat-chips">
+          <div class="fh-chip">
+            <span class="fh-chip-label">Start at 22 →</span>
+            <span class="fh-chip-val" style="color:var(--green)">$1,147,000</span>
+          </div>
+          <div class="fh-chip">
+            <span class="fh-chip-label">Start at 32 →</span>
+            <span class="fh-chip-val" style="color:var(--sky)">$567,000</span>
+          </div>
+          <div class="fh-chip">
+            <span class="fh-chip-label">Same $300/month · 7% return</span>
+            <span class="fh-chip-val" style="color:var(--coral)">4× difference</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LATEST ARTICLES -->
+    <div class="section-hdr reveal">
+      <h3>Latest Articles</h3>
+      <a href="#" class="see-all" onclick="return false">View all →</a>
+    </div>
+
+    <div class="articles-grid reveal" id="articles-grid">
+      <!-- JS renders cards -->
+    </div>
+
+    <!-- TWO-COL: TRENDING + NEWSLETTER -->
+    <div class="blog-two-col" id="trending-section">
+      <div>
+        <div class="section-hdr reveal">
+          <h3>Trending This Week</h3>
+        </div>
+        <div class="trending-list reveal" id="trending-list">
+          <!-- JS renders -->
+        </div>
+      </div>
+      <div class="reveal">
+        <div class="nl-sidebar">
+          <h4>Weekly money lessons</h4>
+          <p>One practical financial insight every week — in your inbox, in plain English. No spam, no upsells.</p>
+          <input class="nl-input" type="email" placeholder="you@email.com"/>
+          <button class="nl-btn">Subscribe Free</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOAD MORE -->
+    <div class="load-more-wrap reveal">
+      <button class="load-more-btn" onclick="loadMore()">Load more articles</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ARTICLE MODAL -->
+<div class="modal-overlay" id="article-modal" onclick="handleOverlayClick(event)">
+  <div class="modal-card" id="modal-card">
+    <div class="modal-header">
+      <div id="modal-meta-wrap"></div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div>
+      <div class="f-logo">Finnpath<span>.</span></div>
+      <p class="f-tagline">Financial education for every stage of life.</p>
+    </div>
+    <nav class="footer-nav">
+      <a href="index.html">Home</a>
+      <a href="learn.html">Learn</a>
+      <a href="calculator.html">Calculator</a>
+      <a href="simulator.html">Simulator</a>
+      <a href="blog.html">Blog</a>
+      <a href="paths.html">Your Path</a>
+      <a href="compete.html">Compete</a>
+    </nav>
+  </div>
+  <div class="footer-bottom">
+    <span class="footer-copy">© 2025 Finnpath · finnpath.com</span>
+    <p class="disclaimer">For educational and informational purposes only. Not financial, investment, or tax advice. Always consult a qualified financial advisor before making investment decisions.</p>
+  </div>
+</footer>
+
+<script>
+// ═══════════════════════════════════════════
+//  ARTICLES DATA
+// ═══════════════════════════════════════════
+const ARTICLES = [
+  {
+    id: 'roth-vs-traditional',
+    category: 'tax',
+    catLabel: '🧾 Tax & Retirement',
+    catClass: 'cat-tax',
+    emoji: '🏦',
+    title: 'Roth vs Traditional IRA: Which one actually wins in the long run?',
+    excerpt: 'The debate is simpler than you think. If you expect to be in a higher tax bracket at retirement — which most young people will — the Roth IRA wins almost every time. Here\'s the math.',
+    readTime: '6 min read',
+    author: 'Marcus Reid',
+    authorEmoji: '👨‍💼',
+    authorRole: 'Tax & Retirement Writer',
+    date: 'March 12, 2025',
+    large: false,
+    content: `
+      <h3>The core question is about taxes — now vs. later</h3>
+      <p>A Traditional IRA gives you a tax deduction today. A Roth IRA gives you tax-free withdrawals in retirement. The question is simple: <strong>when do you want to pay taxes?</strong> When you're young and earning less — or when you're retired and (hopefully) living off decades of compounded growth?</p>
+      <p>For most people in their 20s and early 30s, the answer is obvious: pay taxes now, at your lower rate, and let decades of tax-free growth do the heavy lifting.</p>
+      <div class="article-callout">
+        <p><strong>The Roth rule of thumb:</strong> If your current tax bracket is lower than you expect it to be in retirement, choose Roth. If you're in your highest earning years right now, Traditional may make more sense.</p>
+      </div>
+      <h3>The numbers side by side</h3>
+      <div class="article-stat-row">
+        <div class="ast-cell"><div class="ast-val" style="color:var(--green)">$0</div><div class="ast-label">Tax on Roth withdrawals in retirement</div></div>
+        <div class="ast-cell"><div class="ast-val" style="color:var(--sky)">22%</div><div class="ast-label">Typical tax bracket for a 25-year-old earning $60k</div></div>
+        <div class="ast-cell"><div class="ast-val" style="color:var(--coral)">$7,000</div><div class="ast-label">2025 annual contribution limit for both types</div></div>
+      </div>
+      <h3>When Traditional wins</h3>
+      <p>If you're currently in a high tax bracket — say, earning over $120,000 and in the 24% or 32% bracket — a Traditional IRA's upfront deduction becomes more valuable. You're getting a bigger tax break today, and you can invest the difference. It's also the right call if you expect to be in a lower bracket in retirement than you are now.</p>
+      <h3>The Backdoor Roth: for high earners</h3>
+      <p>Roth IRA contributions phase out above $146,000 (single, 2025). But high earners can still access Roth benefits through a "Backdoor Roth" — contributing to a non-deductible Traditional IRA and converting it to Roth. <strong>It's completely legal and widely used.</strong> Consult a financial advisor for the specifics.</p>
+      <ul class="article-list">
+        <li><strong>Under $75k income:</strong> Roth IRA is almost certainly the better choice</li>
+        <li><strong>$75k–$120k income:</strong> Roth still favored for most; run the numbers</li>
+        <li><strong>Over $146k income:</strong> Backdoor Roth or Traditional depending on situation</li>
+        <li><strong>Both have the same contribution limit:</strong> $7,000/year in 2025</li>
+      </ul>
+      <div class="article-cta">
+        <p><strong>See how your IRA could grow.</strong> Run the numbers with our compound interest calculator.</p>
+        <a href="calculator.html" class="cta-btn">Try the Calculator →</a>
+      </div>`
+  },
+  {
+    id: 'crypto-beginners',
+    category: 'crypto',
+    catLabel: '₿ Crypto',
+    catClass: 'cat-crypto',
+    emoji: '₿',
+    title: 'Crypto for beginners: What Bitcoin actually is — and what it isn\'t',
+    excerpt: 'Beyond the hype and the crashes, here\'s a grounded explanation of what cryptocurrency is, why it exists, and how to think about it as part of a financial plan.',
+    readTime: '7 min read',
+    author: 'Finnpath Team',
+    authorEmoji: '🏦',
+    authorRole: 'Finnpath Editorial',
+    date: 'March 10, 2025',
+    large: false,
+    content: `
+      <h3>What is Bitcoin, really?</h3>
+      <p>Bitcoin is a <strong>decentralized digital currency</strong> — money that exists on a global network of computers, not controlled by any government, bank, or company. Every transaction is recorded on a public ledger called the blockchain, and the supply of Bitcoin is capped at 21 million coins, hard-coded into the software.</p>
+      <p>That scarcity is the key feature. Unlike dollars, which central banks can print more of, <em>no one can create more Bitcoin</em>. That's why many people compare it to digital gold — a store of value rather than a transactional currency.</p>
+      <div class="article-callout">
+        <p><strong>The honest truth:</strong> Bitcoin and crypto are highly speculative assets. They can rise 10× in a year and fall 80% the next. Anyone telling you it's guaranteed gains is wrong. Anyone telling you it's worthless is also probably wrong. The truth is somewhere in the volatile middle.</p>
+      </div>
+      <h3>The three things crypto is used for</h3>
+      <ul class="article-list">
+        <li><strong>Speculation:</strong> Most retail buyers are betting on price appreciation. This drives most of the volatility.</li>
+        <li><strong>Store of value:</strong> In countries with unstable currencies, Bitcoin offers a way to hold value outside the local banking system.</li>
+        <li><strong>DeFi and smart contracts:</strong> Ethereum enables programmable financial contracts without banks as intermediaries. This is still early-stage but genuinely interesting.</li>
+      </ul>
+      <h3>How much should you allocate?</h3>
+      <p>The common advice from financial planners who accept crypto as a legitimate asset class: <strong>no more than 5-10% of your investable portfolio</strong>. Enough that if it goes 5× you benefit meaningfully. Small enough that if it drops 80% — which Bitcoin has done three times — it doesn't wreck your financial plan.</p>
+      <p>The order of operations matters: build your emergency fund, max your Roth IRA, capture your 401k match — and only then consider crypto with money you could genuinely afford to lose entirely.</p>
+      <div class="article-stat-row">
+        <div class="ast-cell"><div class="ast-val" style="color:var(--gold)">3×</div><div class="ast-label">Times Bitcoin has fallen 80%+ from its peak</div></div>
+        <div class="ast-cell"><div class="ast-val" style="color:var(--green)">10%</div><div class="ast-label">Max portfolio allocation most advisors suggest</div></div>
+        <div class="ast-cell"><div class="ast-val" style="color:var(--coral)">21M</div><div class="ast-label">Total Bitcoin that will ever exist</div></div>
+      </div>
+      <div class="article-cta">
+        <p><strong>Learn how crypto fits into a balanced portfolio.</strong> See our full guide on diversification.</p>
+        <a href="learn.html#indexfunds" class="cta-btn">Read the Guide →</a>
+      </div>`
+  },
+  {
+    id: 'market-volatility',
+    category: 'news',
+    catLabel: '📰 Market News',
+    catClass: 'cat-news',
+    emoji: '📉',
+    title: 'When the market drops 10% — here\'s exactly what to do (and not do)',
+    excerpt: 'Market corrections happen roughly every 2 years. Most investors make the same expensive mistake every single time. Here\'s what the data says actually works.',
+    readTime: '5 min read',
+    author: 'Finnpath Team',
+    authorEmoji: '🏦',
+    authorRole: 'Finnpath Editorial',
+    date: 'March 8, 2025',
+    large: true,
+    content: `
+      <h3>First: corrections are completely normal</h3>
+      <p>A market correction — defined as a 10% or more drop from a recent high — has happened on average <strong>every 1.9 years</strong> since 1950. Bear markets (drops of 20%+) happen roughly every 3-4 years. These are features of markets, not bugs. The emotional experience of watching your portfolio drop feels catastrophic every time. The data says something different.</p>
+      <div class="article-callout">
+        <p><strong>Important fact:</strong> Investors who stayed fully invested through every correction since 1980 dramatically outperformed those who tried to time the market and move to cash. Missing just the 10 best trading days in a 20-year period cuts returns nearly in half.</p>
+      </div>
+      <h3>What to actually do during a correction</h3>
+      <ul class="article-list">
+        <li><strong>Do nothing with your existing investments.</strong> Selling locks in losses permanently.</li>
+        <li><strong>Keep your automatic contributions running.</strong> Dollar cost averaging means you're buying more shares at lower prices — that's the strategy working correctly.</li>
+        <li><strong>Check your emergency fund.</strong> If you have 3-6 months of expenses in cash, you don't need to sell investments to cover life expenses.</li>
+        <li><strong>Consider buying more if you have cash available.</strong> Corrections are sales on stocks. The best investors view them as opportunities.</li>
+        <li><strong>Don't watch the news.</strong> Financial media is incentivized to make every drop feel like a crisis. It almost never is.</li>
+      </ul>
+      <h3>Historical context that helps</h3>
+      <p>The S&P 500 has returned to new highs after every single correction in its history. Every one. The average recovery time from a correction is about 4 months. From a bear market, about 2 years. <em>Long-term investors don't need to care about either timeline</em> — because they're not selling.</p>
+      <div class="article-cta">
+        <p><strong>Practice staying calm.</strong> Our stock simulator lets you experience market crashes with play money first.</p>
+        <a href="simulator.html" class="cta-btn">Try the Simulator →</a>
+      </div>`
+  },
+  {
+    id: 'first-job-401k',
+    category: 'tax',
+    catLabel: '🧾 Tax & Retirement',
+    catClass: 'cat-tax',
+    emoji: '💼',
+    title: 'Just started your first job? Here\'s the 401k decision you need to make this week',
+    excerpt: 'Most people ignore 401k enrollment for months. That\'s a costly mistake. Here\'s a 10-minute guide to making the right choices before your first paycheck.',
+    readTime: '6 min read',
+    author: 'Dani Okafor',
+    authorEmoji: '👩‍🎓',
+    authorRole: 'Personal Finance Writer',
+    date: 'March 5, 2025',
+    large: false,
+    content: `
+      <h3>Why this week matters</h3>
+      <p>Many companies auto-enroll new employees at a low contribution rate — often 3%. That means money is coming out of your paycheck no matter what. The question is whether you're <strong>capturing your full employer match</strong> and investing in the right funds.</p>
+      <div class="article-callout">
+        <p><strong>Biggest rookie mistake:</strong> Accepting the default contribution rate without checking if it's enough to get the full employer match. If your employer matches up to 6% but you're only contributing 3%, you're leaving free money on the table every single paycheck.</p>
+      </div>
+      <h3>The three decisions to make right now</h3>
+      <ul class="article-list">
+        <li><strong>Decision 1 — How much to contribute:</strong> At minimum, contribute enough to get the full employer match. That's your floor, not your ceiling.</li>
+        <li><strong>Decision 2 — Roth or Traditional 401k:</strong> If your employer offers both, choose Roth if you're young and in a low tax bracket. Same reasoning as a Roth IRA.</li>
+        <li><strong>Decision 3 — Which funds:</strong> Look for index funds with expense ratios under 0.20%. A Target Date Fund is an excellent default if you don't want to choose.</li>
+      </ul>
+      <h3>Reading your fund options</h3>
+      <p>Your 401k plan will list 10-30 fund options. It's intimidating. The good news: you only need to find one or two good ones. Look for: <strong>expense ratio</strong> (lower is better — under 0.20% is excellent), <strong>fund type</strong> (index funds beat actively managed over time), and <strong>diversification</strong> (a total market or S&P 500 fund covers you well).</p>
+      <div class="article-cta">
+        <p><strong>Upload your 401k documents</strong> and we'll decode your fund options in plain English.</p>
+        <a href="paths.html#jobber" class="cta-btn">Decode Your 401k →</a>
+      </div>`
+  },
+  {
+    id: 'dollar-cost-averaging',
+    category: 'basics',
+    catLabel: '📘 Investing Basics',
+    catClass: 'cat-basics',
+    emoji: '🔄',
+    title: 'Dollar cost averaging: The boring strategy that beats almost everyone',
+    excerpt: 'No timing required. No market watching. No stress. Invest a fixed amount every month and let the math work. Here\'s why it consistently outperforms active trading.',
+    readTime: '5 min read',
+    author: 'Marcus Reid',
+    authorEmoji: '👨‍💼',
+    authorRole: 'Tax & Retirement Writer',
+    date: 'March 3, 2025',
+    large: false,
+    content: `
+      <h3>What dollar cost averaging actually means</h3>
+      <p>Dollar cost averaging (DCA) is the practice of investing a fixed amount of money at regular intervals — say, $300 on the first of every month — regardless of what the market is doing. No timing, no guessing, no watching charts. Just consistency.</p>
+      <p>The strategy works because it <strong>removes emotion from investing</strong>. When prices drop, your $300 buys more shares automatically. When prices rise, you buy fewer. Over time, this results in a lower average cost per share than most people achieve by trying to time their purchases.</p>
+      <div class="article-callout">
+        <p><strong>The S&P 500 fact that matters:</strong> Missing just the 10 best trading days in a 20-year period reduces total returns by nearly 50%. DCA investors never miss those days — they're always invested.</p>
+      </div>
+      <h3>Why it beats market timing</h3>
+      <p>Academic research consistently shows that the overwhelming majority of active traders — including professional fund managers — underperform simple index fund investing over 10+ year periods. The problem isn't intelligence. It's that markets are <em>unpredictable</em> in the short term, and the costs of being wrong (both financially and emotionally) compound against you.</p>
+      <ul class="article-list">
+        <li><strong>Automate it:</strong> Set up automatic monthly transfers to your Roth IRA or brokerage account</li>
+        <li><strong>Invest on payday:</strong> Before you have a chance to spend the money</li>
+        <li><strong>Never pause during downturns:</strong> That's exactly when DCA works best</li>
+        <li><strong>Stay consistent for years:</strong> The compounding effect takes time to become significant</li>
+      </ul>
+      <div class="article-cta">
+        <p><strong>See DCA in action.</strong> Our simulator lets you practice buying through market events with play money.</p>
+        <a href="simulator.html" class="cta-btn">Try the Simulator →</a>
+      </div>`
+  },
+  {
+    id: 'expense-ratios',
+    category: 'tools',
+    catLabel: '🧮 Tools & Calculators',
+    catClass: 'cat-tools',
+    emoji: '📊',
+    title: 'The fee that silently steals $100,000 from your retirement (and how to stop it)',
+    excerpt: 'A 1% annual expense ratio sounds harmless. Over 30 years, it can cost you over $100,000 in lost returns. Here\'s how to find it and eliminate it.',
+    readTime: '4 min read',
+    author: 'Priya Sharma',
+    authorEmoji: '👩‍💻',
+    authorRole: 'Finnpath Editor',
+    date: 'February 28, 2025',
+    large: false,
+    content: `
+      <h3>What is an expense ratio?</h3>
+      <p>Every mutual fund and ETF charges an annual fee called the expense ratio — a percentage of your assets deducted automatically each year. You never see an invoice. The money is quietly taken from your fund's returns before you see them.</p>
+      <p>A 0.03% expense ratio (like Vanguard's VTI) costs $3 per year on a $10,000 investment. A 1.0% expense ratio costs $100 on the same investment. <strong>That difference compounds dramatically over time.</strong></p>
+      <div class="article-callout">
+        <p><strong>The real cost:</strong> On a $50,000 portfolio growing at 7% over 30 years, a 1% expense ratio vs 0.03% costs you approximately $112,000 in lost wealth. The fee isn't just money you paid — it's the compounding those dollars would have generated.</p>
+      </div>
+      <div class="article-stat-row">
+        <div class="ast-cell"><div class="ast-val" style="color:var(--green)">0.03%</div><div class="ast-label">Vanguard VTI expense ratio (world-class low)</div></div>
+        <div class="ast-cell"><div class="ast-val" style="color:var(--gold)">0.20%</div><div class="ast-label">Acceptable maximum for index funds</div></div>
+        <div class="ast-cell"><div class="ast-val" style="color:var(--coral)">1.0%+</div><div class="ast-label">Typical actively managed fund — avoid</div></div>
+      </div>
+      <h3>How to find your expense ratio</h3>
+      <p>Log into your 401k or brokerage account. Find the fund name. Google "[fund name] expense ratio" — it's public information. Alternatively, look it up on Morningstar or the fund's prospectus. If you're paying over 0.50%, you should seriously consider switching to a lower-cost alternative.</p>
+      <div class="article-cta">
+        <p><strong>Check if your 401k funds are costing you too much.</strong> Our paths page explains how to decode your plan.</p>
+        <a href="paths.html#jobber" class="cta-btn">Decode Your 401k →</a>
+      </div>`
+  },
+  {
+    id: 'emergency-fund-hysa',
+    category: 'basics',
+    catLabel: '📘 Investing Basics',
+    catClass: 'cat-basics',
+    emoji: '🛡️',
+    title: 'The best high-yield savings accounts of 2025 — ranked',
+    excerpt: 'Your emergency fund should be earning 4-5% APY, not the 0.01% your big bank pays. Here are the accounts worth opening right now.',
+    readTime: '4 min read',
+    author: 'Dani Okafor',
+    authorEmoji: '👩‍🎓',
+    authorRole: 'Personal Finance Writer',
+    date: 'February 25, 2025',
+    large: false,
+    content: `
+      <h3>Why your savings account is losing you money</h3>
+      <p>The national average savings account APY at large banks is approximately 0.47%. Meanwhile, high-yield savings accounts at online banks are offering 4.5-5.0% APY. On a $10,000 emergency fund, that's the difference between earning $47/year and earning $450-500/year. <strong>The gap is significant and requires no extra effort to capture.</strong></p>
+      <div class="article-callout">
+        <p><strong>FDIC insured:</strong> All accounts mentioned below are FDIC-insured up to $250,000 per depositor. Your money is as safe as it would be at any major bank.</p>
+      </div>
+      <h3>Top picks for 2025</h3>
+      <ul class="article-list">
+        <li><strong>Marcus by Goldman Sachs:</strong> Consistently competitive APY, no fees, no minimum balance, excellent mobile app. Our top recommendation for simplicity.</li>
+        <li><strong>SoFi High-Yield Savings:</strong> 4.60% APY (with direct deposit), no fees, also offers checking — good if you want banking in one place.</li>
+        <li><strong>Ally Bank:</strong> 4.35% APY, excellent customer service, easy to set up savings buckets for different goals.</li>
+        <li><strong>American Express High-Yield Savings:</strong> Competitive rate, strong brand trust, no minimum balance or fees.</li>
+        <li><strong>Discover Online Savings:</strong> 4.25% APY, solid app, good for existing Discover customers.</li>
+      </ul>
+      <h3>What to look for</h3>
+      <p>Compare on: current APY (changes frequently), no monthly fees, no minimum balance, FDIC insurance, and ease of transferring money to your primary checking account. Transfer times matter — most online banks take 1-3 business days, which is fine for an emergency fund.</p>
+      <div class="article-cta">
+        <p><strong>Calculate how fast your emergency fund grows</strong> at 4.5% vs your current rate.</p>
+        <a href="calculator.html" class="cta-btn">Use the Calculator →</a>
+      </div>`
+  },
+  {
+    id: 'ethereum-explained',
+    category: 'crypto',
+    catLabel: '₿ Crypto',
+    catClass: 'cat-crypto',
+    emoji: '⬡',
+    title: 'Ethereum vs Bitcoin: What\'s the actual difference?',
+    excerpt: 'Bitcoin is digital gold. Ethereum is something different — a programmable financial platform. Here\'s what that means in plain English.',
+    readTime: '6 min read',
+    author: 'Finnpath Team',
+    authorEmoji: '🏦',
+    authorRole: 'Finnpath Editorial',
+    date: 'February 22, 2025',
+    large: false,
+    content: `
+      <h3>The simple version</h3>
+      <p>Bitcoin is designed to be one thing: <strong>a decentralized store of value</strong>. Digital gold. Its simplicity is a feature — the network does one job and does it extremely reliably.</p>
+      <p>Ethereum is a <strong>programmable blockchain platform</strong>. You can build applications on it — financial contracts, digital ownership (NFTs), decentralized exchanges, lending platforms — all running on code that executes automatically without a bank or company in the middle. Ether (ETH) is the currency that powers this network.</p>
+      <div class="article-callout">
+        <p><strong>The key distinction:</strong> Bitcoin is to Ethereum what gold is to the internet's infrastructure. One is a store of value; the other is a platform for building things. Both are speculative. Neither is a guaranteed investment.</p>
+      </div>
+      <h3>DeFi: why Ethereum actually matters</h3>
+      <p>Decentralized Finance (DeFi) is the most compelling real-world use case for Ethereum. Applications built on Ethereum allow people to borrow, lend, and trade assets without a bank or broker. In countries with unstable banking systems, this is genuinely transformative. In developed markets, it's still mostly speculative and early-stage.</p>
+      <div class="article-stat-row">
+        <div class="ast-cell"><div class="ast-val" style="color:var(--gold)">21M</div><div class="ast-label">Max Bitcoin supply — fixed forever</div></div>
+        <div class="ast-cell"><div class="ast-val" style="color:var(--sky)">∞</div><div class="ast-label">Ethereum — no hard supply cap</div></div>
+        <div class="ast-cell"><div class="ast-val" style="color:var(--coral)">10%</div><div class="ast-label">Suggested max portfolio allocation for crypto</div></div>
+      </div>
+      <div class="article-cta">
+        <p><strong>Practice trading crypto-adjacent stocks</strong> in the Finnpath simulator — no real money needed.</p>
+        <a href="simulator.html" class="cta-btn">Try the Simulator →</a>
+      </div>`
+  },
+];
+
+const TRENDING = [
+  { title: 'What the Fed\'s latest rate decision means for your savings account', cat: 'Market News', time: '3 min read', id: 'market-volatility' },
+  { title: 'The 50/30/20 budget rule — does it actually work in 2025?', cat: 'Basics', time: '5 min read', id: 'dollar-cost-averaging' },
+  { title: 'Should you pay off student loans or invest first?', cat: 'Tax & Retirement', time: '6 min read', id: 'roth-vs-traditional' },
+  { title: 'Bitcoin hits a new milestone — what it means for retail investors', cat: 'Crypto', time: '4 min read', id: 'crypto-beginners' },
+  { title: 'How to read a fund prospectus in under 10 minutes', cat: 'Tools', time: '5 min read', id: 'expense-ratios' },
+];
+
+// ═══════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════
+let activeCategory = 'all';
+let searchQuery    = '';
+let visibleCount   = 6;
+
+// ═══════════════════════════════════════════
+//  RENDER ARTICLES
+// ═══════════════════════════════════════════
+function getFiltered() {
+  return ARTICLES.filter(a => {
+    const matchCat  = activeCategory === 'all' || a.category === activeCategory;
+    const matchSearch = !searchQuery || a.title.toLowerCase().includes(searchQuery) || a.excerpt.toLowerCase().includes(searchQuery);
+    return matchCat && matchSearch;
+  });
+}
+
+function renderArticles() {
+  const grid = document.getElementById('articles-grid');
+  const filtered = getFiltered().slice(0, visibleCount);
+
+  if (!filtered.length) {
+    grid.innerHTML = `<div style="grid-column:span 3;text-align:center;padding:48px 20px;color:var(--white-dim);font-size:.9rem">No articles found. Try a different search or category.</div>`;
+    return;
+  }
+
+  grid.innerHTML = '';
+  filtered.forEach(a => {
+    const card = document.createElement('div');
+    card.className = `article-card${a.large ? ' large' : ''}`;
+    card.onclick = () => openArticle(a.id);
+    card.innerHTML = `
+      <div class="ac-image"><span>${a.emoji}</span></div>
+      <div class="ac-body">
+        <div class="ac-meta">
+          <span class="cat-tag ${a.catClass}">${a.catLabel}</span>
+          <span class="ac-read-time">${a.readTime}</span>
+        </div>
+        <div class="ac-title">${a.title}</div>
+        <div class="ac-excerpt">${a.excerpt}</div>
+        <div class="ac-footer">
+          <div class="ac-author"><span class="ac-avatar">${a.authorEmoji}</span>${a.author} · ${a.date}</div>
+          <span class="ac-arrow">→</span>
+        </div>
+      </div>`;
+    grid.appendChild(card);
+  });
+
+  // featured visibility
+  const fh = document.getElementById('featured-hero-wrap');
+  if (fh) fh.style.display = (activeCategory !== 'all' && activeCategory !== 'basics') ? 'none' : '';
+}
+
+function renderTrending() {
+  const list = document.getElementById('trending-list');
+  list.innerHTML = '';
+  TRENDING.forEach((t, i) => {
+    const item = document.createElement('div');
+    item.className = 'trending-item';
+    item.onclick = () => openArticle(t.id);
+    item.innerHTML = `
+      <div class="trend-num">${i + 1}</div>
+      <div>
+        <div class="trend-title">${t.title}</div>
+        <div class="trend-meta"><span>${t.cat}</span><span>·</span><span>${t.time}</span></div>
+      </div>`;
+    list.appendChild(item);
+  });
+}
+
+// ═══════════════════════════════════════════
+//  FILTERS
+// ═══════════════════════════════════════════
+function setCategory(cat, btn) {
+  activeCategory = cat;
+  visibleCount = 6;
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderArticles();
+}
+
+function filterArticles() {
+  searchQuery = document.getElementById('search-input').value.toLowerCase().trim();
+  visibleCount = 6;
+  renderArticles();
+}
+
+function loadMore() {
+  visibleCount += 3;
+  renderArticles();
+}
+
+// ═══════════════════════════════════════════
+//  ARTICLE MODAL
+// ═══════════════════════════════════════════
+function openArticle(id) {
+  let article;
+  if (id === 'featured') {
+    article = {
+      id: 'featured',
+      catLabel: '📘 Investing Basics', catClass: 'cat-basics',
+      title: 'Why starting to invest at 22 makes you <em>4× richer</em> than starting at 32',
+      excerpt: 'The math behind compound interest is ruthless in the best possible way. We break down exactly how $300 a month at 22 grows into over a million dollars — and why waiting just 10 years costs you more than you\'d ever guess.',
+      author: 'Priya Sharma', authorEmoji: '👩‍💻', authorRole: 'Finnpath Editor',
+      date: 'March 15, 2025', readTime: '8 min read',
+      content: `
+        <h3>The snowball you can't stop</h3>
+        <p>Compound interest is the process of earning returns on your returns. Every year, your gains from the previous year start generating their own gains. This creates a self-reinforcing cycle that starts slowly and accelerates dramatically over time.</p>
+        <p>The critical insight most people miss: <strong>the acceleration is exponential, not linear.</strong> That's why the difference between starting at 22 and starting at 32 isn't a $300,000 gap — it's a $580,000 gap, even though the later starter only missed 10 years of contributions.</p>
+        <div class="article-stat-row">
+          <div class="ast-cell"><div class="ast-val" style="color:var(--green)">$1,147,000</div><div class="ast-label">Starting at 22 · $300/mo · 7% return</div></div>
+          <div class="ast-cell"><div class="ast-val" style="color:var(--sky)">$567,000</div><div class="ast-label">Starting at 32 · Same amount · Same return</div></div>
+          <div class="ast-cell"><div class="ast-val" style="color:var(--coral)">$580,000</div><div class="ast-label">The cost of waiting just 10 years</div></div>
+        </div>
+        <h3>Why the gap is so large</h3>
+        <p>By year 43 (retirement at 65, starting at 22), the portfolio is earning approximately <strong>$75,000 per year in interest alone</strong> — on autopilot. That's more than many full-time salaries. The money has been working long enough to become its own income stream.</p>
+        <p>The person who started at 32 never reaches that inflection point. Their portfolio earns around $35,000/year in interest by retirement — meaningful, but not self-sustaining in the same way. They contributed $72,000 less over their lifetime, but the gap in final wealth is over 8× that amount. <em>That's compounding.</em></p>
+        <div class="article-callout">
+          <p><strong>The Rule of 72:</strong> At 7% returns, money doubles every 10 years. The 22-year-old gets 4+ doublings before retirement. The 32-year-old gets 3+. That missing doubling is the entire difference.</p>
+        </div>
+        <h3>What if you're already 30?</h3>
+        <p>Start today. Seriously. Every month you wait is genuinely costly, but the math still works powerfully from any age. A 35-year-old investing $300/month at 7% still reaches $340,000 by 65. That's real money, and it's not too late. The point of this comparison isn't to make you feel bad — it's to motivate immediate action.</p>
+        <ul class="article-list">
+          <li><strong>Open a Roth IRA today.</strong> Fidelity and Vanguard take about 15 minutes. No minimums.</li>
+          <li><strong>Automate your contributions.</strong> Set it and forget it — even $50/month to start.</li>
+          <li><strong>Increase by 1% every year.</strong> Increase your contribution percentage each time you get a raise.</li>
+          <li><strong>Never stop.</strong> Time in market beats timing the market — always.</li>
+        </ul>
+        <div class="article-cta">
+          <p><strong>See your exact numbers.</strong> Enter your age and monthly contribution to see what compounding will do for you.</p>
+          <a href="calculator.html" class="cta-btn">Open Calculator →</a>
+        </div>`
+    };
+  } else {
+    article = ARTICLES.find(a => a.id === id);
+  }
+  if (!article) return;
+
+  // Build modal
+  document.getElementById('modal-meta-wrap').innerHTML = `
+    <div class="modal-meta">
+      <span class="cat-tag ${article.catClass}">${article.catLabel}</span>
+      <span style="font-size:.7rem;color:var(--white-dim)">${article.readTime || '6 min read'}</span>
+    </div>`;
+
+  document.getElementById('modal-body').innerHTML = `
+    <h2>${article.title}</h2>
+    <p class="modal-excerpt">${article.excerpt}</p>
+    <div class="modal-author">
+      <div class="modal-avatar">${article.authorEmoji}</div>
+      <div>
+        <div class="modal-author-name">${article.author}</div>
+        <div class="modal-author-role">${article.authorRole} · ${article.date}</div>
+      </div>
+    </div>
+    <div class="article-content">${article.content}</div>
+    <div class="article-disclaimer">This article is for educational purposes only and does not constitute financial, investment, or tax advice. Always consult a qualified financial advisor for personalized guidance.</div>`;
+
+  document.getElementById('article-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('article-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('article-modal')) closeModal();
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// ═══════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════
+renderArticles();
+renderTrending();
+
+// Scroll reveal
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); obs.unobserve(e.target); } });
+}, { threshold: 0.06 });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>

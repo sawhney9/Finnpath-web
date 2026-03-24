@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Learn — Finnpath Financial Education</title>
+  <meta name="description" content="Understand compound interest, the Rule of 72, dollar cost averaging, index funds, Roth IRAs, and 401ks — explained simply for every age."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="shared.css"/>
+  <style>
+
+    /* ── PAGE HERO ── */
+    .page-hero {
+      padding: calc(var(--nav-h) + 64px) 56px 72px;
+      background: var(--navy-mid); border-bottom: 1px solid var(--border);
+      position: relative; z-index: 1; overflow: hidden;
+    }
+    .page-hero::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      background:
+        radial-gradient(ellipse 60% 80% at 90% 50%, rgba(232,96,76,.06) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 60% at 5%  50%, rgba(74,144,217,.07) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .page-hero-inner { max-width: 1160px; margin-inline: auto; position: relative; z-index: 1; }
+    .page-hero h1 {
+      font-family: 'Playfair Display', serif; font-weight: 900;
+      font-size: clamp(2.2rem, 5vw, 3.8rem); letter-spacing: -.03em; line-height: 1.08;
+      animation: fadeUp .5s ease both;
+    }
+    .page-hero h1 em { font-style: italic; color: var(--coral); }
+    .page-hero p {
+      font-size: 1rem; color: var(--white-dim); font-weight: 300;
+      line-height: 1.8; max-width: 580px; margin-top: 16px;
+      animation: fadeUp .5s .08s ease both;
+    }
+
+    /* topic nav pills */
+    .topic-nav {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-top: 36px;
+      animation: fadeUp .5s .16s ease both;
+    }
+    .topic-pill {
+      background: var(--navy-card); border: 1px solid var(--border);
+      border-radius: 100px; padding: 8px 18px;
+      font-size: .78rem; font-weight: 600; color: var(--white-dim);
+      text-decoration: none; transition: all .2s;
+    }
+    .topic-pill:hover { border-color: var(--coral); color: var(--white); background: rgba(232,96,76,.08); }
+
+    /* ── LAYOUT ── */
+    .learn-page { position: relative; z-index: 1; }
+
+    /* sticky sidebar TOC */
+    .learn-grid {
+      max-width: 1160px; margin-inline: auto;
+      display: grid; grid-template-columns: 220px 1fr;
+      gap: 48px; padding: 56px 56px 80px;
+    }
+    .toc {
+      position: sticky; top: calc(var(--nav-h) + 24px);
+      height: fit-content;
+    }
+    .toc-title {
+      font-size: .65rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--white-dim); margin-bottom: 16px;
+    }
+    .toc-list { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+    .toc-list a {
+      display: block; font-size: .8rem; font-weight: 500; color: var(--white-dim);
+      text-decoration: none; padding: 7px 12px; border-radius: 8px;
+      border-left: 2px solid transparent; transition: all .2s;
+    }
+    .toc-list a:hover { color: var(--white); background: var(--white-faint); border-left-color: var(--coral); }
+    .toc-list a.active { color: var(--coral); background: rgba(232,96,76,.08); border-left-color: var(--coral); }
+    .toc-divider { height: 1px; background: var(--border); margin: 10px 0; }
+    .toc-cta {
+      margin-top: 20px; background: var(--coral); color: var(--white);
+      font-weight: 700; font-size: .78rem; padding: 10px 16px;
+      border-radius: 8px; text-decoration: none; display: block; text-align: center;
+      transition: background .2s; box-shadow: 0 4px 16px var(--coral-glow);
+    }
+    .toc-cta:hover { background: var(--coral-soft); }
+
+    /* ── ARTICLE CONTENT ── */
+    .learn-content { min-width: 0; }
+
+    /* section wrapper */
+    .learn-section {
+      padding-bottom: 72px; margin-bottom: 72px;
+      border-bottom: 1px solid var(--border);
+    }
+    .learn-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+    .section-number {
+      font-family: 'Playfair Display', serif; font-weight: 900;
+      font-size: 4rem; line-height: 1; color: rgba(232,96,76,.12);
+      margin-bottom: -8px;
+    }
+    .learn-section h2 {
+      font-size: clamp(1.6rem, 3vw, 2.4rem);
+      margin-bottom: 8px;
+    }
+    .section-tagline {
+      font-size: .85rem; color: var(--coral); font-weight: 600;
+      letter-spacing: .02em; margin-bottom: 24px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-tagline::before { content: ''; width: 20px; height: 1px; background: var(--coral); }
+
+    .learn-body p {
+      font-size: .97rem; color: var(--white-dim); line-height: 1.85;
+      margin-bottom: 18px; font-weight: 300;
+    }
+    .learn-body p:last-child { margin-bottom: 0; }
+    .learn-body p strong { color: var(--white); font-weight: 600; }
+    .learn-body p em { font-style: italic; color: var(--coral); }
+
+    /* callout box */
+    .callout {
+      background: var(--navy-mid); border: 1px solid var(--border);
+      border-left: 3px solid var(--coral);
+      border-radius: 0 12px 12px 0; padding: 20px 24px;
+      margin: 24px 0;
+    }
+    .callout.sky-left   { border-left-color: var(--sky); }
+    .callout.green-left { border-left-color: var(--green); }
+    .callout.gold-left  { border-left-color: var(--gold); }
+    .callout-label {
+      font-size: .65rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--coral); margin-bottom: 6px;
+    }
+    .callout.sky-left   .callout-label { color: var(--sky); }
+    .callout.green-left .callout-label { color: var(--green); }
+    .callout.gold-left  .callout-label { color: var(--gold); }
+    .callout p { margin: 0 !important; font-size: .88rem !important; }
+
+    /* visual components */
+    .visual-card {
+      background: var(--navy-mid); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden; margin: 28px 0;
+    }
+    .visual-card-head {
+      padding: 16px 22px; background: var(--navy-card);
+      border-bottom: 1px solid var(--border);
+      font-size: .72rem; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--white-dim);
+    }
+    .visual-card-body { padding: 24px 22px; }
+
+    /* snowball rows */
+    .snow-rows { display: flex; flex-direction: column; gap: 10px; }
+    .snow-row  { display: grid; grid-template-columns: 72px 1fr 100px; gap: 12px; align-items: center; }
+    .snow-year { font-size: .7rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--white-dim); text-align: right; }
+    .snow-bar-outer { height: 34px; background: var(--navy-card); border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+    .snow-bar-inner {
+      height: 100%; border-radius: 8px; min-width: 40px;
+      background: linear-gradient(90deg, var(--sky), var(--coral));
+      display: flex; align-items: center; padding-left: 10px;
+    }
+    .snow-bar-inner span { font-size: .68rem; font-weight: 700; color: var(--white); white-space: nowrap; }
+    .snow-gain { font-size: .7rem; color: var(--green); font-weight: 600; }
+
+    /* rule of 72 grid */
+    .r72-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 2px; background: var(--border); border-radius: 12px; overflow: hidden; }
+    .r72-cell { background: var(--navy-mid); padding: 18px 14px; transition: background .2s; }
+    .r72-cell:hover { background: var(--navy-soft); }
+    .r72-rate { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.6rem; color: var(--coral); }
+    .r72-label { font-size: .68rem; color: var(--white-dim); margin-top: 3px; line-height: 1.4; }
+    .r72-result { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); font-size: .7rem; color: var(--white-dim); }
+    .r72-result strong { color: var(--white); font-size: .85rem; display: block; margin-top: 2px; }
+
+    /* comparison cards */
+    .compare-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin: 24px 0; }
+    .cmp { background: var(--navy-mid); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px 20px; }
+    .cmp.best { border-color: rgba(232,96,76,.3); background: linear-gradient(160deg,rgba(232,96,76,.08),var(--navy-mid)); }
+    .cmp-best-tag { display: inline-block; background: var(--coral); color: #fff; font-size: .6rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 3px 9px; border-radius: 100px; margin-bottom: 10px; }
+    .cmp-age { font-size: .66rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--white-dim); }
+    .cmp-name { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.1rem; margin-bottom: 12px; }
+    .cmp-bar-outer { height: 5px; background: var(--navy-card); border-radius: 100px; overflow: hidden; margin-bottom: 8px; }
+    .cmp-bar-inner { height: 100%; border-radius: 100px; }
+    .cmp-amount { font-family: 'Playfair Display', serif; font-weight: 900; font-size: 1.6rem; letter-spacing: -.02em; margin-bottom: 3px; }
+    .cmp-sub { font-size: .7rem; color: var(--white-dim); }
+    .cmp-gain { font-size: .74rem; font-weight: 600; margin-top: 7px; }
+
+    /* DCA simulator */
+    .dca-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+    .dca-table th { padding: 10px 14px; text-align: right; font-size: .64rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--white-dim); border-bottom: 1px solid var(--border); }
+    .dca-table th:first-child { text-align: left; }
+    .dca-table td { padding: 10px 14px; text-align: right; color: var(--white-dim); border-bottom: 1px solid rgba(250,249,247,.04); }
+    .dca-table td:first-child { text-align: left; color: var(--white); font-weight: 600; }
+    .dca-table tr:last-child td { border-bottom: none; font-weight: 700; color: var(--white); }
+    .dca-table .up { color: var(--green); }
+    .dca-table .down { color: var(--coral); }
+    .dca-table .avg-row td { background: rgba(212,245,60,.04); border-top: 1px solid var(--border); }
+
+    /* fund comparison */
+    .fund-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 24px 0; }
+    .fund-card { background: var(--navy-mid); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px 20px; }
+    .fund-card.good { border-color: rgba(61,186,126,.25); background: rgba(61,186,126,.04); }
+    .fund-card.bad  { border-color: rgba(232,96,76,.2);  background: rgba(232,96,76,.04); }
+    .fund-type { font-size: .64rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 8px; }
+    .fund-type.g { color: var(--green); } .fund-type.b { color: var(--coral); }
+    .fund-name { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.1rem; margin-bottom: 14px; }
+    .fund-stat { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: .8rem; }
+    .fund-stat:last-child { border-bottom: none; }
+    .fund-stat-label { color: var(--white-dim); }
+    .fund-stat-val { font-weight: 700; }
+    .fund-stat-val.g { color: var(--green); }
+    .fund-stat-val.b { color: var(--coral); }
+
+    /* ira types */
+    .ira-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 24px 0; }
+    .ira-card { background: var(--navy-mid); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px 20px; }
+    .ira-card.roth { border-color: rgba(61,186,126,.25); }
+    .ira-card.trad { border-color: rgba(74,144,217,.22); }
+    .ira-type { font-size: .64rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 4px; }
+    .ira-type.r { color: var(--green); } .ira-type.t { color: var(--sky); }
+    .ira-name { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.1rem; margin-bottom: 14px; }
+    .ira-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: .78rem; gap: 12px; }
+    .ira-row:last-child { border-bottom: none; }
+    .ira-row-label { color: var(--white-dim); flex-shrink: 0; }
+    .ira-row-val { font-weight: 600; text-align: right; }
+    .ira-row-val.g { color: var(--green); } .ira-row-val.s { color: var(--sky); }
+
+    /* 401k match visual */
+    .match-visual { display: flex; flex-direction: column; gap: 12px; margin: 24px 0; }
+    .match-row { background: var(--navy-mid); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; display: grid; grid-template-columns: 160px 1fr auto; gap: 16px; align-items: center; }
+    .match-row.highlight { border-color: rgba(61,186,126,.28); background: rgba(61,186,126,.05); }
+    .match-label { font-size: .8rem; font-weight: 600; }
+    .match-bar-outer { height: 12px; background: var(--navy-card); border-radius: 100px; overflow: hidden; }
+    .match-bar-inner { height: 100%; border-radius: 100px; }
+    .match-total { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.1rem; white-space: nowrap; }
+
+    /* key points list */
+    .key-points { list-style: none; display: flex; flex-direction: column; gap: 10px; margin: 20px 0; }
+    .key-points li {
+      display: flex; gap: 12px; align-items: flex-start;
+      font-size: .9rem; color: var(--white-dim); line-height: 1.65;
+    }
+    .key-points li::before { content: '→'; color: var(--coral); font-weight: 700; flex-shrink: 0; margin-top: 2px; }
+    .key-points li strong { color: var(--white); font-weight: 600; }
+
+    /* action card at bottom of each section */
+    .section-cta {
+      background: var(--navy-card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 18px 22px; margin-top: 28px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    }
+    .section-cta p { font-size: .84rem; color: var(--white-dim); margin: 0; }
+    .section-cta p strong { color: var(--white); font-weight: 600; }
+    .sc-link {
+      background: var(--coral); color: #fff; font-weight: 700; font-size: .78rem;
+      padding: 9px 18px; border-radius: 7px; text-decoration: none; white-space: nowrap;
+      transition: background .2s; flex-shrink: 0;
+      box-shadow: 0 4px 12px var(--coral-glow);
+    }
+    .sc-link:hover { background: var(--coral-soft); }
+
+    /* progress bar at top */
+    #read-progress {
+      position: fixed; top: var(--nav-h); left: 0; right: 0; height: 2px; z-index: 199;
+      background: rgba(250,249,247,.06);
+    }
+    #read-progress-bar { height: 100%; background: var(--coral); width: 0%; transition: width .1s; }
+
+    @media(max-width:960px){
+      .learn-grid { grid-template-columns: 1fr; padding: 40px 20px 64px; }
+      .toc { display: none; }
+      .compare-row { grid-template-columns: 1fr; }
+      .ira-compare { grid-template-columns: 1fr; }
+      .fund-compare { grid-template-columns: 1fr; }
+      .r72-grid { grid-template-columns: repeat(3,1fr); }
+      .match-row { grid-template-columns: 1fr auto; }
+      .match-bar-outer { display: none; }
+    }
+    @media(max-width:640px){
+      .page-hero { padding: calc(var(--nav-h)+36px) 20px 48px; }
+      .r72-grid { grid-template-columns: repeat(2,1fr); }
+      .snow-row { grid-template-columns: 56px 1fr; }
+      .snow-gain { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- READ PROGRESS -->
+<div id="read-progress"><div id="read-progress-bar"></div></div>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="logo">Finnpath<span class="logo-dot">.</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="learn.html" class="active">Learn</a></li>
+    <li><a href="calculator.html">Calculator</a></li>
+    <li><a href="simulator.html">Simulator</a></li>
+    <li><a href="paths.html">Your Path</a></li>
+  </ul>
+  <a href="calculator.html" class="nav-cta">Try Calculator</a>
+</nav>
+
+<!-- PAGE HERO -->
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <div class="s-eyebrow">Financial Education</div>
+    <h1>Everything you need to know<br/>about <em>building wealth</em></h1>
+    <p>Six essential concepts — explained simply, with real numbers and visuals. No jargon, no gatekeeping. Whether you're 15 or 30, this is your starting point.</p>
+    <div class="topic-nav">
+      <a href="#compound"    class="topic-pill">01 · Compound Interest</a>
+      <a href="#rule72"      class="topic-pill">02 · Rule of 72</a>
+      <a href="#dca"         class="topic-pill">03 · Dollar Cost Averaging</a>
+      <a href="#indexfunds"  class="topic-pill">04 · Index Funds</a>
+      <a href="#ira"         class="topic-pill">05 · Roth IRA</a>
+      <a href="#401k"        class="topic-pill">06 · 401k & Employer Match</a>
+    </div>
+  </div>
+</div>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <span class="hi">Compound Interest</span><span>·</span><span>Dollar Cost Averaging</span><span>·</span>
+    <span class="hi">Roth IRA</span><span>·</span><span>401k Match</span><span>·</span>
+    <span class="hi">Index Funds</span><span>·</span><span>Expense Ratio</span><span>·</span>
+    <span class="hi">Rule of 72</span><span>·</span><span>Vesting Schedule</span><span>·</span>
+    <span>Emergency Fund</span><span>·</span><span>Net Worth</span><span>·</span>
+    <span class="hi">Compound Interest</span><span>·</span><span>Dollar Cost Averaging</span><span>·</span>
+    <span class="hi">Roth IRA</span><span>·</span><span>401k Match</span><span>·</span>
+    <span class="hi">Index Funds</span><span>·</span><span>Expense Ratio</span><span>·</span>
+    <span class="hi">Rule of 72</span><span>·</span><span>Vesting Schedule</span><span>·</span>
+    <span>Emergency Fund</span><span>·</span><span>Net Worth</span><span>·</span>
+  </div>
+</div>
+
+<!-- MAIN LEARN GRID -->
+<div class="learn-page">
+  <div class="learn-grid">
+
+    <!-- SIDEBAR TOC -->
+    <aside class="toc">
+      <div class="toc-title">On this page</div>
+      <ul class="toc-list">
+        <li><a href="#compound"   class="toc-link">01 · Compound Interest</a></li>
+        <li><a href="#rule72"     class="toc-link">02 · Rule of 72</a></li>
+        <div class="toc-divider"></div>
+        <li><a href="#dca"        class="toc-link">03 · Dollar Cost Averaging</a></li>
+        <li><a href="#indexfunds" class="toc-link">04 · Index Funds</a></li>
+        <div class="toc-divider"></div>
+        <li><a href="#ira"        class="toc-link">05 · Roth IRA</a></li>
+        <li><a href="#401k"       class="toc-link">06 · 401k & Employer Match</a></li>
+        <div class="toc-divider"></div>
+        <li><a href="#emergency"  class="toc-link">07 · Emergency Fund</a></li>
+        <li><a href="#action"     class="toc-link">Your Action Plan</a></li>
+      </ul>
+      <a href="calculator.html" class="toc-cta">→ Try the Calculator</a>
+    </aside>
+
+    <!-- CONTENT -->
+    <div class="learn-content">
+
+      <!-- ── 01 COMPOUND INTEREST ── -->
+      <div class="learn-section reveal" id="compound">
+        <div class="section-number">01</div>
+        <h2>Compound Interest</h2>
+        <div class="section-tagline">The most powerful force in personal finance</div>
+        <div class="learn-body">
+          <p>Here's the idea in one sentence: <strong>your returns earn returns.</strong> When you invest $1,000 and earn 7%, you have $1,070. Next year, that $1,070 earns 7% — so you gain $74.90, not $70. The following year your gains are even bigger. This cycle accelerates over time into something remarkable.</p>
+          <p>It starts slow. In the early years, compounding feels barely noticeable. But given enough time, the curve bends sharply upward. After 30-40 years, <em>the market is doing far more work than you are</em> — often earning you 5–7× what you personally contributed.</p>
+
+          <div class="callout">
+            <div class="callout-label">The core insight</div>
+            <p><strong>Time is the most powerful ingredient in compounding — more than the amount you invest, more than the return rate.</strong> A smaller amount started earlier will almost always beat a larger amount started later.</p>
+          </div>
+
+          <!-- Snowball visual -->
+          <div class="visual-card">
+            <div class="visual-card-head">$300/month at 7% annual return — how it snowballs over time</div>
+            <div class="visual-card-body">
+              <div class="snow-rows">
+                <div class="snow-row">
+                  <div class="snow-year">Year 1</div>
+                  <div class="snow-bar-outer"><div class="snow-bar-inner" style="width:3%"><span>$3,742</span></div></div>
+                  <div class="snow-gain">+$142 interest</div>
+                </div>
+                <div class="snow-row">
+                  <div class="snow-year">Year 5</div>
+                  <div class="snow-bar-outer"><div class="snow-bar-inner" style="width:14%"><span>$21,767</span></div></div>
+                  <div class="snow-gain">+$1,400/yr interest</div>
+                </div>
+                <div class="snow-row">
+                  <div class="snow-year">Year 10</div>
+                  <div class="snow-bar-outer"><div class="snow-bar-inner" style="width:30%"><span>$51,943</span></div></div>
+                  <div class="snow-gain">+$3,400/yr interest</div>
+                </div>
+                <div class="snow-row">
+                  <div class="snow-year">Year 20</div>
+                  <div class="snow-bar-outer"><div class="snow-bar-inner" style="width:62%"><span>$163,145</span></div></div>
+                  <div class="snow-gain">+$10,700/yr interest</div>
+                </div>
+                <div class="snow-row">
+                  <div class="snow-year">Year 30</div>
+                  <div class="snow-bar-outer"><div class="snow-bar-inner" style="width:84%"><span>$405,806</span></div></div>
+                  <div class="snow-gain">+$26,700/yr interest</div>
+                </div>
+                <div class="snow-row">
+                  <div class="snow-year">Year 43</div>
+                  <div class="snow-bar-outer"><div class="snow-bar-inner" style="width:100%"><span>$1,147,000</span></div></div>
+                  <div class="snow-gain">+$75,000/yr interest</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p>Notice what happens in the final years. By year 43, the portfolio is earning <strong>~$75,000 per year in interest alone</strong> — more than many people earn from working. That's compounding at full power. Your $300/month contribution barely matters at that point — the momentum is self-sustaining.</p>
+
+          <!-- Age comparison -->
+          <p>The single most important decision isn't <em>where</em> you invest — it's <em>when you start</em>.</p>
+          <div class="compare-row">
+            <div class="cmp best">
+              <span class="cmp-best-tag">Best outcome</span>
+              <div class="cmp-age">Starts investing at</div>
+              <div class="cmp-name">Age 22 🏆</div>
+              <div class="cmp-bar-outer"><div class="cmp-bar-inner" style="width:100%;background:linear-gradient(90deg,var(--sky),var(--coral))"></div></div>
+              <div class="cmp-amount">$1,147,000</div>
+              <div class="cmp-sub">contributed $154,800 total</div>
+              <div class="cmp-gain" style="color:var(--coral)">+$992,200 from compounding</div>
+            </div>
+            <div class="cmp">
+              <div class="cmp-age">Starts investing at</div>
+              <div class="cmp-name">Age 32</div>
+              <div class="cmp-bar-outer"><div class="cmp-bar-inner" style="width:49%;background:var(--sky)"></div></div>
+              <div class="cmp-amount" style="color:var(--sky)">$567,000</div>
+              <div class="cmp-sub">contributed $118,800 total</div>
+              <div class="cmp-gain" style="color:var(--sky)">+$448,200 from compounding</div>
+            </div>
+            <div class="cmp">
+              <div class="cmp-age">Starts investing at</div>
+              <div class="cmp-name">Age 42</div>
+              <div class="cmp-bar-outer"><div class="cmp-bar-inner" style="width:24%;background:rgba(250,249,247,.2)"></div></div>
+              <div class="cmp-amount" style="color:var(--white-dim)">$274,000</div>
+              <div class="cmp-sub">contributed $82,800 total</div>
+              <div class="cmp-gain" style="color:var(--white-dim)">+$191,200 from compounding</div>
+            </div>
+          </div>
+
+          <div class="callout green-left">
+            <div class="callout-label">The takeaway</div>
+            <p>Starting at 22 produces <strong>4× more wealth than starting at 42</strong> — despite contributing only $72,000 more over a lifetime. Every decade of delay roughly cuts your ending balance in half. <strong>Start before you feel ready.</strong></p>
+          </div>
+        </div>
+        <div class="section-cta">
+          <p><strong>See your own numbers.</strong> Enter your age, contribution, and return rate to see exactly what compounding will do for you.</p>
+          <a href="calculator.html" class="sc-link">Open Calculator →</a>
+        </div>
+      </div>
+
+      <!-- ── 02 RULE OF 72 ── -->
+      <div class="learn-section reveal" id="rule72">
+        <div class="section-number">02</div>
+        <h2>The Rule of 72</h2>
+        <div class="section-tagline">The fastest mental math shortcut in investing</div>
+        <div class="learn-body">
+          <p>Divide 72 by your annual return rate. The result is roughly how many years it takes to <strong>double your money</strong>. That's it. No calculator needed.</p>
+          <p>At the historical S&P 500 average of ~7%, your money doubles every <em>10 years</em>. Start with $10,000 at age 22 and never add another dollar — by retirement at 65 you'd have gone through four doublings: $10k → $20k → $40k → $80k → $160,000. Add regular contributions and those numbers compound dramatically higher.</p>
+
+          <div class="callout gold-left">
+            <div class="callout-label">The formula</div>
+            <p><strong>72 ÷ annual return rate = years to double your money</strong><br/>Example: 72 ÷ 7% = 10.3 years. Your money doubles roughly every decade at 7% returns.</p>
+          </div>
+
+          <div class="visual-card">
+            <div class="visual-card-head">How long does it take to double your money at different return rates?</div>
+            <div class="visual-card-body">
+              <div class="r72-grid">
+                <div class="r72-cell"><div class="r72-rate">4%</div><div class="r72-label">Conservative bonds / HYSA</div><div class="r72-result">Doubles in<strong>18 years</strong></div></div>
+                <div class="r72-cell"><div class="r72-rate">6%</div><div class="r72-label">Balanced stocks + bonds</div><div class="r72-result">Doubles in<strong>12 years</strong></div></div>
+                <div class="r72-cell"><div class="r72-rate">7%</div><div class="r72-label">S&P 500 historical avg</div><div class="r72-result">Doubles in<strong>10 years</strong></div></div>
+                <div class="r72-cell"><div class="r72-rate">10%</div><div class="r72-label">Aggressive stock portfolio</div><div class="r72-result">Doubles in<strong>7.2 years</strong></div></div>
+                <div class="r72-cell"><div class="r72-rate">12%</div><div class="r72-label">S&P 500 nominal avg</div><div class="r72-result">Doubles in<strong>6 years</strong></div></div>
+              </div>
+            </div>
+          </div>
+
+          <p>The Rule of 72 also works in reverse — and it's sobering. <strong>Inflation at 3% halves your purchasing power in 24 years.</strong> Credit card debt at 24% doubles what you owe in 3 years. Understanding both directions of this rule is one of the most practically useful things in personal finance.</p>
+
+          <ul class="key-points">
+            <li><strong>72 ÷ 7% = 10 years</strong> — your investments double each decade at average market returns</li>
+            <li><strong>72 ÷ 3% = 24 years</strong> — inflation cuts your cash's purchasing power in half in 24 years</li>
+            <li><strong>72 ÷ 24% = 3 years</strong> — credit card debt doubles in 3 years if you only pay minimums</li>
+            <li><strong>72 ÷ 0.5% = 144 years</strong> — why leaving money in a regular savings account is a mistake</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- ── 03 DCA ── -->
+      <div class="learn-section reveal" id="dca">
+        <div class="section-number">03</div>
+        <h2>Dollar Cost Averaging</h2>
+        <div class="section-tagline">How to remove emotion from investing entirely</div>
+        <div class="learn-body">
+          <p>Dollar cost averaging (DCA) means investing a <strong>fixed amount on a fixed schedule</strong> — regardless of what the market is doing. $300 every first of the month. Every month. Whether the market is up, down, or sideways.</p>
+          <p>This sounds simple, but it solves one of the biggest problems in investing: <em>trying to time the market.</em> Nobody — not hedge fund managers, not financial advisors, not algorithms — can consistently predict market movements. DCA removes the temptation to try.</p>
+
+          <div class="callout sky-left">
+            <div class="callout-label">Why it works mathematically</div>
+            <p>When prices drop, your fixed amount buys <strong>more shares</strong>. When prices rise, it buys fewer. Over time you automatically accumulate more shares at lower average prices than you would by trying to time purchases. This is called a <strong>lower average cost basis</strong>.</p>
+          </div>
+
+          <div class="visual-card">
+            <div class="visual-card-head">$300/month invested — how DCA works across market moves</div>
+            <div class="visual-card-body">
+              <table class="dca-table">
+                <thead>
+                  <tr>
+                    <th>Month</th>
+                    <th>Market Mood</th>
+                    <th>Share Price</th>
+                    <th>You Invest</th>
+                    <th>Shares Bought</th>
+                    <th>Total Shares</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>January</td><td>😐 Flat</td><td>$50.00</td><td>$300</td><td>6.0</td><td>6.0</td></tr>
+                  <tr><td>February</td><td>📈 Up 20%</td><td class="up">$60.00</td><td>$300</td><td>5.0</td><td>11.0</td></tr>
+                  <tr><td>March</td><td>📉 Down 30%</td><td class="down">$42.00</td><td>$300</td><td>7.14</td><td>18.14</td></tr>
+                  <tr><td>April</td><td>📈 Up 10%</td><td class="up">$46.20</td><td>$300</td><td>6.49</td><td>24.63</td></tr>
+                  <tr><td>May</td><td>😐 Flat</td><td>$46.20</td><td>$300</td><td>6.49</td><td>31.12</td></tr>
+                  <tr><td>June</td><td>📈 Up 15%</td><td class="up">$53.13</td><td>$300</td><td>5.65</td><td>36.77</td></tr>
+                  <tr class="avg-row"><td colspan="2"><strong>Summary</strong></td><td>Avg: <strong>$49.59</strong></td><td><strong>$1,800</strong></td><td><strong>36.77 shares</strong></td><td style="color:var(--green)"><strong>Value: $1,953</strong></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <p>Notice what happened: the market went up, crashed, then recovered — a scary ride for someone watching. But the DCA investor kept buying through the dip and ended up with <strong>36.77 shares worth $1,953</strong> on a $1,800 investment. The crash was actually helpful — it let you buy more shares cheaply in March and April.</p>
+
+          <ul class="key-points">
+            <li><strong>Automate it.</strong> Set up automatic transfers from your bank on payday. If you never see the money, you won't miss it.</li>
+            <li><strong>Never pause during downturns.</strong> That's exactly when DCA works best — you're buying more shares at lower prices.</li>
+            <li><strong>Time in market beats timing the market</strong> — every single study confirms this over 10+ year periods.</li>
+            <li><strong>Consistency matters more than amount.</strong> $100/month every month beats $1,200 invested once per year.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- ── 04 INDEX FUNDS ── -->
+      <div class="learn-section reveal" id="indexfunds">
+        <div class="section-number">04</div>
+        <h2>Index Funds</h2>
+        <div class="section-tagline">Boring is beautiful — and it outperforms almost everything</div>
+        <div class="learn-body">
+          <p>An index fund is a fund that tracks a market index — like the S&P 500 (the 500 largest US companies). When you buy one share of VTI (Vanguard Total Market ETF), you're instantly invested in <strong>over 3,700 US companies</strong> proportionally. One purchase. Instant diversification.</p>
+          <p>The case for index funds is overwhelming. <em>Over any 15-year period, more than 90% of actively managed funds underperform a simple S&P 500 index fund.</em> The fund managers — Harvard MBAs with Bloomberg terminals and proprietary models — lose to the boring index fund. Consistently.</p>
+
+          <div class="callout">
+            <div class="callout-label">Why active funds lose</div>
+            <p>Active funds charge higher fees (1–2% annually vs 0.03–0.20% for index funds). Those fees compound against you just like returns compound for you. A 1% annual fee difference costs you <strong>hundreds of thousands of dollars</strong> over a 40-year investing lifetime.</p>
+          </div>
+
+          <div class="fund-compare">
+            <div class="fund-card good">
+              <div class="fund-type g">✓ Index Fund (Recommended)</div>
+              <div class="fund-name">Vanguard Total Market (VTI)</div>
+              <div class="fund-stat"><span class="fund-stat-label">Expense ratio</span><span class="fund-stat-val g">0.03%/yr</span></div>
+              <div class="fund-stat"><span class="fund-stat-label">Companies held</span><span class="fund-stat-val">3,700+</span></div>
+              <div class="fund-stat"><span class="fund-stat-label">10-yr avg return</span><span class="fund-stat-val g">~11.5%</span></div>
+              <div class="fund-stat"><span class="fund-stat-label">Management</span><span class="fund-stat-val">Passive — tracks index</span></div>
+              <div class="fund-stat"><span class="fund-stat-label">Cost on $100k</span><span class="fund-stat-val g">$30/year</span></div>
+            </div>
+            <div class="fund-card bad">
+              <div class="fund-type b">✗ Active Fund (Typical)</div>
+              <div class="fund-name">Typical Actively Managed Fund</div>
+              <div class="fund-stat"><span class="fund-stat-label">Expense ratio</span><span class="fund-stat-val b">1.0–2.0%/yr</span></div>
+              <div class="fund-stat"><span class="fund-stat-label">Companies held</span><span class="fund-stat-val">50–200</span></div>
+              <div class="fund-stat"><span class="fund-stat-label">10-yr avg return</span><span class="fund-stat-val b">Often underperforms</span></div>
+              <div class="fund-stat"><span class="fund-stat-label">Management</span><span class="fund-stat-val">Active — managers pick stocks</span></div>
+              <div class="fund-stat"><span class="fund-stat-label">Cost on $100k</span><span class="fund-stat-val b">$1,000–$2,000/year</span></div>
+            </div>
+          </div>
+
+          <p>The three-ticker portfolio that covers most people's needs:</p>
+          <ul class="key-points">
+            <li><strong>VTI</strong> — Vanguard Total US Market. 3,700+ US companies. 0.03% expense ratio. Your core holding.</li>
+            <li><strong>VXUS</strong> — Vanguard Total International. 8,500+ non-US companies. Adds global diversification.</li>
+            <li><strong>BND</strong> — Vanguard Total Bond Market. Adds stability as you get closer to retirement. Less important when you're young.</li>
+          </ul>
+
+          <div class="callout green-left">
+            <div class="callout-label">For beginners</div>
+            <p>If even three funds feels overwhelming, <strong>a single Target Date Fund</strong> (like Vanguard Target Retirement 2060) automatically adjusts its stock/bond ratio as you age. One fund, auto-managed, low cost. A completely valid starting point for anyone new to investing.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 05 ROTH IRA ── -->
+      <div class="learn-section reveal" id="ira">
+        <div class="section-number">05</div>
+        <h2>Roth IRA</h2>
+        <div class="section-tagline">The best tax advantage available to young investors</div>
+        <div class="learn-body">
+          <p>A Roth IRA is a retirement account where you contribute money you've already paid taxes on — and then <strong>never pay taxes again.</strong> Not on growth. Not on withdrawals in retirement. Decades of compounding returns, completely tax-free.</p>
+          <p>For young people who are likely in a lower tax bracket today than they will be in retirement, this is an enormous structural advantage. You pay taxes at your low rate now, and avoid paying taxes at your higher future rate on potentially hundreds of thousands in gains.</p>
+
+          <div class="ira-compare">
+            <div class="ira-card roth">
+              <div class="ira-type r">Roth IRA — Best for most young people</div>
+              <div class="ira-name">Pay taxes now, withdraw tax-free</div>
+              <div class="ira-row"><span class="ira-row-label">Tax on contributions</span><span class="ira-row-val">After-tax (you pay now)</span></div>
+              <div class="ira-row"><span class="ira-row-label">Tax on growth</span><span class="ira-row-val g">None — ever</span></div>
+              <div class="ira-row"><span class="ira-row-label">Tax on withdrawals</span><span class="ira-row-val g">Zero in retirement</span></div>
+              <div class="ira-row"><span class="ira-row-label">Required withdrawals</span><span class="ira-row-val g">None (your money, your timeline)</span></div>
+              <div class="ira-row"><span class="ira-row-label">Early access</span><span class="ira-row-val g">Contributions anytime (not gains)</span></div>
+              <div class="ira-row"><span class="ira-row-label">Best for</span><span class="ira-row-val">Lower tax bracket today</span></div>
+            </div>
+            <div class="ira-card trad">
+              <div class="ira-type t">Traditional IRA — Better in some cases</div>
+              <div class="ira-name">Deduct now, pay taxes later</div>
+              <div class="ira-row"><span class="ira-row-label">Tax on contributions</span><span class="ira-row-val">Pre-tax (deductible)</span></div>
+              <div class="ira-row"><span class="ira-row-label">Tax on growth</span><span class="ira-row-val s">Deferred until withdrawal</span></div>
+              <div class="ira-row"><span class="ira-row-label">Tax on withdrawals</span><span class="ira-row-val s">Taxed as ordinary income</span></div>
+              <div class="ira-row"><span class="ira-row-label">Required withdrawals</span><span class="ira-row-val s">Required at age 73 (RMDs)</span></div>
+              <div class="ira-row"><span class="ira-row-label">Early access</span><span class="ira-row-val s">10% penalty before age 59½</span></div>
+              <div class="ira-row"><span class="ira-row-label">Best for</span><span class="ira-row-val">Higher tax bracket today</span></div>
+            </div>
+          </div>
+
+          <ul class="key-points">
+            <li><strong>2025 contribution limit: $7,000/year</strong> ($583/month). If you're 50+, you can contribute $8,000.</li>
+            <li><strong>Income limits apply.</strong> Single filers can contribute fully up to $146k income, partially up to $161k. Above that, look into a Backdoor Roth IRA.</li>
+            <li><strong>Where to open one:</strong> Fidelity, Vanguard, or Charles Schwab — all free to open, no minimums on most accounts.</li>
+            <li><strong>What to invest in:</strong> Put index funds inside your Roth IRA. VTI or a Target Date Fund are solid starting points.</li>
+            <li><strong>The compound effect is amplified</strong> inside a Roth because every dollar of growth is permanently tax-free.</li>
+          </ul>
+
+          <div class="callout">
+            <div class="callout-label">Real numbers example</div>
+            <p>If you invest $500/month in a Roth IRA from age 22 to 65 at 7% returns, you'd accumulate roughly <strong>$1.9 million — all of which you can withdraw tax-free.</strong> If that same amount were in a taxable account, you'd owe taxes on every gain. The difference could easily be $300–500k in taxes saved.</p>
+          </div>
+        </div>
+        <div class="section-cta">
+          <p><strong>Find out how much your Roth IRA could grow.</strong> Run your numbers with our compound interest calculator.</p>
+          <a href="calculator.html" class="sc-link">Calculate it →</a>
+        </div>
+      </div>
+
+      <!-- ── 06 401K ── -->
+      <div class="learn-section reveal" id="401k">
+        <div class="section-number">06</div>
+        <h2>401k &amp; Employer Match</h2>
+        <div class="section-tagline">The best investment available to most employed people</div>
+        <div class="learn-body">
+          <p>A 401k is a retirement account offered through your employer. Contributions come out of your paycheck <strong>before taxes</strong>, which means you're investing pre-tax dollars and reducing your taxable income today. The money grows tax-deferred until retirement.</p>
+          <p>But the single most important feature of a 401k has nothing to do with taxes. It's the <em>employer match</em>.</p>
+
+          <div class="callout">
+            <div class="callout-label">Employer match = instant 50–100% return</div>
+            <p>If your employer matches 50% of your contributions up to 6% of your salary, and you earn $60,000 — you should contribute at least $3,600/year (6%). Your employer adds $1,800 for free. <strong>That's an immediate 50% return on $3,600 before the market does anything.</strong> There is no better investment available to you.</p>
+          </div>
+
+          <div class="visual-card">
+            <div class="visual-card-head">$60,000 salary · Common employer match scenarios</div>
+            <div class="visual-card-body">
+              <div class="match-visual">
+                <div class="match-row">
+                  <div class="match-label" style="color:var(--coral)">❌ Contribute nothing</div>
+                  <div class="match-bar-outer"><div class="match-bar-inner" style="width:0%;background:var(--coral)"></div></div>
+                  <div class="match-total" style="color:var(--coral)">$0 / year</div>
+                </div>
+                <div class="match-row">
+                  <div class="match-label">Contribute 3%</div>
+                  <div class="match-bar-outer"><div class="match-bar-inner" style="width:30%;background:var(--sky)"></div></div>
+                  <div class="match-total">$2,700 / yr</div>
+                </div>
+                <div class="match-row highlight">
+                  <div class="match-label" style="color:var(--green)">✓ Contribute 6% (full match)</div>
+                  <div class="match-bar-outer"><div class="match-bar-inner" style="width:60%;background:var(--green)"></div></div>
+                  <div class="match-total" style="color:var(--green)">$3,600 you + $1,800 employer = <strong>$5,400/yr</strong></div>
+                </div>
+                <div class="match-row">
+                  <div class="match-label">Contribute 10%</div>
+                  <div class="match-bar-outer"><div class="match-bar-inner" style="width:80%;background:var(--gold)"></div></div>
+                  <div class="match-total">$6,000 you + $1,800 employer = $7,800/yr</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p>The second thing to understand about your 401k is your <strong>fund options and expense ratios</strong>. Most 401k plans offer a limited menu of funds. Look for the lowest expense ratio options — typically index funds. Avoid high-fee actively managed funds even if they have impressive past performance.</p>
+
+          <ul class="key-points">
+            <li><strong>Always get the full match first</strong> — before maxing your Roth IRA, before paying extra on student loans, before anything else.</li>
+            <li><strong>2025 contribution limit: $23,500</strong> (employee contribution). Your employer's match is on top of this.</li>
+            <li><strong>Vesting schedules matter.</strong> Some employers require you to stay for 2–4 years before their match is fully "yours." Check your plan documents.</li>
+            <li><strong>When you change jobs</strong>, roll your 401k into an IRA or your new employer's 401k. Never cash it out — you'll pay income tax plus a 10% penalty.</li>
+            <li><strong>The order of operations:</strong> 401k to get full match → Roth IRA to max → back to 401k if you have more to invest.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- ── 07 EMERGENCY FUND ── -->
+      <div class="learn-section reveal" id="emergency">
+        <div class="section-number">07</div>
+        <h2>Emergency Fund</h2>
+        <div class="section-tagline">The foundation everything else is built on</div>
+        <div class="learn-body">
+          <p>Before you invest a single dollar in the market, build an emergency fund. This is <strong>3–6 months of your essential expenses</strong> held in a high-yield savings account — accessible within 1-2 business days, never invested in the market.</p>
+          <p>This isn't optional. Without it, any unexpected expense — a car repair, a medical bill, a job loss — forces you to either go into debt or sell investments, potentially at the worst possible time (during a market crash). The emergency fund is what keeps your investment strategy intact when life gets hard.</p>
+
+          <div class="callout sky-left">
+            <div class="callout-label">Where to keep it</div>
+            <p>A <strong>high-yield savings account (HYSA)</strong> currently pays 4–5% APY — far better than a regular savings account's 0.01%. Look at Marcus (Goldman Sachs), SoFi, Ally, or American Express Savings. FDIC insured, no minimums, easy transfers.</p>
+          </div>
+
+          <ul class="key-points">
+            <li><strong>How much:</strong> 3 months if your income is stable (salaried, secure job). 6 months if variable income (freelance, commission, hourly).</li>
+            <li><strong>What to count:</strong> Rent/mortgage, food, utilities, insurance, minimum debt payments. Not subscriptions, dining out, or entertainment.</li>
+            <li><strong>Build it first, then invest.</strong> While building, still contribute enough to 401k to get the employer match — that's too good to pass up.</li>
+            <li><strong>Once built, don't touch it</strong> unless it's an actual emergency. A sale is not an emergency. A vacation is not an emergency.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- ── ACTION PLAN ── -->
+      <div class="learn-section reveal" id="action" style="border-bottom:none">
+        <div class="section-number">→</div>
+        <h2>Your Action Plan</h2>
+        <div class="section-tagline">The right order matters — here's exactly what to do first</div>
+        <div class="learn-body">
+          <p>Now that you understand the concepts, here's the correct order of operations. The sequence matters — each step creates the foundation for the next.</p>
+
+          <div class="visual-card">
+            <div class="visual-card-head">The Finnpath Investment Order of Operations</div>
+            <div class="visual-card-body">
+              <div style="display:flex;flex-direction:column;gap:0">
+                <div style="display:flex;gap:16px;align-items:flex-start;padding:16px 0;border-bottom:1px solid var(--border)">
+                  <div style="width:32px;height:32px;border-radius:50%;background:var(--coral);display:grid;place-items:center;font-family:'Playfair Display',serif;font-weight:900;font-size:.9rem;flex-shrink:0">1</div>
+                  <div><div style="font-weight:700;margin-bottom:4px">Build a $1,000 starter emergency fund</div><div style="font-size:.82rem;color:var(--white-dim);line-height:1.6">Before anything else. This tiny cushion prevents small surprises from becoming debt spirals.</div></div>
+                </div>
+                <div style="display:flex;gap:16px;align-items:flex-start;padding:16px 0;border-bottom:1px solid var(--border)">
+                  <div style="width:32px;height:32px;border-radius:50%;background:var(--coral);display:grid;place-items:center;font-family:'Playfair Display',serif;font-weight:900;font-size:.9rem;flex-shrink:0">2</div>
+                  <div><div style="font-weight:700;margin-bottom:4px">Contribute to your 401k — enough to get the full employer match</div><div style="font-size:.82rem;color:var(--white-dim);line-height:1.6">Free money. Instant 50–100% return. No investment on earth beats this. Do this before anything else involving the market.</div></div>
+                </div>
+                <div style="display:flex;gap:16px;align-items:flex-start;padding:16px 0;border-bottom:1px solid var(--border)">
+                  <div style="width:32px;height:32px;border-radius:50%;background:var(--coral);display:grid;place-items:center;font-family:'Playfair Display',serif;font-weight:900;font-size:.9rem;flex-shrink:0">3</div>
+                  <div><div style="font-weight:700;margin-bottom:4px">Pay off high-interest debt (above 7%)</div><div style="font-size:.82rem;color:var(--white-dim);line-height:1.6">Credit cards at 20%+ are guaranteed losses. Paying them off is a guaranteed 20% return. Market returns are not guaranteed.</div></div>
+                </div>
+                <div style="display:flex;gap:16px;align-items:flex-start;padding:16px 0;border-bottom:1px solid var(--border)">
+                  <div style="width:32px;height:32px;border-radius:50%;background:var(--coral);display:grid;place-items:center;font-family:'Playfair Display',serif;font-weight:900;font-size:.9rem;flex-shrink:0">4</div>
+                  <div><div style="font-weight:700;margin-bottom:4px">Build your full 3–6 month emergency fund</div><div style="font-size:.82rem;color:var(--white-dim);line-height:1.6">In a high-yield savings account. This is what protects your investments from ever having to be sold at the wrong time.</div></div>
+                </div>
+                <div style="display:flex;gap:16px;align-items:flex-start;padding:16px 0;border-bottom:1px solid var(--border)">
+                  <div style="width:32px;height:32px;border-radius:50%;background:var(--coral);display:grid;place-items:center;font-family:'Playfair Display',serif;font-weight:900;font-size:.9rem;flex-shrink:0">5</div>
+                  <div><div style="font-weight:700;margin-bottom:4px">Max your Roth IRA — $7,000/year ($583/month)</div><div style="font-size:.82rem;color:var(--white-dim);line-height:1.6">Tax-free growth for decades. Open at Fidelity, Vanguard, or Schwab. Invest in VTI or a Target Date Fund.</div></div>
+                </div>
+                <div style="display:flex;gap:16px;align-items:flex-start;padding:16px 0">
+                  <div style="width:32px;height:32px;border-radius:50%;background:var(--coral);display:grid;place-items:center;font-family:'Playfair Display',serif;font-weight:900;font-size:.9rem;flex-shrink:0">6</div>
+                  <div><div style="font-weight:700;margin-bottom:4px">Go back and max your 401k, then taxable investing</div><div style="font-size:.82rem;color:var(--white-dim);line-height:1.6">2025 limit is $23,500. After that, open a regular brokerage account. Same index funds, just no tax advantages.</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="callout green-left">
+            <div class="callout-label">The most important thing</div>
+            <p>Don't let perfect be the enemy of good. <strong>Starting imperfectly today beats starting perfectly in two years.</strong> Open the account. Put in $50. Pick VTI. You can optimize later — the compounding clock starts the moment you begin.</p>
+          </div>
+        </div>
+
+        <div class="section-cta" style="margin-top:32px">
+          <p><strong>Ready to see your numbers?</strong> Put your age, monthly amount, and return rate into the calculator and see exactly what your future looks like.</p>
+          <a href="calculator.html" class="sc-link">Open the Calculator →</a>
+        </div>
+      </div>
+
+    </div><!-- end learn-content -->
+  </div><!-- end learn-grid -->
+</div><!-- end learn-page -->
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div>
+      <div class="f-logo">Finnpath<span>.</span></div>
+      <p class="f-tagline">Financial education for every stage of life — from your first trade to your first 401k and beyond.</p>
+    </div>
+    <nav class="footer-nav">
+      <a href="index.html">Home</a>
+      <a href="learn.html">Learn</a>
+      <a href="calculator.html">Calculator</a>
+      <a href="simulator.html">Simulator</a>
+      <a href="paths.html">Your Path</a>
+    </nav>
+  </div>
+  <div class="footer-bottom">
+    <span class="footer-copy">© 2025 Finnpath · finnpath.com</span>
+    <p class="disclaimer">For educational and informational purposes only. Not financial, investment, or tax advice. Always consult a qualified financial advisor before making investment decisions. Past market performance does not guarantee future results.</p>
+  </div>
+</footer>
+
+<script>
+// ── READ PROGRESS BAR ──
+window.addEventListener('scroll', () => {
+  const doc = document.documentElement;
+  const scrolled = doc.scrollTop || document.body.scrollTop;
+  const total = doc.scrollHeight - doc.clientHeight;
+  const pct = total > 0 ? (scrolled / total) * 100 : 0;
+  document.getElementById('read-progress-bar').style.width = pct + '%';
+});
+
+// ── ACTIVE TOC ──
+const sections = document.querySelectorAll('.learn-section');
+const tocLinks = document.querySelectorAll('.toc-link');
+const navH = 68 + 40;
+
+function updateTOC() {
+  let current = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - navH) current = s.id;
+  });
+  tocLinks.forEach(l => {
+    l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+  });
+}
+window.addEventListener('scroll', updateTOC, { passive: true });
+updateTOC();
+
+// ── SCROLL REVEAL ──
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); obs.unobserve(e.target); } });
+}, { threshold: 0.06 });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>

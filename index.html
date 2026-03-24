@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Finnpath — Your Path to Financial Freedom</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="shared.css"/>
+  <style>
+    /* ── HERO ── */
+    .hero {
+      min-height:100vh; display:flex; align-items:center; justify-content:center;
+      padding:calc(var(--nav-h) + 80px) 56px 100px; position:relative; overflow:hidden;
+    }
+    .hero-bg {
+      position:absolute; inset:0; z-index:0;
+      background:
+        radial-gradient(ellipse 65% 55% at 10% 50%, rgba(74,144,217,.09) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 48% at 90% 16%, rgba(232,96,76,.07) 0%, transparent 60%),
+        radial-gradient(ellipse 55% 65% at 55% 100%, rgba(15,32,64,.9) 0%, transparent 70%);
+    }
+    .hero-topline {
+      position:absolute; top:var(--nav-h); left:0; right:0; height:1px; z-index:1;
+      background:linear-gradient(90deg,transparent,rgba(232,96,76,.3),rgba(74,144,217,.3),transparent);
+    }
+    .hero-inner {
+      position:relative; z-index:1; max-width:1160px; width:100%;
+      display:grid; grid-template-columns:1.1fr 0.9fr; gap:80px; align-items:center;
+    }
+    .hero-eyebrow {
+      display:inline-flex; align-items:center; gap:10px;
+      font-size:.7rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+      color:var(--coral); margin-bottom:26px; animation:fadeUp .5s ease both;
+    }
+    .eyebrow-line { width:24px; height:1px; background:var(--coral); }
+    h1 {
+      font-family:'Playfair Display',serif; font-weight:900;
+      font-size:clamp(2.8rem,5.5vw,5rem); line-height:1.06; letter-spacing:-.02em;
+      animation:fadeUp .5s .08s ease both;
+    }
+    h1 em { font-style:italic; color:var(--coral); }
+    .hero-sub {
+      margin-top:22px; font-size:1rem; font-weight:300; color:var(--white-dim);
+      line-height:1.85; max-width:480px; animation:fadeUp .5s .16s ease both;
+    }
+    .hero-actions {
+      margin-top:38px; display:flex; gap:14px; flex-wrap:wrap;
+      animation:fadeUp .5s .24s ease both;
+    }
+    .trust-row {
+      margin-top:40px; display:flex; gap:22px; align-items:center; flex-wrap:wrap;
+      animation:fadeUp .5s .32s ease both;
+    }
+    .trust-item { display:flex; align-items:center; gap:8px; }
+    .trust-label { font-size:.74rem; color:var(--white-dim); font-weight:500; }
+    .trust-div { width:1px; height:16px; background:var(--border); }
+
+    /* hero cards */
+    .hero-cards { display:flex; flex-direction:column; gap:12px; animation:fadeUp .5s .18s ease both; }
+    .hcard {
+      background:var(--navy-mid); border:1px solid var(--border); border-radius:var(--radius);
+      padding:22px 26px; transition:transform .2s, border-color .2s;
+    }
+    .hcard:hover { transform:translateX(-4px); border-color:rgba(250,249,247,.16); }
+    .hcard.featured { background:linear-gradient(135deg,var(--coral),#bf3f2d); border-color:transparent; }
+    .hcard-label { font-size:.68rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--white-dim); margin-bottom:7px; }
+    .hcard.featured .hcard-label { color:rgba(255,255,255,.62); }
+    .hcard-val { font-family:'Playfair Display',serif; font-weight:700; font-size:1.9rem; letter-spacing:-.02em; line-height:1; }
+    .hcard-val.sky  { color:var(--sky); }
+    .hcard-val.gold { color:var(--gold); }
+    .hcard.featured .hcard-val { color:#fff; }
+    .hcard-sub { font-size:.74rem; color:var(--white-dim); margin-top:6px; line-height:1.55; }
+    .hcard.featured .hcard-sub { color:rgba(255,255,255,.58); }
+
+    /* ── PAGE NAV CARDS ── */
+    #pages { background:var(--navy-mid); }
+    .pages-grid {
+      display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-top:52px;
+    }
+    .page-card {
+      background:var(--navy); border:1px solid var(--border); border-radius:var(--radius);
+      padding:28px 24px; text-decoration:none; color:var(--white);
+      display:flex; flex-direction:column; gap:12px;
+      transition:transform .2s, border-color .2s, background .2s;
+    }
+    .page-card:hover { transform:translateY(-4px); border-color:rgba(250,249,247,.18); background:var(--navy-soft); }
+    .page-card.featured-card { border-color:rgba(232,96,76,.28); background:rgba(232,96,76,.06); }
+    .pc-icon { font-size:1.6rem; }
+    .pc-title { font-family:'Playfair Display',serif; font-weight:700; font-size:1.1rem; }
+    .pc-desc { font-size:.8rem; color:var(--white-dim); line-height:1.65; }
+    .pc-arrow { font-size:.82rem; font-weight:700; color:var(--coral); margin-top:auto; }
+
+    /* ── WHY COMPOUNDING PREVIEW ── */
+    #why { background:var(--navy); }
+    .why-grid { display:grid; grid-template-columns:1fr 1fr; gap:72px; align-items:center; }
+    .why-text h2 { margin-bottom:22px; }
+    .why-text p { font-size:.95rem; color:var(--white-dim); line-height:1.85; margin-bottom:16px; font-weight:300; }
+    .why-text p strong { color:var(--white); font-weight:600; }
+    .why-cta { margin-top:28px; display:flex; gap:14px; }
+    .highlight-box {
+      background:var(--navy-mid); border:1px solid var(--border); border-left:3px solid var(--coral);
+      border-radius:0 12px 12px 0; padding:18px 22px; margin-top:24px;
+    }
+    .highlight-box p { margin:0; font-size:.86rem; color:var(--white-dim); line-height:1.75; }
+    .highlight-box p strong { color:var(--white); font-weight:600; }
+
+    /* visual comparison */
+    .cmp-visual { display:flex; flex-direction:column; gap:16px; }
+    .cv-row { background:var(--navy-mid); border:1px solid var(--border); border-radius:var(--radius); padding:20px 24px; }
+    .cv-row.best { border-color:rgba(232,96,76,.28); background:linear-gradient(135deg,rgba(232,96,76,.08),var(--navy-mid)); }
+    .cv-top { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px; }
+    .cv-name { font-family:'Playfair Display',serif; font-weight:700; font-size:1rem; }
+    .cv-amount { font-family:'Playfair Display',serif; font-weight:900; font-size:1.5rem; }
+    .cv-bar-outer { height:6px; background:var(--navy-card); border-radius:100px; overflow:hidden; margin-bottom:6px; }
+    .cv-bar-inner { height:100%; border-radius:100px; }
+    .cv-sub { font-size:.72rem; color:var(--white-dim); }
+    .cv-note {
+      text-align:center; padding:14px; background:var(--navy-card);
+      border:1px solid var(--border); border-radius:12px;
+      font-size:.78rem; color:var(--white-dim); line-height:1.6;
+    }
+    .cv-note strong { color:var(--coral); }
+
+    /* ── CONCEPTS STRIP ── */
+    #concepts-strip { background:var(--navy-mid); }
+    .concepts-grid {
+      display:grid; grid-template-columns:repeat(3,1fr); gap:2px;
+      background:var(--border); border:1px solid var(--border);
+      border-radius:var(--radius); overflow:hidden; margin-top:52px;
+    }
+    .concept-cell { background:var(--navy-mid); padding:28px 26px; transition:background .2s; }
+    .concept-cell:hover { background:var(--navy-soft); }
+    .concept-num { font-family:'Playfair Display',serif; font-weight:700; font-size:2rem; color:rgba(232,96,76,.16); line-height:1; margin-bottom:2px; }
+    .concept-cell h3 { font-family:'Playfair Display',serif; font-weight:700; font-size:1rem; margin-bottom:8px; }
+    .concept-cell p { font-size:.81rem; color:var(--white-dim); line-height:1.75; }
+    .concept-pill {
+      display:inline-block; margin-top:12px; background:var(--navy-card);
+      border:1px solid var(--border); font-size:.64rem; font-weight:600;
+      letter-spacing:.04em; padding:3px 11px; border-radius:100px; color:rgba(250,249,247,.32);
+    }
+
+    /* ── PATH PREVIEW ── */
+    #paths { background:var(--navy); }
+    .paths-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:52px; }
+    .path-card {
+      background:var(--navy-mid); border:1px solid var(--border); border-radius:var(--radius);
+      padding:30px 26px; display:flex; flex-direction:column; gap:14px;
+      transition:transform .22s, border-color .22s;
+    }
+    .path-card:hover { transform:translateY(-4px); border-color:rgba(250,249,247,.17); }
+    .path-card.feat { border-color:rgba(232,96,76,.28); background:linear-gradient(160deg,rgba(232,96,76,.07),var(--navy-mid)); }
+    .path-icon { font-size:1.6rem; }
+    .path-who { font-family:'Playfair Display',serif; font-weight:700; font-size:1.2rem; }
+    .path-age { font-size:.66rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--coral); margin-top:-6px; }
+    .path-desc { font-size:.8rem; color:var(--white-dim); line-height:1.75; }
+    .path-list { list-style:none; display:flex; flex-direction:column; gap:6px; }
+    .path-list li { font-size:.76rem; color:rgba(250,249,247,.48); display:flex; gap:9px; }
+    .path-list li::before { content:'—'; color:var(--coral); font-weight:700; flex-shrink:0; }
+    .path-cta { font-size:.78rem; font-weight:700; color:var(--coral); text-decoration:none; margin-top:auto; transition:letter-spacing .2s; }
+    .path-cta:hover { letter-spacing:.02em; }
+
+    /* ── NEWSLETTER ── */
+    #newsletter { background:var(--navy-mid); }
+    .nl-wrap { max-width:620px; margin-inline:auto; text-align:center; }
+    .nl-wrap h2 { margin-bottom:14px; }
+    .nl-sub { font-size:.95rem; color:var(--white-dim); line-height:1.8; margin-bottom:32px; font-weight:300; }
+    .email-form {
+      display:flex; gap:8px; background:var(--navy-card);
+      border:1px solid var(--border); border-radius:10px; padding:6px 6px 6px 20px;
+    }
+    .email-input { flex:1; background:transparent; border:none; outline:none; font-size:.9rem; color:var(--white); font-family:'Plus Jakarta Sans',sans-serif; }
+    .email-input::placeholder { color:rgba(250,249,247,.22); }
+    .btn-sub {
+      background:var(--coral); color:var(--white); font-weight:700; font-size:.84rem;
+      padding:11px 26px; border-radius:7px; border:none; cursor:pointer;
+      font-family:'Plus Jakarta Sans',sans-serif; white-space:nowrap; transition:background .2s, transform .2s;
+    }
+    .btn-sub:hover { background:var(--coral-soft); transform:scale(1.02); }
+    .nl-note { font-size:.68rem; color:rgba(250,249,247,.2); margin-top:12px; }
+
+    @media(max-width:900px){
+      .hero-inner { grid-template-columns:1fr; gap:48px; }
+      .hero-sub { max-width:100%; }
+      .pages-grid { grid-template-columns:repeat(2,1fr); }
+      .why-grid { grid-template-columns:1fr; gap:40px; }
+      .concepts-grid { grid-template-columns:1fr; }
+      .paths-grid { grid-template-columns:1fr; }
+    }
+    @media(max-width:480px){
+      .pages-grid { grid-template-columns:1fr; }
+      .hero { padding:calc(var(--nav-h) + 40px) 20px 72px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="logo">Finnpath<span class="logo-dot">.</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html" class="active">Home</a></li>
+    <li><a href="learn.html">Learn</a></li>
+    <li><a href="calculator.html">Calculator</a></li>
+    <li><a href="simulator.html">Simulator</a></li>
+    <li><a href="paths.html">Your Path</a></li>
+  </ul>
+  <a href="calculator.html" class="nav-cta">Try Calculator</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-topline"></div>
+  <div class="hero-inner">
+    <div class="hero-text">
+      <div class="hero-eyebrow"><span class="eyebrow-line"></span>Financial education for every stage of life</div>
+      <h1>Your path to<br/><em>real wealth</em><br/>starts here.</h1>
+      <p class="hero-sub">From your first simulated trade as a teenager to understanding your 401k on day one of your career — Finnpath teaches money in plain English, at every stage.</p>
+      <div class="hero-actions">
+        <a href="calculator.html" class="btn-primary">Try the Calculator</a>
+        <a href="learn.html" class="btn-outline">Start Learning</a>
+      </div>
+      <div class="trust-row">
+        <div class="trust-item"><span style="font-size:.9rem">🔒</span><span class="trust-label">No real money required</span></div>
+        <div class="trust-div"></div>
+        <div class="trust-item"><span style="font-size:.9rem">📚</span><span class="trust-label">Education, not advice</span></div>
+        <div class="trust-div"></div>
+        <div class="trust-item"><span style="font-size:.9rem">✦</span><span class="trust-label">Always free to learn</span></div>
+      </div>
+    </div>
+    <div class="hero-cards">
+      <div class="hcard featured">
+        <div class="hcard-label">Start at 22, retire at 65</div>
+        <div class="hcard-val">$1,147,000</div>
+        <div class="hcard-sub">$300/month at 7% avg return — compounding does the heavy lifting</div>
+      </div>
+      <div class="hcard">
+        <div class="hcard-label">Historical S&amp;P 500 avg return</div>
+        <div class="hcard-val sky">~7%</div>
+        <div class="hcard-sub">Inflation-adjusted, over any 30-year period since 1950</div>
+      </div>
+      <div class="hcard">
+        <div class="hcard-label">The Rule of 72</div>
+        <div class="hcard-val gold">10 years</div>
+        <div class="hcard-sub">At 7% returns, your money doubles roughly every decade</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <span class="hi">Compound Interest</span><span>·</span><span>Dollar Cost Averaging</span><span>·</span>
+    <span class="hi">Roth IRA</span><span>·</span><span>401k Match</span><span>·</span>
+    <span class="hi">Index Funds</span><span>·</span><span>Expense Ratio</span><span>·</span>
+    <span class="hi">Rule of 72</span><span>·</span><span>Vesting Schedule</span><span>·</span>
+    <span>Emergency Fund</span><span>·</span><span>Net Worth</span><span>·</span>
+    <span class="hi">Compound Interest</span><span>·</span><span>Dollar Cost Averaging</span><span>·</span>
+    <span class="hi">Roth IRA</span><span>·</span><span>401k Match</span><span>·</span>
+    <span class="hi">Index Funds</span><span>·</span><span>Expense Ratio</span><span>·</span>
+    <span class="hi">Rule of 72</span><span>·</span><span>Vesting Schedule</span><span>·</span>
+    <span>Emergency Fund</span><span>·</span><span>Net Worth</span><span>·</span>
+  </div>
+</div>
+
+<!-- EXPLORE PAGES -->
+<section id="pages">
+  <div class="container">
+    <div class="reveal">
+      <div class="s-eyebrow">Explore Finnpath</div>
+      <h2>Everything in one place</h2>
+    </div>
+    <div class="pages-grid">
+      <a href="learn.html" class="page-card reveal d1">
+        <div class="pc-icon">📖</div>
+        <div class="pc-title">Learn</div>
+        <p class="pc-desc">Compounding, the Rule of 72, index funds, IRAs, and everything else explained simply.</p>
+        <div class="pc-arrow">Explore concepts →</div>
+      </a>
+      <a href="calculator.html" class="page-card featured-card reveal d2">
+        <div class="pc-icon">🧮</div>
+        <div class="pc-title">Calculator</div>
+        <p class="pc-desc">Enter your numbers, see a live chart and year-by-year growth table of your future wealth.</p>
+        <div class="pc-arrow">Run the numbers →</div>
+      </a>
+      <a href="simulator.html" class="page-card reveal d3">
+        <div class="pc-icon">📈</div>
+        <div class="pc-title">Simulator</div>
+        <p class="pc-desc">Trade stocks with $10,000 of play money. Watch prices react to real world market events.</p>
+        <div class="pc-arrow">Start trading →</div>
+      </a>
+      <a href="paths.html" class="page-card reveal d3">
+        <div class="pc-icon">🗺️</div>
+        <div class="pc-title">Your Path</div>
+        <p class="pc-desc">Teen, young adult, or first jobber — find the right starting point for your stage of life.</p>
+        <div class="pc-arrow">Find your path →</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- WHY COMPOUNDING -->
+<section id="why">
+  <div class="container">
+    <div class="why-grid">
+      <div class="why-text reveal">
+        <div class="s-eyebrow">The most powerful force in finance</div>
+        <h2>Why compounding<br/>changes <em>everything</em></h2>
+        <p>Here's the core idea: when you invest, you earn returns. Then those returns start earning returns of their own. It snowballs — slowly at first, then <strong>explosively</strong>.</p>
+        <p>Time is the only ingredient money can't buy back. A dollar invested at 22 is worth dramatically more than a dollar invested at 32 — not because of discipline or luck, but because of <strong>compounding time</strong>.</p>
+        <div class="highlight-box">
+          <p>Starting at 22 instead of 32, with the <strong>same $300/month</strong>, produces over <strong>$580,000 more</strong> at retirement. The market earns that difference for you — automatically.</p>
+        </div>
+        <div class="why-cta">
+          <a href="learn.html" class="btn-primary">Learn how it works</a>
+          <a href="calculator.html" class="btn-outline">See your numbers</a>
+        </div>
+      </div>
+      <div class="cmp-visual reveal d1">
+        <div class="cv-row best">
+          <div class="cv-top">
+            <div class="cv-name">🏆 Starts at 22</div>
+            <div class="cv-amount" style="color:var(--coral)">$1,147,000</div>
+          </div>
+          <div class="cv-bar-outer"><div class="cv-bar-inner" style="width:100%;background:linear-gradient(90deg,var(--sky),var(--coral))"></div></div>
+          <div class="cv-sub">contributed $154,800 · market earned $992,200</div>
+        </div>
+        <div class="cv-row">
+          <div class="cv-top">
+            <div class="cv-name">Starts at 32</div>
+            <div class="cv-amount" style="color:var(--sky)">$567,000</div>
+          </div>
+          <div class="cv-bar-outer"><div class="cv-bar-inner" style="width:49%;background:var(--sky)"></div></div>
+          <div class="cv-sub">contributed $118,800 · market earned $448,200</div>
+        </div>
+        <div class="cv-row">
+          <div class="cv-top">
+            <div class="cv-name">Starts at 42</div>
+            <div class="cv-amount" style="color:var(--white-dim)">$274,000</div>
+          </div>
+          <div class="cv-bar-outer"><div class="cv-bar-inner" style="width:24%;background:rgba(250,249,247,.2)"></div></div>
+          <div class="cv-sub">contributed $82,800 · market earned $191,200</div>
+        </div>
+        <div class="cv-note">Same <strong>$300/month</strong> · Same <strong>7% return</strong> · Different start age</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONCEPTS STRIP -->
+<section id="concepts-strip">
+  <div class="container">
+    <div class="reveal">
+      <div class="s-eyebrow">Core Concepts</div>
+      <h2>Six things everyone<br/>needs to understand</h2>
+    </div>
+    <div class="concepts-grid reveal">
+      <div class="concept-cell"><div class="concept-num">01</div><h3>Compound Interest</h3><p>Your returns earn returns. The longer your money is invested, the more explosive this effect becomes — it's the foundation of all long-term wealth building.</p><span class="concept-pill">The eighth wonder of the world</span></div>
+      <div class="concept-cell"><div class="concept-num">02</div><h3>Dollar Cost Averaging</h3><p>Invest a fixed amount on a regular schedule. You buy more shares when prices drop, fewer when they rise — removing emotion and timing from the equation.</p><span class="concept-pill">Automate monthly contributions</span></div>
+      <div class="concept-cell"><div class="concept-num">03</div><h3>Index Funds</h3><p>Low-cost funds tracking the entire market. Over 90% of actively managed funds underperform simple index funds over 10+ years. Boring is beautiful.</p><span class="concept-pill">Expense ratio under 0.20%</span></div>
+      <div class="concept-cell"><div class="concept-num">04</div><h3>Roth IRA</h3><p>Contribute after-tax money now, withdraw everything — including decades of growth — completely tax-free in retirement. A massive advantage for young people.</p><span class="concept-pill">2025 limit: $7,000/year</span></div>
+      <div class="concept-cell"><div class="concept-num">05</div><h3>401k Match</h3><p>If your employer matches contributions, capture the full match first. That's an instant 50–100% return. It is the single best investment available to most employees.</p><span class="concept-pill">Never leave the match on the table</span></div>
+      <div class="concept-cell"><div class="concept-num">06</div><h3>Emergency Fund</h3><p>Before investing a dollar, build 3–6 months of expenses in a high-yield savings account. This prevents panic-selling your investments when life gets expensive.</p><span class="concept-pill">Goal: 3–6 months of expenses</span></div>
+    </div>
+    <div style="text-align:center;margin-top:36px" class="reveal">
+      <a href="learn.html" class="btn-outline">Deep dive into all concepts →</a>
+    </div>
+  </div>
+</section>
+
+<!-- YOUR PATH -->
+<section id="paths">
+  <div class="container">
+    <div class="reveal">
+      <div class="s-eyebrow">Who is Finnpath for?</div>
+      <h2>Wherever you are,<br/>we meet you there</h2>
+    </div>
+    <div class="paths-grid">
+      <div class="path-card reveal d1">
+        <div class="path-icon">🎮</div>
+        <div><div class="path-who">Teens</div><div class="path-age">Ages 13–17</div></div>
+        <p class="path-desc">Learn how markets work through our stock simulator. Build investing instincts before any real money is involved.</p>
+        <ul class="path-list"><li>Stock portfolio simulator</li><li>Market event explainers</li><li>No real money, no risk</li></ul>
+        <a href="simulator.html" class="path-cta">Explore simulator →</a>
+      </div>
+      <div class="path-card feat reveal d2">
+        <div class="path-icon">🌱</div>
+        <div><div class="path-who">Young Adults</div><div class="path-age">Ages 18–25</div></div>
+        <p class="path-desc">Open your first Roth IRA, understand index funds, and build real wealth from your first paycheck.</p>
+        <ul class="path-list"><li>Roth IRA setup guide</li><li>First investment walkthrough</li><li>Emergency fund calculator</li></ul>
+        <a href="paths.html" class="path-cta">Start your path →</a>
+      </div>
+      <div class="path-card reveal d3">
+        <div class="path-icon">💼</div>
+        <div><div class="path-who">First Jobbers</div><div class="path-age">Ages 22–30</div></div>
+        <p class="path-desc">Upload your 401k documents and we'll explain your fund options, vesting schedules, and employer match in plain English.</p>
+        <ul class="path-list"><li>401k document explainer</li><li>Employer match optimizer</li><li>Benefits package decoder</li></ul>
+        <a href="paths.html" class="path-cta">Decode your 401k →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NEWSLETTER -->
+<section id="newsletter">
+  <div class="container">
+    <div class="nl-wrap reveal">
+      <div class="s-eyebrow" style="justify-content:center">Stay sharp</div>
+      <h2>One money lesson.<br/>Every week.</h2>
+      <p class="nl-sub">Short, practical financial education — written for real people at every stage of their journey. No spam, no upsells, just clarity.</p>
+      <div class="email-form">
+        <input class="email-input" type="email" placeholder="you@email.com"/>
+        <button class="btn-sub">Join Free</button>
+      </div>
+      <p class="nl-note">No spam. Unsubscribe anytime. Your email is never shared.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div>
+      <div class="f-logo">Finnpath<span>.</span></div>
+      <p class="f-tagline">Financial education for every stage of life — from your first trade to your first 401k.</p>
+    </div>
+    <nav class="footer-nav">
+      <a href="index.html">Home</a>
+      <a href="learn.html">Learn</a>
+      <a href="calculator.html">Calculator</a>
+      <a href="simulator.html">Simulator</a>
+      <a href="paths.html">Your Path</a>
+    </nav>
+  </div>
+  <div class="footer-bottom">
+    <span class="footer-copy">© 2025 Finnpath · finnpath.com</span>
+    <p class="disclaimer">For educational and informational purposes only. Not financial, investment, or tax advice. Always consult a qualified financial advisor before making investment decisions. Past market performance does not guarantee future results.</p>
+  </div>
+</footer>
+
+<script>
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); obs.unobserve(e.target); } });
+}, { threshold:.08 });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>
