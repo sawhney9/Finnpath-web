@@ -137,27 +137,28 @@ h2 em { font-style:italic; color:var(--coral); }
 
 /* ── HAMBURGER ── */
 .nav-burger {
-  display:none; background:none; border:none; cursor:pointer;
-  padding:6px; color:var(--white); font-size:1.5rem; line-height:1;
+  display:none; background:none; border:1px solid var(--border); border-radius:8px;
+  cursor:pointer; padding:8px 12px; color:var(--white); font-size:1.3rem; line-height:1;
   margin-left:auto;
 }
 
 /* ── RESPONSIVE ── */
 @media(max-width:720px){
-  nav { padding:0 20px; flex-wrap:wrap; align-items:center; }
+  nav { padding:0 20px; }
   .nav-burger { display:block; }
   .nav-cta { display:none; }
   .nav-links {
-    display:none; position:absolute; top:var(--nav-h); left:0; right:0;
+    display:none;
+    position:fixed; top:var(--nav-h); left:0; right:0;
     flex-direction:column; gap:0;
-    background:rgba(10,22,40,.97); backdrop-filter:blur(24px);
+    background:rgba(10,22,40,.98); backdrop-filter:blur(24px);
     border-bottom:1px solid var(--border);
-    padding:8px 20px 16px; z-index:300;
+    padding:8px 20px 20px; z-index:9999;
   }
   .nav-links.open { display:flex; }
   .nav-links li { width:100%; }
   .nav-links a {
-    display:block; padding:12px 0; font-size:.95rem;
+    display:block; padding:14px 0; font-size:1rem; font-weight:500;
     border-bottom:1px solid var(--border);
   }
   .nav-links li:last-child a { border-bottom:none; }
