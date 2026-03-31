@@ -192,6 +192,17 @@
       .hero { padding:calc(var(--nav-h) + 40px) 20px 72px; }
     }
   </style>
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+  <!-- Open Graph -->
+  <meta property="og:type" content="website"/>
+  <meta property="og:site_name" content="Finnpath"/>
+  <meta property="og:title" content="Finnpath — Your Path to Financial Freedom"/>
+  <meta property="og:description" content="Financial education for every stage of life — from your first trade to your first 401k. Free tools, simulators, and plain-English guides."/>
+  <meta property="og:url" content="https://finnpath.com/"/>
+  <meta name="twitter:card" content="summary"/>
+  <meta name="twitter:title" content="Finnpath — Your Path to Financial Freedom"/>
+  <meta name="twitter:description" content="Financial education for every stage of life — from your first trade to your first 401k. Free tools, simulators, and plain-English guides."/>
 </head>
 <body>
 
@@ -204,10 +215,12 @@
     <li><a href="calculator.html">Calculator</a></li>
     <li><a href="simulator.html">Simulator</a></li>
     <li><a href="paths.html">Your Path</a></li>
+    <li><a href="blog.html">Money Moves</a></li>
   </ul>
   <button class="nav-burger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
   <a href="calculator.html" class="nav-cta">Try Calculator</a>
 </nav>
+<div class="nav-backdrop"></div>
 
 <!-- HERO -->
 <section class="hero">
@@ -433,6 +446,7 @@
       <a href="calculator.html">Calculator</a>
       <a href="simulator.html">Simulator</a>
       <a href="paths.html">Your Path</a>
+      <a href="blog.html">Money Moves</a>
     </nav>
   </div>
   <div class="footer-bottom">
@@ -447,27 +461,28 @@ const obs = new IntersectionObserver(entries => {
 }, { threshold:.08 });
 document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
 (function(){
-  var burger = document.querySelector('.nav-burger');
-  var links  = document.querySelector('.nav-links');
+  var burger   = document.querySelector('.nav-burger');
+  var links    = document.querySelector('.nav-links');
+  var backdrop = document.querySelector('.nav-backdrop');
   if (!burger || !links) return;
+  function closeNav() {
+    links.classList.remove('open');
+    burger.classList.remove('open');
+    if (backdrop) backdrop.classList.remove('open');
+    document.body.style.overflow = '';
+  }
   burger.addEventListener('click', function(){
     var open = links.classList.toggle('open');
     burger.classList.toggle('open', open);
+    if (backdrop) backdrop.classList.toggle('open', open);
     document.body.style.overflow = open ? 'hidden' : '';
   });
+  if (backdrop) backdrop.addEventListener('click', closeNav);
   links.querySelectorAll('a').forEach(function(a){
-    a.addEventListener('click', function(){
-      links.classList.remove('open');
-      burger.classList.remove('open');
-      document.body.style.overflow = '';
-    });
+    a.addEventListener('click', closeNav);
   });
   window.addEventListener('resize', function(){
-    if (window.innerWidth > 720) {
-      links.classList.remove('open');
-      burger.classList.remove('open');
-      document.body.style.overflow = '';
-    }
+    if (window.innerWidth > 720) closeNav();
   });
 })();
 </script>

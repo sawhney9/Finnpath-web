@@ -379,6 +379,17 @@
       .article-stat-row { grid-template-columns: 1fr; }
     }
   </style>
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+  <!-- Open Graph -->
+  <meta property="og:type" content="website"/>
+  <meta property="og:site_name" content="Finnpath"/>
+  <meta property="og:title" content="Money Moves — Finnpath Financial Wisdom"/>
+  <meta property="og:description" content="Crypto, prediction markets, investing basics — financial moves that matter for your generation, written in plain English."/>
+  <meta property="og:url" content="https://finnpath.com/blog.html"/>
+  <meta name="twitter:card" content="summary"/>
+  <meta name="twitter:title" content="Money Moves — Finnpath Financial Wisdom"/>
+  <meta name="twitter:description" content="Crypto, prediction markets, investing basics — financial moves that matter for your generation, written in plain English."/>
 </head>
 <body>
 
@@ -396,6 +407,7 @@
   <button class="nav-burger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
   <a href="compete.html" class="nav-cta">Compete</a>
 </nav>
+<div class="nav-backdrop"></div>
 
 <!-- BLOG HERO -->
 <div class="blog-hero">
@@ -1088,27 +1100,28 @@ const obs = new IntersectionObserver(entries => {
 }, { threshold: 0.06 });
 document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
 (function(){
-  var burger = document.querySelector('.nav-burger');
-  var links  = document.querySelector('.nav-links');
+  var burger   = document.querySelector('.nav-burger');
+  var links    = document.querySelector('.nav-links');
+  var backdrop = document.querySelector('.nav-backdrop');
   if (!burger || !links) return;
+  function closeNav() {
+    links.classList.remove('open');
+    burger.classList.remove('open');
+    if (backdrop) backdrop.classList.remove('open');
+    document.body.style.overflow = '';
+  }
   burger.addEventListener('click', function(){
     var open = links.classList.toggle('open');
     burger.classList.toggle('open', open);
+    if (backdrop) backdrop.classList.toggle('open', open);
     document.body.style.overflow = open ? 'hidden' : '';
   });
+  if (backdrop) backdrop.addEventListener('click', closeNav);
   links.querySelectorAll('a').forEach(function(a){
-    a.addEventListener('click', function(){
-      links.classList.remove('open');
-      burger.classList.remove('open');
-      document.body.style.overflow = '';
-    });
+    a.addEventListener('click', closeNav);
   });
   window.addEventListener('resize', function(){
-    if (window.innerWidth > 720) {
-      links.classList.remove('open');
-      burger.classList.remove('open');
-      document.body.style.overflow = '';
-    }
+    if (window.innerWidth > 720) closeNav();
   });
 })();
 </script>

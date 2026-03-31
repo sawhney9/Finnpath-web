@@ -502,6 +502,17 @@
       .landing-hero { padding: calc(var(--nav-h)+40px) 20px 64px; }
     }
   </style>
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+  <!-- Open Graph -->
+  <meta property="og:type" content="website"/>
+  <meta property="og:site_name" content="Finnpath"/>
+  <meta property="og:title" content="Compete — Finnpath Group Stock Simulator"/>
+  <meta property="og:description" content="Challenge your friends to a stock trading competition with $10,000 in virtual money. Who has the best instincts?"/>
+  <meta property="og:url" content="https://finnpath.com/compete.html"/>
+  <meta name="twitter:card" content="summary"/>
+  <meta name="twitter:title" content="Compete — Finnpath Group Stock Simulator"/>
+  <meta name="twitter:description" content="Challenge your friends to a stock trading competition with $10,000 in virtual money. Who has the best instincts?"/>
 </head>
 <body>
 
@@ -514,6 +525,7 @@
     <li><a href="calculator.html">Calculator</a></li>
     <li><a href="simulator.html">Simulator</a></li>
     <li><a href="compete.html" class="active">Compete</a></li>
+    <li><a href="blog.html">Money Moves</a></li>
   </ul>
   <button class="nav-burger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
   <div id="nav-user" style="display:none;font-size:.82rem;font-weight:600;color:var(--white-dim);display:flex;align-items:center;gap:12px">
@@ -522,6 +534,7 @@
   </div>
   <a href="#" id="nav-signin" class="nav-cta" onclick="showScreen('auth');return false">Sign In</a>
 </nav>
+<div class="nav-backdrop"></div>
 
 <!-- ══════════════════════════════════
      SCREEN 1: LANDING
@@ -1389,27 +1402,28 @@ window.addEventListener('load', () => {
   }
 });
 (function(){
-  var burger = document.querySelector('.nav-burger');
-  var links  = document.querySelector('.nav-links');
+  var burger   = document.querySelector('.nav-burger');
+  var links    = document.querySelector('.nav-links');
+  var backdrop = document.querySelector('.nav-backdrop');
   if (!burger || !links) return;
+  function closeNav() {
+    links.classList.remove('open');
+    burger.classList.remove('open');
+    if (backdrop) backdrop.classList.remove('open');
+    document.body.style.overflow = '';
+  }
   burger.addEventListener('click', function(){
     var open = links.classList.toggle('open');
     burger.classList.toggle('open', open);
+    if (backdrop) backdrop.classList.toggle('open', open);
     document.body.style.overflow = open ? 'hidden' : '';
   });
+  if (backdrop) backdrop.addEventListener('click', closeNav);
   links.querySelectorAll('a').forEach(function(a){
-    a.addEventListener('click', function(){
-      links.classList.remove('open');
-      burger.classList.remove('open');
-      document.body.style.overflow = '';
-    });
+    a.addEventListener('click', closeNav);
   });
   window.addEventListener('resize', function(){
-    if (window.innerWidth > 720) {
-      links.classList.remove('open');
-      burger.classList.remove('open');
-      document.body.style.overflow = '';
-    }
+    if (window.innerWidth > 720) closeNav();
   });
 })();
 </script>

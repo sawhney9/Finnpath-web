@@ -301,6 +301,17 @@
       .learn-strip-inner { grid-template-columns: 1fr; padding: 36px 20px; }
     }
   </style>
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+  <!-- Open Graph -->
+  <meta property="og:type" content="website"/>
+  <meta property="og:site_name" content="Finnpath"/>
+  <meta property="og:title" content="Stock Market Simulator — Finnpath"/>
+  <meta property="og:description" content="Trade stocks with $10,000 of play money. Build investing instincts before risking a single real dollar."/>
+  <meta property="og:url" content="https://finnpath.com/simulator.html"/>
+  <meta name="twitter:card" content="summary"/>
+  <meta name="twitter:title" content="Stock Market Simulator — Finnpath"/>
+  <meta name="twitter:description" content="Trade stocks with $10,000 of play money. Build investing instincts before risking a single real dollar."/>
 </head>
 <body>
 
@@ -313,10 +324,12 @@
     <li><a href="calculator.html">Calculator</a></li>
     <li><a href="simulator.html" class="active">Simulator</a></li>
     <li><a href="paths.html">Your Path</a></li>
+    <li><a href="blog.html">Money Moves</a></li>
   </ul>
   <button class="nav-burger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
   <a href="learn.html" class="nav-cta">Learn More</a>
 </nav>
+<div class="nav-backdrop"></div>
 
 <!-- PAGE HERO -->
 <div class="page-hero">
@@ -511,6 +524,7 @@
       <a href="calculator.html">Calculator</a>
       <a href="simulator.html">Simulator</a>
       <a href="paths.html">Your Path</a>
+      <a href="blog.html">Money Moves</a>
     </nav>
   </div>
   <div class="footer-bottom">
@@ -1038,27 +1052,28 @@ tickInterval = setInterval(tick, 1500);
 startEventTimer();
 window.addEventListener('resize', drawPortChart);
 (function(){
-  var burger = document.querySelector('.nav-burger');
-  var links  = document.querySelector('.nav-links');
+  var burger   = document.querySelector('.nav-burger');
+  var links    = document.querySelector('.nav-links');
+  var backdrop = document.querySelector('.nav-backdrop');
   if (!burger || !links) return;
+  function closeNav() {
+    links.classList.remove('open');
+    burger.classList.remove('open');
+    if (backdrop) backdrop.classList.remove('open');
+    document.body.style.overflow = '';
+  }
   burger.addEventListener('click', function(){
     var open = links.classList.toggle('open');
     burger.classList.toggle('open', open);
+    if (backdrop) backdrop.classList.toggle('open', open);
     document.body.style.overflow = open ? 'hidden' : '';
   });
+  if (backdrop) backdrop.addEventListener('click', closeNav);
   links.querySelectorAll('a').forEach(function(a){
-    a.addEventListener('click', function(){
-      links.classList.remove('open');
-      burger.classList.remove('open');
-      document.body.style.overflow = '';
-    });
+    a.addEventListener('click', closeNav);
   });
   window.addEventListener('resize', function(){
-    if (window.innerWidth > 720) {
-      links.classList.remove('open');
-      burger.classList.remove('open');
-      document.body.style.overflow = '';
-    }
+    if (window.innerWidth > 720) closeNav();
   });
 })();
 </script>
