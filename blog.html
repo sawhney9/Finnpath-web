@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Blog — Finnpath Financial Education</title>
-  <meta name="description" content="Plain-English financial education for every stage of life. Investing basics, market news, crypto, tax tips, 401k guides, and more."/>
+  <title>Money Moves — Finnpath Financial Wisdom</title>
+  <meta name="description" content="Money Moves by Finnpath — real financial wisdom for the 18–30 crowd. Crypto, prediction markets, investing, and everything in between, explained plainly."/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="shared.css"/>
@@ -390,7 +390,7 @@
     <li><a href="learn.html">Learn</a></li>
     <li><a href="calculator.html">Calculator</a></li>
     <li><a href="simulator.html">Simulator</a></li>
-    <li><a href="blog.html" class="active">Blog</a></li>
+    <li><a href="blog.html" class="active">Money Moves</a></li>
     <li><a href="paths.html">Your Path</a></li>
   </ul>
   <button class="nav-burger" aria-label="Toggle menu">☰</button>
@@ -401,9 +401,9 @@
 <div class="blog-hero">
   <div class="blog-hero-inner">
     <div>
-      <div class="s-eyebrow">The Finnpath Blog</div>
-      <h1>Money explained.<br/><em>No jargon. No fluff.</em></h1>
-      <p>Plain-English articles on investing, markets, crypto, taxes, and real financial decisions — written for people who are just getting started and people who want to go deeper.</p>
+      <div class="s-eyebrow">Money Moves · Financial Wisdom by Finnpath</div>
+      <h1>Real money knowledge.<br/><em>Zero fluff.</em></h1>
+      <p>Crypto, prediction markets, investing basics, and the financial moves that actually matter for your generation — written in plain English, no finance degree required.</p>
     </div>
     <div class="blog-search-wrap">
       <div class="blog-search">
@@ -531,7 +531,7 @@
       <a href="learn.html">Learn</a>
       <a href="calculator.html">Calculator</a>
       <a href="simulator.html">Simulator</a>
-      <a href="blog.html">Blog</a>
+      <a href="blog.html">Money Moves</a>
       <a href="paths.html">Your Path</a>
       <a href="compete.html">Compete</a>
     </nav>
@@ -547,6 +547,66 @@
 //  ARTICLES DATA
 // ═══════════════════════════════════════════
 const ARTICLES = [
+  {
+    id: 'crypto-polymarket',
+    category: 'crypto',
+    catLabel: '₿ Crypto',
+    catClass: 'cat-crypto',
+    emoji: '🎯',
+    title: 'Crypto & prediction markets: the new money moves for your generation',
+    excerpt: 'From staking yields to Polymarket bets, the 18–30 crowd has financial tools that didn\'t exist a decade ago. Here\'s how they actually work — and the real ways people are making (and losing) money on them.',
+    readTime: '9 min read',
+    author: 'Finnpath Team',
+    authorEmoji: '🏦',
+    authorRole: 'Finnpath Editorial',
+    date: 'March 28, 2025',
+    large: true,
+    content: `
+      <h3>Why your generation has a different financial playbook</h3>
+      <p>The financial tools available to 18–30 year olds in 2025 look nothing like what existed for previous generations. Beyond stocks and savings accounts, there are now crypto assets, on-chain yield, decentralized prediction markets, and platforms that let you trade real-money contracts on almost any outcome — elections, sports, crypto prices, even the weather. <strong>These tools can make you money. They can also wipe you out fast.</strong> Understanding them clearly is more valuable than either blindly following the hype or dismissing them entirely.</p>
+
+      <h3>How crypto actually makes people money</h3>
+      <p>Most people think of crypto as "buy Bitcoin, hope it goes up." That's one approach. But the ecosystem in 2025 has multiple income strategies:</p>
+      <ul class="article-list">
+        <li><strong>HODLing (long-term holding):</strong> Simply buying BTC, ETH, or other assets and holding through volatility. Historically, Bitcoin holders who stayed in for 4+ years have always been in profit — but that 4-year patience requirement is real. The drawdowns are brutal (80%+ drops have happened three times).</li>
+        <li><strong>Staking:</strong> Many proof-of-stake blockchains (Ethereum, Solana, Cardano) reward you for locking your tokens to help secure the network. Yields typically range from 4–12% annually, paid in the native token. Think of it like a savings account, except the "interest" is more tokens whose value can also fluctuate.</li>
+        <li><strong>DeFi yield farming:</strong> Deposit your crypto into decentralized protocols (like Aave, Compound, or Uniswap) that lend it out or use it for liquidity. Returns can be 5–30%+ APY — but smart contract risk, token price risk, and "impermanent loss" can eat your gains. This is for people who've done real research, not a passive play.</li>
+        <li><strong>Airdrops and early participation:</strong> Some protocols distribute free tokens to early users or to wallets that meet certain criteria. Uniswap's 2020 airdrop gave ~$1,200 to every early user. These are unpredictable but real — and staying active in early-stage projects puts you in the running.</li>
+        <li><strong>Trading (spot and leveraged):</strong> Active trading of crypto pairs. This is the highest-risk approach. Most retail traders underperform a simple buy-and-hold strategy. Leveraged trading (using borrowed capital to amplify bets) can liquidate your entire position in minutes. Treat it as entertainment with a budget you're prepared to lose completely, not a wealth-building strategy.</li>
+      </ul>
+      <div class="article-callout">
+        <p><strong>The order of operations still matters:</strong> Build your emergency fund. Max your Roth IRA. Capture your 401k match. Then — and only then — allocate a small slice (5–10% max) to higher-risk plays like crypto. The boring stuff first, the exciting stuff after.</p>
+      </div>
+
+      <h3>What is Polymarket?</h3>
+      <p>Polymarket is a <strong>decentralized prediction market</strong> built on the Polygon blockchain. You deposit USDC (a dollar-pegged stablecoin) and trade shares in binary outcome contracts: "Will X happen by date Y?" Each share is worth $1 if the outcome occurs, $0 if it doesn't. Share prices move between $0 and $1 based on what the market collectively believes the probability is.</p>
+      <p>For example: if a "Yes" share for "Will the Fed cut rates in June?" is trading at $0.38, that means the market implies a 38% probability. If you think the probability is actually 55%, you buy Yes shares at $0.38 — and collect $1 per share if it happens, losing $0.38 per share if it doesn't. Your edge is your information vs. the market's information.</p>
+      <div class="article-stat-row">
+        <div class="ast-cell"><div class="ast-val" style="color:var(--gold)">$1B+</div><div class="ast-label">Volume traded on Polymarket in 2024</div></div>
+        <div class="ast-cell"><div class="ast-val" style="color:var(--sky)">USDC</div><div class="ast-label">Stablecoin used — pegged 1:1 to the dollar</div></div>
+        <div class="ast-cell"><div class="ast-val" style="color:var(--coral)">0–$1</div><div class="ast-label">Price range of each outcome share</div></div>
+      </div>
+
+      <h3>How people actually profit on prediction markets</h3>
+      <p>Prediction markets reward <em>better information and faster reactions</em>, not gambling instincts. The ways people consistently profit:</p>
+      <ul class="article-list">
+        <li><strong>Information edge:</strong> If you have domain expertise — you follow macro economics, you understand a specific sports team's injury dynamics, you track FDA drug approval pipelines — you can identify markets where the crowd's probability estimate is off from yours.</li>
+        <li><strong>Speed on breaking news:</strong> Markets take time to reprice after major announcements. Being fast to interpret and act on news (policy statements, earnings, geopolitical events) can be profitable before the market catches up.</li>
+        <li><strong>Arbitrage across platforms:</strong> Prediction market prices sometimes diverge across platforms (Polymarket vs Kalshi vs Manifold). Buying the underpriced outcome on one and hedging on another can lock in risk-free spreads — though these close quickly.</li>
+        <li><strong>Fading the crowd on emotionally-charged events:</strong> Crowds often overestimate dramatic outcomes (big elections, crisis events) because emotion drives speculation. Contrarian bets on "boring" likely outcomes can have positive expected value.</li>
+      </ul>
+
+      <h3>The honest risk profile</h3>
+      <p>Prediction markets are not passive income. They require active research, discipline, and the ability to stomach losing streaks. Even skilled bettors have bad months. The psychological traps are real: chasing losses, overconfidence after wins, holding losing positions too long. The same behavioral biases that hurt stock traders destroy prediction market traders.</p>
+      <p>Polymarket is also subject to regulatory uncertainty in the US — it does not accept US residents officially (though many use VPNs, which is a legal grey zone). Kalshi is the US-regulated alternative with similar mechanics but a smaller market. <strong>Know what you're signing up for before depositing real money.</strong></p>
+      <div class="article-callout">
+        <p><strong>Start small, learn first:</strong> Both Polymarket and Kalshi allow deposits as low as $10–$20. The best approach is to practice reading markets and tracking your accuracy before committing real capital. Your first $50 is tuition — treat it that way.</p>
+      </div>
+      <div class="article-cta">
+        <p><strong>Practice your market instincts risk-free.</strong> Our stock simulator uses the same buy/sell mechanics with zero real money.</p>
+        <a href="simulator.html" class="cta-btn">Try the Simulator →</a>
+      </div>`
+  },
   {
     id: 'roth-vs-traditional',
     category: 'tax',
@@ -835,11 +895,11 @@ const ARTICLES = [
 ];
 
 const TRENDING = [
+  { title: 'Crypto, staking & Polymarket: the money moves your generation is actually making', cat: 'Crypto', time: '9 min read', id: 'crypto-polymarket' },
   { title: 'What the Fed\'s latest rate decision means for your savings account', cat: 'Market News', time: '3 min read', id: 'market-volatility' },
   { title: 'The 50/30/20 budget rule — does it actually work in 2025?', cat: 'Basics', time: '5 min read', id: 'dollar-cost-averaging' },
   { title: 'Should you pay off student loans or invest first?', cat: 'Tax & Retirement', time: '6 min read', id: 'roth-vs-traditional' },
   { title: 'Bitcoin hits a new milestone — what it means for retail investors', cat: 'Crypto', time: '4 min read', id: 'crypto-beginners' },
-  { title: 'How to read a fund prospectus in under 10 minutes', cat: 'Tools', time: '5 min read', id: 'expense-ratios' },
 ];
 
 // ═══════════════════════════════════════════
