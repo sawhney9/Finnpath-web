@@ -393,7 +393,7 @@
     <li><a href="blog.html" class="active">Money Moves</a></li>
     <li><a href="paths.html">Your Path</a></li>
   </ul>
-  <button class="nav-burger" aria-label="Toggle menu">☰</button>
+  <button class="nav-burger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
   <a href="compete.html" class="nav-cta">Compete</a>
 </nav>
 
@@ -1087,11 +1087,30 @@ const obs = new IntersectionObserver(entries => {
   entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); obs.unobserve(e.target); } });
 }, { threshold: 0.06 });
 document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
-document.querySelector('.nav-burger').addEventListener('click', function(){
-  const links = document.querySelector('.nav-links');
-  links.classList.toggle('open');
-  this.textContent = links.classList.contains('open') ? '✕' : '☰';
-});
+(function(){
+  var burger = document.querySelector('.nav-burger');
+  var links  = document.querySelector('.nav-links');
+  if (!burger || !links) return;
+  burger.addEventListener('click', function(){
+    var open = links.classList.toggle('open');
+    burger.classList.toggle('open', open);
+    document.body.style.overflow = open ? 'hidden' : '';
+  });
+  links.querySelectorAll('a').forEach(function(a){
+    a.addEventListener('click', function(){
+      links.classList.remove('open');
+      burger.classList.remove('open');
+      document.body.style.overflow = '';
+    });
+  });
+  window.addEventListener('resize', function(){
+    if (window.innerWidth > 720) {
+      links.classList.remove('open');
+      burger.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  });
+})();
 </script>
 </body>
 </html>
