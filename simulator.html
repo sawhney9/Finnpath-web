@@ -314,6 +314,7 @@
     <li><a href="simulator.html" class="active">Simulator</a></li>
     <li><a href="paths.html">Your Path</a></li>
   </ul>
+  <button class="nav-burger" aria-label="Toggle menu">☰</button>
   <a href="learn.html" class="nav-cta">Learn More</a>
 </nav>
 
@@ -1036,6 +1037,11 @@ renderAll();
 tickInterval = setInterval(tick, 1500);
 startEventTimer();
 window.addEventListener('resize', drawPortChart);
+document.querySelector('.nav-burger').addEventListener('click', function(){
+  const links = document.querySelector('.nav-links');
+  links.classList.toggle('open');
+  this.textContent = links.classList.contains('open') ? '✕' : '☰';
+});
 </script>
 </body>
 </html>

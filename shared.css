@@ -135,10 +135,32 @@ h2 em { font-style:italic; color:var(--coral); }
 .reveal.visible { opacity:1; transform:translateY(0); }
 .d1{transition-delay:.08s} .d2{transition-delay:.16s} .d3{transition-delay:.24s}
 
+/* ── HAMBURGER ── */
+.nav-burger {
+  display:none; background:none; border:none; cursor:pointer;
+  padding:6px; color:var(--white); font-size:1.5rem; line-height:1;
+  margin-left:auto;
+}
+
 /* ── RESPONSIVE ── */
 @media(max-width:720px){
-  nav { padding:0 20px; }
-  .nav-links { display:none; }
+  nav { padding:0 20px; flex-wrap:wrap; align-items:center; }
+  .nav-burger { display:block; }
+  .nav-cta { display:none; }
+  .nav-links {
+    display:none; position:absolute; top:var(--nav-h); left:0; right:0;
+    flex-direction:column; gap:0;
+    background:rgba(10,22,40,.97); backdrop-filter:blur(24px);
+    border-bottom:1px solid var(--border);
+    padding:8px 20px 16px; z-index:300;
+  }
+  .nav-links.open { display:flex; }
+  .nav-links li { width:100%; }
+  .nav-links a {
+    display:block; padding:12px 0; font-size:.95rem;
+    border-bottom:1px solid var(--border);
+  }
+  .nav-links li:last-child a { border-bottom:none; }
   section { padding:64px 20px; }
   .site-footer { padding:40px 20px; }
 }

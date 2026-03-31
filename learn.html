@@ -299,6 +299,7 @@
     <li><a href="simulator.html">Simulator</a></li>
     <li><a href="paths.html">Your Path</a></li>
   </ul>
+  <button class="nav-burger" aria-label="Toggle menu">☰</button>
   <a href="calculator.html" class="nav-cta">Try Calculator</a>
 </nav>
 
@@ -833,6 +834,11 @@ const obs = new IntersectionObserver(entries => {
   entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); obs.unobserve(e.target); } });
 }, { threshold: 0.06 });
 document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+document.querySelector('.nav-burger').addEventListener('click', function(){
+  const links = document.querySelector('.nav-links');
+  links.classList.toggle('open');
+  this.textContent = links.classList.contains('open') ? '✕' : '☰';
+});
 </script>
 </body>
 </html>

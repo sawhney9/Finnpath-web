@@ -515,6 +515,7 @@
     <li><a href="simulator.html">Simulator</a></li>
     <li><a href="compete.html" class="active">Compete</a></li>
   </ul>
+  <button class="nav-burger" aria-label="Toggle menu">☰</button>
   <div id="nav-user" style="display:none;font-size:.82rem;font-weight:600;color:var(--white-dim);display:flex;align-items:center;gap:12px">
     <span id="nav-username"></span>
     <button onclick="logout()" style="background:transparent;border:1px solid var(--border);border-radius:7px;color:var(--white-dim);font-size:.72rem;padding:5px 12px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .2s" onmouseover="this.style.borderColor='var(--coral)';this.style.color='var(--coral)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--white-dim)'">Sign out</button>
@@ -1386,6 +1387,11 @@ window.addEventListener('load', () => {
       joinGroup();
     }
   }
+});
+document.querySelector('.nav-burger').addEventListener('click', function(){
+  const links = document.querySelector('.nav-links');
+  links.classList.toggle('open');
+  this.textContent = links.classList.contains('open') ? '✕' : '☰';
 });
 </script>
 </body>
