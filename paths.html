@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Your Path — Finnpath Financial Education</title>
+  <meta name="description" content="Find your financial starting point. Teens learn with the stock simulator. Young adults open their first Roth IRA. First jobbers decode their 401k plan documents."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="shared.css"/>
+  <style>
+
+    /* ── PAGE HERO ── */
+    .page-hero {
+      padding: calc(var(--nav-h) + 72px) 56px 80px;
+      background: var(--navy-mid); border-bottom: 1px solid var(--border);
+      position: relative; z-index: 1; overflow: hidden; text-align: center;
+    }
+    .page-hero::before {
+      content: '';
+      position: absolute; inset: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 55% 70% at 10% 50%, rgba(74,144,217,.07) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 60% at 90% 50%, rgba(232,96,76,.06) 0%, transparent 65%),
+        radial-gradient(ellipse 40% 40% at 50% 100%, rgba(61,186,126,.05) 0%, transparent 60%);
+    }
+    .page-hero-inner { max-width: 700px; margin-inline: auto; position: relative; z-index: 1; }
+    .page-hero h1 {
+      font-family: 'Playfair Display', serif; font-weight: 900;
+      font-size: clamp(2.4rem, 5vw, 4rem); letter-spacing: -.03em; line-height: 1.06;
+      animation: fadeUp .5s ease both;
+    }
+    .page-hero h1 em { font-style: italic; color: var(--coral); }
+    .page-hero p {
+      font-size: 1rem; color: var(--white-dim); font-weight: 300;
+      line-height: 1.82; margin-top: 18px; margin-bottom: 36px;
+      animation: fadeUp .5s .1s ease both;
+    }
+
+    /* audience selector */
+    .audience-selector {
+      display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+      animation: fadeUp .5s .2s ease both;
+    }
+    .aud-btn {
+      background: var(--navy-card); border: 1px solid var(--border);
+      border-radius: 100px; padding: 10px 24px; cursor: pointer;
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: .85rem; font-weight: 600;
+      color: var(--white-dim); transition: all .25s;
+    }
+    .aud-btn:hover { border-color: rgba(250,249,247,.2); color: var(--white); }
+    .aud-btn.active { color: var(--white); border-color: var(--coral); background: rgba(232,96,76,.12); }
+
+    /* ── PATH SECTIONS ── */
+    .paths-page { position: relative; z-index: 1; }
+
+    .path-section {
+      padding: 96px 56px;
+      border-bottom: 1px solid var(--border);
+    }
+    .path-section:last-of-type { border-bottom: none; }
+    .path-section.alt { background: var(--navy-mid); }
+
+    .path-inner { max-width: 1160px; margin-inline: auto; }
+
+    /* path header */
+    .path-header {
+      display: grid; grid-template-columns: 1fr auto; gap: 32px;
+      align-items: flex-start; margin-bottom: 56px;
+    }
+    .path-tag {
+      display: inline-flex; align-items: center; gap: 10px;
+      font-size: .7rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    .path-tag-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .path-header h2 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); margin-bottom: 12px; }
+    .path-header h2 em { font-style: italic; color: var(--coral); }
+    .path-header p { font-size: .97rem; color: var(--white-dim); line-height: 1.82; max-width: 560px; font-weight: 300; }
+
+    .path-age-badge {
+      background: var(--navy-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px 24px; text-align: center;
+      flex-shrink: 0; white-space: nowrap;
+    }
+    .age-num {
+      font-family: 'Playfair Display', serif; font-weight: 900;
+      font-size: 2.4rem; line-height: 1; letter-spacing: -.02em;
+    }
+    .age-label { font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--white-dim); margin-top: 4px; }
+
+    /* ── TEEN PATH ── */
+    .teen-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+    .feature-card {
+      background: var(--navy-mid); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 28px 26px;
+      transition: transform .22s, border-color .22s;
+    }
+    .alt .feature-card { background: var(--navy); }
+    .feature-card:hover { transform: translateY(-4px); border-color: rgba(250,249,247,.18); }
+    .feature-card.span2 { grid-column: span 2; }
+    .feature-card.highlight { border-color: rgba(232,96,76,.28); background: rgba(232,96,76,.06); }
+    .feature-card.highlight.alt { background: rgba(232,96,76,.07); }
+
+    .fc-icon { font-size: 1.8rem; margin-bottom: 14px; }
+    .fc-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.1rem; margin-bottom: 10px; }
+    .fc-desc { font-size: .84rem; color: var(--white-dim); line-height: 1.75; }
+    .fc-tag {
+      display: inline-block; margin-top: 14px;
+      background: var(--navy-card); border: 1px solid var(--border);
+      font-size: .66rem; font-weight: 600; letter-spacing: .04em;
+      padding: 4px 12px; border-radius: 100px; color: rgba(250,249,247,.35);
+    }
+    .alt .fc-tag { background: var(--navy-mid); }
+
+    /* sim preview */
+    .sim-preview {
+      background: var(--navy-card); border-radius: 12px;
+      padding: 20px; margin-top: 16px; font-size: .8rem;
+    }
+    .sim-preview-label { font-size: .64rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--white-dim); margin-bottom: 12px; }
+    .sim-stock-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 0; border-bottom: 1px solid var(--border); gap: 10px;
+    }
+    .sim-stock-row:last-child { border-bottom: none; }
+    .sim-emoji { font-size: 1.1rem; width: 24px; flex-shrink: 0; }
+    .sim-name { font-weight: 600; flex: 1; }
+    .sim-price { font-family: 'Playfair Display', serif; font-weight: 700; font-size: .9rem; }
+    .sim-chg { font-size: .72rem; font-weight: 700; min-width: 52px; text-align: right; }
+    .up { color: var(--green); } .dn { color: var(--coral); }
+
+    /* concepts checklist */
+    .concepts-check { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+    .check-item { display: flex; align-items: flex-start; gap: 10px; font-size: .84rem; color: var(--white-dim); line-height: 1.6; }
+    .check-item::before { content: '✓'; color: var(--green); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+    .check-item strong { color: var(--white); font-weight: 600; }
+
+    /* CTA strip */
+    .path-cta-strip {
+      display: flex; gap: 14px; margin-top: 40px; flex-wrap: wrap; align-items: center;
+    }
+    .path-note { font-size: .78rem; color: var(--white-dim); }
+
+    /* ── YOUNG ADULT PATH ── */
+    .young-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+
+    /* step cards */
+    .step-card {
+      background: var(--navy); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 28px 24px;
+      position: relative; transition: transform .22s, border-color .22s;
+    }
+    .step-card:hover { transform: translateY(-4px); border-color: rgba(250,249,247,.18); }
+    .step-num {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--coral); color: #fff;
+      font-family: 'Playfair Display', serif; font-weight: 900; font-size: .95rem;
+      display: grid; place-items: center; margin-bottom: 16px;
+    }
+    .step-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.05rem; margin-bottom: 8px; }
+    .step-desc { font-size: .82rem; color: var(--white-dim); line-height: 1.75; }
+    .step-detail {
+      margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border);
+      font-size: .76rem; color: rgba(250,249,247,.4); line-height: 1.6;
+    }
+    .step-detail strong { color: var(--coral); }
+
+    /* roth visual */
+    .roth-visual {
+      background: var(--navy); border: 1px solid var(--border); border-radius: var(--radius);
+      overflow: hidden; margin-top: 28px;
+    }
+    .roth-vis-head {
+      padding: 14px 20px; background: var(--navy-card); border-bottom: 1px solid var(--border);
+      font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--white-dim);
+    }
+    .roth-vis-body { padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .roth-stat { }
+    .roth-stat-label { font-size: .7rem; color: var(--white-dim); margin-bottom: 4px; }
+    .roth-stat-val { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.3rem; }
+    .roth-stat-val.coral { color: var(--coral); }
+    .roth-stat-val.green { color: var(--green); }
+    .roth-stat-val.sky   { color: var(--sky); }
+    .roth-stat-sub { font-size: .68rem; color: var(--white-dim); margin-top: 3px; }
+
+    /* ── FIRST JOBBER PATH ── */
+    .jobber-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+    /* 401k decoder - the hero feature */
+    .decoder-card {
+      background: var(--navy-mid); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden;
+      grid-column: span 2;
+    }
+    .decoder-head {
+      padding: 24px 28px; background: var(--navy-card);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;
+    }
+    .decoder-head h3 { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.2rem; }
+    .decoder-head p { font-size: .82rem; color: var(--white-dim); margin-top: 4px; line-height: 1.6; }
+    .coming-soon-badge {
+      background: rgba(201,168,76,.12); border: 1px solid rgba(201,168,76,.25);
+      border-radius: 100px; padding: 6px 16px; white-space: nowrap;
+      font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--gold);
+      flex-shrink: 0;
+    }
+    .decoder-body { padding: 28px; display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+
+    /* upload zone */
+    .upload-zone {
+      border: 2px dashed rgba(250,249,247,.16); border-radius: 14px;
+      padding: 36px 24px; text-align: center; cursor: pointer;
+      transition: border-color .2s, background .2s;
+      background: rgba(250,249,247,.02);
+    }
+    .upload-zone:hover { border-color: var(--coral); background: rgba(232,96,76,.04); }
+    .upload-zone.dragging { border-color: var(--coral); background: rgba(232,96,76,.08); }
+    .upload-icon { font-size: 2.4rem; margin-bottom: 12px; }
+    .upload-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.05rem; margin-bottom: 8px; }
+    .upload-desc { font-size: .8rem; color: var(--white-dim); line-height: 1.65; margin-bottom: 16px; }
+    .upload-accepts { font-size: .68rem; color: rgba(250,249,247,.25); }
+    .upload-btn {
+      background: var(--coral); color: #fff; font-weight: 700; font-size: .8rem;
+      padding: 10px 22px; border-radius: 8px; border: none; cursor: pointer;
+      font-family: 'Plus Jakarta Sans', sans-serif; margin-bottom: 10px;
+      transition: background .2s; display: inline-block;
+      box-shadow: 0 4px 14px var(--coral-glow);
+    }
+    .upload-btn:hover { background: var(--coral-soft); }
+
+    /* what we decode */
+    .decode-list { display: flex; flex-direction: column; gap: 12px; }
+    .decode-item {
+      background: var(--navy-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 18px;
+      display: flex; gap: 12px; align-items: flex-start;
+    }
+    .decode-item-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+    .decode-item-title { font-size: .85rem; font-weight: 700; margin-bottom: 3px; }
+    .decode-item-desc { font-size: .76rem; color: var(--white-dim); line-height: 1.6; }
+
+    /* sample output */
+    .sample-output {
+      background: var(--navy-card); border-radius: 12px; padding: 16px;
+      margin-top: 20px; border: 1px solid var(--border);
+    }
+    .sample-label { font-size: .62rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--white-dim); margin-bottom: 12px; }
+    .sample-fund-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 0; border-bottom: 1px solid var(--border); gap: 10px; flex-wrap: wrap;
+    }
+    .sample-fund-row:last-child { border-bottom: none; }
+    .sfr-name { font-size: .8rem; font-weight: 600; flex: 1; }
+    .sfr-ratio { font-size: .74rem; font-weight: 700; white-space: nowrap; }
+    .sfr-ratio.good { color: var(--green); }
+    .sfr-ratio.ok   { color: var(--gold); }
+    .sfr-ratio.bad  { color: var(--coral); }
+    .sfr-rec { font-size: .66rem; padding: 3px 8px; border-radius: 100px; }
+    .sfr-rec.pick { background: rgba(61,186,126,.15); color: var(--green); }
+    .sfr-rec.skip { background: rgba(232,96,76,.12); color: var(--coral); }
+
+    /* vesting explainer */
+    .vesting-vis { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+    .vest-row { display: grid; grid-template-columns: 80px 1fr 70px; gap: 10px; align-items: center; }
+    .vest-year { font-size: .72rem; font-weight: 700; color: var(--white-dim); }
+    .vest-bar-outer { height: 10px; background: var(--navy-card); border-radius: 100px; overflow: hidden; }
+    .vest-bar-inner { height: 100%; border-radius: 100px; background: linear-gradient(90deg, var(--sky), var(--green)); }
+    .vest-pct { font-size: .72rem; font-weight: 700; text-align: right; }
+
+    /* match explainer */
+    .match-explainer {
+      background: var(--navy); border: 1px solid rgba(61,186,126,.2);
+      border-radius: 12px; padding: 18px 20px; margin-top: 16px;
+    }
+    .match-ex-title { font-weight: 700; font-size: .85rem; margin-bottom: 10px; color: var(--green); }
+    .match-ex-row { display: flex; justify-content: space-between; font-size: .78rem; padding: 5px 0; border-bottom: 1px solid var(--border); }
+    .match-ex-row:last-child { border-bottom: none; font-weight: 700; color: var(--green); }
+    .match-ex-label { color: var(--white-dim); }
+
+    /* ── COMPARISON TABLE ── */
+    .path-compare { max-width: 1160px; margin-inline: auto; padding: 80px 56px; }
+    .compare-table-wrap {
+      background: var(--navy-mid); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden; margin-top: 48px;
+    }
+    table.pt { width: 100%; border-collapse: collapse; }
+    table.pt th {
+      padding: 16px 20px; text-align: center; font-size: .68rem; font-weight: 700;
+      letter-spacing: .08em; text-transform: uppercase;
+      border-bottom: 1px solid var(--border); background: var(--navy-card);
+    }
+    table.pt th:first-child { text-align: left; width: 180px; }
+    table.pt th.teen  { color: var(--sky); }
+    table.pt th.young { color: var(--green); }
+    table.pt th.job   { color: var(--gold); }
+    table.pt td { padding: 14px 20px; text-align: center; font-size: .83rem; color: var(--white-dim); border-bottom: 1px solid rgba(250,249,247,.04); }
+    table.pt td:first-child { text-align: left; font-weight: 600; color: var(--white); }
+    table.pt tr:last-child td { border-bottom: none; }
+    table.pt tr:hover td { background: rgba(250,249,247,.02); }
+    .check  { color: var(--green); font-size: 1rem; }
+    .cross  { color: rgba(250,249,247,.2); font-size: 1rem; }
+    .soon   { color: var(--gold); font-size: .72rem; font-weight: 700; }
+
+    /* ── FAQ ── */
+    .faq-section { background: var(--navy-mid); padding: 80px 56px; position: relative; z-index: 1; }
+    .faq-inner { max-width: 760px; margin-inline: auto; }
+    .faq-list { margin-top: 48px; display: flex; flex-direction: column; gap: 2px; }
+    .faq-item {
+      background: var(--navy); border: 1px solid var(--border); border-radius: 12px;
+      overflow: hidden; transition: border-color .2s;
+    }
+    .faq-item.open { border-color: rgba(232,96,76,.25); }
+    .faq-q {
+      padding: 20px 24px; display: flex; justify-content: space-between; align-items: center;
+      cursor: pointer; gap: 16px; user-select: none;
+    }
+    .faq-q-text { font-size: .9rem; font-weight: 600; line-height: 1.5; }
+    .faq-arrow { color: var(--coral); font-size: 1.1rem; flex-shrink: 0; transition: transform .25s; }
+    .faq-item.open .faq-arrow { transform: rotate(45deg); }
+    .faq-a {
+      max-height: 0; overflow: hidden; transition: max-height .35s ease, padding .35s;
+      padding: 0 24px; font-size: .86rem; color: var(--white-dim); line-height: 1.8;
+    }
+    .faq-item.open .faq-a { max-height: 300px; padding: 0 24px 20px; }
+    .faq-a strong { color: var(--white); font-weight: 600; }
+
+    /* ── NEWSLETTER ── */
+    #newsletter { background: var(--navy); padding: 80px 56px; position: relative; z-index: 1; }
+    .nl-wrap { max-width: 620px; margin-inline: auto; text-align: center; }
+    .nl-wrap h2 { margin-bottom: 14px; }
+    .nl-sub { font-size: .95rem; color: var(--white-dim); line-height: 1.8; margin-bottom: 32px; font-weight: 300; }
+    .email-form { display: flex; gap: 8px; background: var(--navy-card); border: 1px solid var(--border); border-radius: 10px; padding: 6px 6px 6px 20px; }
+    .email-input { flex: 1; background: transparent; border: none; outline: none; font-size: .9rem; color: var(--white); font-family: 'Plus Jakarta Sans', sans-serif; }
+    .email-input::placeholder { color: rgba(250,249,247,.22); }
+    .btn-sub { background: var(--coral); color: #fff; font-weight: 700; font-size: .84rem; padding: 11px 26px; border-radius: 7px; border: none; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; white-space: nowrap; transition: background .2s, transform .2s; }
+    .btn-sub:hover { background: var(--coral-soft); transform: scale(1.02); }
+    .nl-note { font-size: .68rem; color: rgba(250,249,247,.2); margin-top: 12px; }
+
+    /* ── RESPONSIVE ── */
+    @media(max-width: 960px) {
+      .path-section { padding: 72px 20px; }
+      .path-header { grid-template-columns: 1fr; }
+      .path-age-badge { display: none; }
+      .teen-grid { grid-template-columns: 1fr; }
+      .feature-card.span2 { grid-column: span 1; }
+      .young-grid { grid-template-columns: 1fr; }
+      .jobber-grid { grid-template-columns: 1fr; }
+      .decoder-card { grid-column: span 1; }
+      .decoder-body { grid-template-columns: 1fr; }
+      .path-compare { padding: 60px 20px; }
+      .faq-section { padding: 60px 20px; }
+      #newsletter { padding: 60px 20px; }
+      .roth-vis-body { grid-template-columns: 1fr 1fr; }
+    }
+    @media(max-width: 640px) {
+      .page-hero { padding: calc(var(--nav-h)+40px) 20px 56px; }
+      .roth-vis-body { grid-template-columns: 1fr; }
+      table.pt { font-size: .75rem; }
+      table.pt th, table.pt td { padding: 10px 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="logo">Finnpath<span class="logo-dot">.</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="learn.html">Learn</a></li>
+    <li><a href="calculator.html">Calculator</a></li>
+    <li><a href="simulator.html">Simulator</a></li>
+    <li><a href="paths.html" class="active">Your Path</a></li>
+  </ul>
+  <button class="nav-burger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+  <a href="calculator.html" class="nav-cta">Try Calculator</a>
+</nav>
+
+<!-- PAGE HERO -->
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <div class="s-eyebrow" style="justify-content:center">Find where you belong</div>
+    <h1>Your path to<br/><em>financial clarity</em></h1>
+    <p>Finnpath meets you exactly where you are — whether you're a teen learning the basics with play money, a young adult opening your first Roth IRA, or a first jobber trying to decode a 401k enrollment packet.</p>
+    <div class="audience-selector">
+      <button class="aud-btn active" onclick="scrollTo('teens', this)">🎮 I'm a Teen (13–17)</button>
+      <button class="aud-btn" onclick="scrollTo('young', this)">🌱 Young Adult (18–25)</button>
+      <button class="aud-btn" onclick="scrollTo('jobber', this)">💼 First Jobber (22–30)</button>
+    </div>
+  </div>
+</div>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <span class="hi">Stock Simulator</span><span>·</span><span>Roth IRA</span><span>·</span>
+    <span class="hi">401k Decoder</span><span>·</span><span>Compound Interest</span><span>·</span>
+    <span class="hi">Employer Match</span><span>·</span><span>Index Funds</span><span>·</span>
+    <span class="hi">Vesting Schedule</span><span>·</span><span>Emergency Fund</span><span>·</span>
+    <span>Dollar Cost Averaging</span><span>·</span><span>Expense Ratio</span><span>·</span>
+    <span class="hi">Stock Simulator</span><span>·</span><span>Roth IRA</span><span>·</span>
+    <span class="hi">401k Decoder</span><span>·</span><span>Compound Interest</span><span>·</span>
+    <span class="hi">Employer Match</span><span>·</span><span>Index Funds</span><span>·</span>
+    <span class="hi">Vesting Schedule</span><span>·</span><span>Emergency Fund</span><span>·</span>
+    <span>Dollar Cost Averaging</span><span>·</span><span>Expense Ratio</span><span>·</span>
+  </div>
+</div>
+
+<!-- ── PATH 1: TEENS ── -->
+<section class="path-section" id="teens">
+  <div class="path-inner">
+    <div class="path-header reveal">
+      <div>
+        <div class="path-tag" style="color:var(--sky)">
+          <div class="path-tag-dot" style="background:var(--sky)"></div>
+          Path 01 · Teens
+        </div>
+        <h2>Learn to invest<br/><em>before the stakes are real</em></h2>
+        <p>The best time to learn about money is before you have any. Our stock simulator gives you $10,000 of play money to buy, sell, and watch markets move — with real-world events affecting prices. Build instincts. Make mistakes. Learn why they happened. Zero real money, zero real risk.</p>
+      </div>
+      <div class="path-age-badge">
+        <div class="age-num" style="color:var(--sky)">13–17</div>
+        <div class="age-label">Years old</div>
+      </div>
+    </div>
+
+    <div class="teen-grid">
+      <!-- Simulator preview -->
+      <div class="feature-card highlight reveal d1">
+        <div class="fc-icon">📈</div>
+        <div class="fc-title">Stock Portfolio Simulator</div>
+        <div class="fc-desc">Start with $10,000 of virtual cash. Buy stocks, watch prices fluctuate in real time, and see how world events affect the market.</div>
+        <div class="sim-preview">
+          <div class="sim-preview-label">Live market — prices updating</div>
+          <div class="sim-stock-row">
+            <div class="sim-emoji">🍔</div>
+            <div class="sim-name">Burger Bonanza</div>
+            <div class="sim-price">$26.14</div>
+            <div class="sim-chg up">+2.4%</div>
+          </div>
+          <div class="sim-stock-row">
+            <div class="sim-emoji">🚀</div>
+            <div class="sim-name">RocketShip Inc</div>
+            <div class="sim-price">$138.90</div>
+            <div class="sim-chg dn">−1.8%</div>
+          </div>
+          <div class="sim-stock-row">
+            <div class="sim-emoji">☀️</div>
+            <div class="sim-name">SolarMax Energy</div>
+            <div class="sim-price">$61.30</div>
+            <div class="sim-chg up">+4.1%</div>
+          </div>
+          <div class="sim-stock-row">
+            <div class="sim-emoji">🤖</div>
+            <div class="sim-name">BrainBank AI</div>
+            <div class="sim-price">$224.55</div>
+            <div class="sim-chg up">+0.7%</div>
+          </div>
+        </div>
+        <span class="fc-tag">$10,000 starting balance · 10 stocks to trade</span>
+      </div>
+
+      <!-- Market events -->
+      <div class="feature-card reveal d2">
+        <div class="fc-icon">📰</div>
+        <div class="fc-title">Market Events That Teach</div>
+        <div class="fc-desc">Real-world scenarios trigger price moves so you learn why markets move — not just that they do.</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:14px">
+          <div style="background:var(--navy-card);border:1px solid var(--border);border-radius:10px;padding:12px 14px">
+            <div style="font-size:.65rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--coral);margin-bottom:4px">📰 Market Flash</div>
+            <div style="font-size:.8rem;font-weight:600;margin-bottom:3px">Oil prices spike on Middle East tensions</div>
+            <div style="font-size:.72rem;color:var(--white-dim)">⛽ Energy stocks +8% &nbsp;✈️ Airlines −5%</div>
+          </div>
+          <div style="background:var(--navy-card);border:1px solid var(--border);border-radius:10px;padding:12px 14px">
+            <div style="font-size:.65rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:4px">📰 Market Flash</div>
+            <div style="font-size:.8rem;font-weight:600;margin-bottom:3px">Fed raises interest rates unexpectedly</div>
+            <div style="font-size:.72rem;color:var(--white-dim)">📉 Tech stocks −6% &nbsp;🏦 Banks +4%</div>
+          </div>
+          <div style="background:var(--navy-card);border:1px solid var(--border);border-radius:10px;padding:12px 14px">
+            <div style="font-size:.65rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--green);margin-bottom:4px">📰 Market Flash</div>
+            <div style="font-size:.8rem;font-weight:600;margin-bottom:3px">Major AI breakthrough announced</div>
+            <div style="font-size:.72rem;color:var(--white-dim)">🤖 AI stocks +12% &nbsp;📦 Shipping −3%</div>
+          </div>
+        </div>
+        <span class="fc-tag">Learn cause and effect in real time</span>
+      </div>
+
+      <!-- What you'll learn -->
+      <div class="feature-card reveal d1">
+        <div class="fc-icon">🎓</div>
+        <div class="fc-title">What You'll Learn</div>
+        <div class="concepts-check">
+          <div class="check-item"><strong>Why stock prices move</strong> — supply, demand, news, and earnings</div>
+          <div class="check-item"><strong>Diversification</strong> — why spreading across sectors protects you</div>
+          <div class="check-item"><strong>Risk vs reward</strong> — volatile stocks vs stable ones</div>
+          <div class="check-item"><strong>Buy low, sell high</strong> — easier said than done, and why</div>
+          <div class="check-item"><strong>Compound interest</strong> — through our interactive visualizer</div>
+          <div class="check-item"><strong>How sectors connect</strong> — energy, tech, finance, consumer goods</div>
+        </div>
+      </div>
+
+      <!-- No risk callout -->
+      <div class="feature-card reveal d2">
+        <div class="fc-icon">🛡️</div>
+        <div class="fc-title">Zero Real Money. Zero Real Risk.</div>
+        <div class="fc-desc">Everything in the simulator uses fictional companies and play money. There's no account to open, no credit card required, no parental permission needed. Just learning.</div>
+        <div style="margin-top:18px;background:rgba(61,186,126,.06);border:1px solid rgba(61,186,126,.18);border-radius:10px;padding:14px 16px">
+          <div style="font-size:.72rem;font-weight:700;color:var(--green);margin-bottom:6px">Why this matters</div>
+          <div style="font-size:.8rem;color:var(--white-dim);line-height:1.65">The best investors in the world made mistakes early. The simulator lets you make yours now — and actually understand what went wrong — before any real money is on the line.</div>
+        </div>
+        <span class="fc-tag">Reset anytime · No account needed</span>
+      </div>
+    </div>
+
+    <div class="path-cta-strip reveal">
+      <a href="simulator.html" class="btn-primary">Launch the Simulator →</a>
+      <a href="learn.html#compound" class="btn-outline">Learn compounding first</a>
+      <span class="path-note">Free to use · No signup required</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── PATH 2: YOUNG ADULTS ── -->
+<section class="path-section alt" id="young">
+  <div class="path-inner">
+    <div class="path-header reveal">
+      <div>
+        <div class="path-tag" style="color:var(--green)">
+          <div class="path-tag-dot" style="background:var(--green)"></div>
+          Path 02 · Young Adults
+        </div>
+        <h2>Build your first<br/><em>real financial foundation</em></h2>
+        <p>You've got income — maybe your first job, a side hustle, or graduation money. This is the most powerful financial moment of your life. The habits you build right now, compounded over 40+ years, will define your retirement. Here's exactly where to start.</p>
+      </div>
+      <div class="path-age-badge">
+        <div class="age-num" style="color:var(--green)">18–25</div>
+        <div class="age-label">Years old</div>
+      </div>
+    </div>
+
+    <!-- Step cards -->
+    <div class="young-grid">
+      <div class="step-card reveal d1">
+        <div class="step-num">1</div>
+        <div class="step-title">Open a High-Yield Savings Account</div>
+        <div class="step-desc">Before you invest a dollar, park your emergency fund somewhere earning 4–5% APY instead of the near-zero your bank offers.</div>
+        <div class="step-detail"><strong>Where:</strong> Marcus by Goldman Sachs, SoFi, Ally Bank, or American Express Savings. All free, FDIC insured, no minimums.<br/><strong>Goal:</strong> 3 months of expenses minimum.</div>
+      </div>
+      <div class="step-card reveal d2">
+        <div class="step-num">2</div>
+        <div class="step-title">Open a Roth IRA</div>
+        <div class="step-desc">The best tax-advantaged account available to young people. Contribute after-tax dollars now, withdraw everything — including all gains — tax-free in retirement.</div>
+        <div class="step-detail"><strong>Where:</strong> Fidelity, Vanguard, or Charles Schwab. All free.<br/><strong>Limit:</strong> $7,000/year ($583/month) in 2025.</div>
+      </div>
+      <div class="step-card reveal d3">
+        <div class="step-num">3</div>
+        <div class="step-title">Invest in Index Funds</div>
+        <div class="step-desc">Inside your Roth IRA, don't leave cash sitting — invest it. One or two index funds covers you for decades without ever needing to pick stocks.</div>
+        <div class="step-detail"><strong>Start with:</strong> VTI (total US market) or a Target Date Fund like Vanguard 2060.<br/><strong>Expense ratio:</strong> Under 0.20%.</div>
+      </div>
+      <div class="step-card reveal d1">
+        <div class="step-num">4</div>
+        <div class="step-title">Automate Everything</div>
+        <div class="step-desc">Set up automatic monthly transfers to your Roth IRA on payday. Dollar cost averaging works best when it's completely automatic — no decisions, no emotion.</div>
+        <div class="step-detail"><strong>Even $50/month</strong> started at 22 beats $500/month started at 35.<br/><strong>Automate:</strong> savings, IRA contributions, bill payments.</div>
+      </div>
+      <div class="step-card reveal d2">
+        <div class="step-num">5</div>
+        <div class="step-title">Track Your Net Worth</div>
+        <div class="step-desc">Net worth = assets minus liabilities. Tracking it monthly keeps you motivated and shows progress even in months when the market is down.</div>
+        <div class="step-detail"><strong>Assets:</strong> savings, investments, car value.<br/><strong>Liabilities:</strong> student loans, credit card debt, car loans. The gap is your net worth.</div>
+      </div>
+      <div class="step-card reveal d3">
+        <div class="step-num">6</div>
+        <div class="step-title">Avoid Lifestyle Inflation</div>
+        <div class="step-desc">When your income increases, resist the urge to immediately increase your spending proportionally. Redirect raises and bonuses to investments first.</div>
+        <div class="step-detail"><strong>The rule:</strong> Every raise, save at least 50% of the increase. Live on the rest.<br/><strong>The compound effect</strong> of this single habit is enormous over time.</div>
+      </div>
+    </div>
+
+    <!-- Roth visual -->
+    <div class="roth-visual reveal" style="margin-top:32px">
+      <div class="roth-vis-head">What a Roth IRA looks like at retirement — $500/month from age 22 at 7% returns</div>
+      <div class="roth-vis-body">
+        <div class="roth-stat">
+          <div class="roth-stat-label">Total balance at 65</div>
+          <div class="roth-stat-val coral">$1,906,000</div>
+          <div class="roth-stat-sub">43 years of compounding</div>
+        </div>
+        <div class="roth-stat">
+          <div class="roth-stat-label">What you contributed</div>
+          <div class="roth-stat-val sky">$258,000</div>
+          <div class="roth-stat-sub">$500/mo for 43 years</div>
+        </div>
+        <div class="roth-stat">
+          <div class="roth-stat-label">Market growth earned</div>
+          <div class="roth-stat-val green">$1,648,000</div>
+          <div class="roth-stat-sub">the market worked for you</div>
+        </div>
+        <div class="roth-stat">
+          <div class="roth-stat-label">Tax owed on withdrawal</div>
+          <div class="roth-stat-val green">$0</div>
+          <div class="roth-stat-sub">Roth withdrawals are tax-free</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="path-cta-strip reveal">
+      <a href="calculator.html" class="btn-primary">Calculate your Roth →</a>
+      <a href="learn.html#ira" class="btn-outline">Learn more about IRAs</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── PATH 3: FIRST JOBBERS ── -->
+<section class="path-section" id="jobber">
+  <div class="path-inner">
+    <div class="path-header reveal">
+      <div>
+        <div class="path-tag" style="color:var(--gold)">
+          <div class="path-tag-dot" style="background:var(--gold)"></div>
+          Path 03 · First Jobbers
+        </div>
+        <h2>Decode your 401k —<br/><em>in plain English</em></h2>
+        <p>You just started your first real job. HR handed you a 401k enrollment packet full of fund names, expense ratios, and vesting schedules. Nobody explained what any of it means. We will. Upload your plan documents and Finnpath will break down every fund, explain your employer match, and help you decide how much to contribute — without ever telling you what to do.</p>
+      </div>
+      <div class="path-age-badge">
+        <div class="age-num" style="color:var(--gold)">22–30</div>
+        <div class="age-label">Years old</div>
+      </div>
+    </div>
+
+    <div class="jobber-grid">
+
+      <!-- 401k Decoder — hero feature -->
+      <div class="decoder-card reveal">
+        <div class="decoder-head">
+          <div>
+            <h3>📄 401k Document Decoder</h3>
+            <p>Upload your 401k plan summary, benefits packet, or fund lineup. We extract the key information and explain it in plain English — fund options, expense ratios, your employer match, and vesting schedule.</p>
+          </div>
+          <div class="coming-soon-badge">Coming Soon</div>
+        </div>
+        <div class="decoder-body">
+          <div>
+            <div class="upload-zone" id="upload-zone">
+              <div class="upload-icon">📋</div>
+              <div class="upload-title">Upload your 401k documents</div>
+              <div class="upload-desc">Drag and drop your plan summary PDF, benefits packet, or a photo of your enrollment paperwork. We'll do the rest.</div>
+              <button class="upload-btn">Choose File</button>
+              <div class="upload-accepts">Accepts PDF, JPG, PNG · Your documents are never stored</div>
+            </div>
+
+            <div class="sample-output">
+              <div class="sample-label">Example output — what we'd show you</div>
+              <div class="sample-fund-row">
+                <div class="sfr-name">Vanguard 500 Index (VINIX)</div>
+                <div class="sfr-ratio good">0.04%</div>
+                <div class="sfr-rec pick">✓ Pick this</div>
+              </div>
+              <div class="sample-fund-row">
+                <div class="sfr-name">T. Rowe Price Growth Stock</div>
+                <div class="sfr-ratio ok">0.65%</div>
+                <div class="sfr-rec skip">Consider skipping</div>
+              </div>
+              <div class="sample-fund-row">
+                <div class="sfr-name">American Funds Growth A</div>
+                <div class="sfr-ratio bad">1.02%</div>
+                <div class="sfr-rec skip">Skip — high fee</div>
+              </div>
+              <div class="sample-fund-row">
+                <div class="sfr-name">Target Date 2060 Fund</div>
+                <div class="sfr-ratio good">0.12%</div>
+                <div class="sfr-rec pick">✓ Great for beginners</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="decode-list">
+            <div class="decode-item">
+              <div class="decode-item-icon">📊</div>
+              <div>
+                <div class="decode-item-title">Fund Options Explained</div>
+                <div class="decode-item-desc">We translate every fund name into plain English — what it invests in, its expense ratio, and whether it's worth choosing over alternatives in your plan.</div>
+              </div>
+            </div>
+            <div class="decode-item">
+              <div class="decode-item-icon">💰</div>
+              <div>
+                <div class="decode-item-title">Employer Match Breakdown</div>
+                <div class="decode-item-desc">We calculate exactly how much you need to contribute to get every dollar of your employer's match — the closest thing to free money in the financial world.</div>
+              </div>
+            </div>
+            <div class="decode-item">
+              <div class="decode-item-icon">📅</div>
+              <div>
+                <div class="decode-item-title">Vesting Schedule Decoded</div>
+                <div class="decode-item-desc">When is your employer's match actually yours? We explain your vesting schedule and what it means if you're thinking about changing jobs.</div>
+              </div>
+            </div>
+            <div class="decode-item">
+              <div class="decode-item-icon">🎯</div>
+              <div>
+                <div class="decode-item-title">Contribution Recommendation</div>
+                <div class="decode-item-desc">Based on your plan's match formula, we show you the minimum to contribute to capture the full match — and what maxing out looks like over 30 years.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vesting explainer -->
+      <div class="feature-card reveal d1">
+        <div class="fc-icon">📅</div>
+        <div class="fc-title">Understanding Vesting Schedules</div>
+        <div class="fc-desc">Your employer's matching contributions may not be immediately yours. A vesting schedule determines when that money becomes fully yours — and it matters a lot if you're considering changing jobs.</div>
+        <div class="vesting-vis">
+          <div style="font-size:.68rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--white-dim);margin-bottom:6px">Typical 4-year graded vesting</div>
+          <div class="vest-row"><div class="vest-year">Year 1</div><div class="vest-bar-outer"><div class="vest-bar-inner" style="width:0%"></div></div><div class="vest-pct" style="color:var(--coral)">0%</div></div>
+          <div class="vest-row"><div class="vest-year">Year 2</div><div class="vest-bar-outer"><div class="vest-bar-inner" style="width:33%"></div></div><div class="vest-pct" style="color:var(--gold)">33%</div></div>
+          <div class="vest-row"><div class="vest-year">Year 3</div><div class="vest-bar-outer"><div class="vest-bar-inner" style="width:66%"></div></div><div class="vest-pct" style="color:var(--sky)">66%</div></div>
+          <div class="vest-row"><div class="vest-year">Year 4+</div><div class="vest-bar-outer"><div class="vest-bar-inner" style="width:100%"></div></div><div class="vest-pct" style="color:var(--green)">100%</div></div>
+        </div>
+        <div style="margin-top:14px;font-size:.78rem;color:var(--white-dim);line-height:1.65">
+          If you leave before year 4 in this example, you forfeit unvested employer contributions. Always check your vesting schedule before accepting a new job offer — it's real money.
+        </div>
+        <span class="fc-tag">Check your summary plan description (SPD)</span>
+      </div>
+
+      <!-- Employer match explainer -->
+      <div class="feature-card reveal d2">
+        <div class="fc-icon">💰</div>
+        <div class="fc-title">How Employer Match Actually Works</div>
+        <div class="fc-desc">Most people underestimate how valuable the employer match is. Here's a real example using a common formula: <em>50% match on up to 6% of salary.</em></div>
+        <div class="match-explainer">
+          <div class="match-ex-title">Example: $65,000 salary · 50% match on up to 6%</div>
+          <div class="match-ex-row"><div class="match-ex-label">Your salary</div><div>$65,000</div></div>
+          <div class="match-ex-row"><div class="match-ex-label">6% of salary (you contribute)</div><div>$3,900/year</div></div>
+          <div class="match-ex-row"><div class="match-ex-label">50% employer match</div><div>$1,950/year</div></div>
+          <div class="match-ex-row"><div class="match-ex-label">Total invested annually</div><div>$5,850/year</div></div>
+          <div class="match-ex-row"><div class="match-ex-label">Instant return on your $3,900</div><div>50% before market does anything</div></div>
+        </div>
+        <div style="margin-top:12px;font-size:.78rem;color:var(--white-dim);line-height:1.65">
+          At 7% returns over 30 years, that extra $1,950/year in employer match alone becomes an additional <strong style="color:var(--green)">$185,000</strong> at retirement. Never leave it on the table.
+        </div>
+      </div>
+
+      <!-- Order of operations -->
+      <div class="feature-card reveal d1" style="grid-column:span 2" id="order">
+        <div class="fc-icon">🗺️</div>
+        <div class="fc-title">Your First-Job Financial Order of Operations</div>
+        <div class="fc-desc" style="margin-bottom:20px">Follow these steps in order. Each one builds the foundation for the next.</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+          <div style="background:var(--navy-card);border:1px solid var(--border);border-radius:10px;padding:14px 16px">
+            <div style="font-family:'Playfair Display',serif;font-weight:900;font-size:1.8rem;color:rgba(232,96,76,.2);line-height:1;margin-bottom:4px">1</div>
+            <div style="font-weight:700;font-size:.85rem;margin-bottom:5px">$1k Emergency Fund</div>
+            <div style="font-size:.76rem;color:var(--white-dim);line-height:1.6">Before anything. Prevents debt spirals from small surprises.</div>
+          </div>
+          <div style="background:var(--navy-card);border:1px solid var(--border);border-radius:10px;padding:14px 16px">
+            <div style="font-family:'Playfair Display',serif;font-weight:900;font-size:1.8rem;color:rgba(232,96,76,.2);line-height:1;margin-bottom:4px">2</div>
+            <div style="font-weight:700;font-size:.85rem;margin-bottom:5px">401k to Full Match</div>
+            <div style="font-size:.76rem;color:var(--white-dim);line-height:1.6">Capture every dollar of free employer money first.</div>
+          </div>
+          <div style="background:var(--navy-card);border:1px solid var(--border);border-radius:10px;padding:14px 16px">
+            <div style="font-family:'Playfair Display',serif;font-weight:900;font-size:1.8rem;color:rgba(232,96,76,.2);line-height:1;margin-bottom:4px">3</div>
+            <div style="font-weight:700;font-size:.85rem;margin-bottom:5px">Pay Off High-Interest Debt</div>
+            <div style="font-size:.76rem;color:var(--white-dim);line-height:1.6">Anything above 7% interest rate — guaranteed return.</div>
+          </div>
+          <div style="background:var(--navy-card);border:1px solid var(--border);border-radius:10px;padding:14px 16px">
+            <div style="font-family:'Playfair Display',serif;font-weight:900;font-size:1.8rem;color:rgba(232,96,76,.2);line-height:1;margin-bottom:4px">4</div>
+            <div style="font-weight:700;font-size:.85rem;margin-bottom:5px">Full Emergency Fund</div>
+            <div style="font-size:.76rem;color:var(--white-dim);line-height:1.6">3–6 months in a HYSA. Your investment protection layer.</div>
+          </div>
+          <div style="background:rgba(61,186,126,.06);border:1px solid rgba(61,186,126,.2);border-radius:10px;padding:14px 16px">
+            <div style="font-family:'Playfair Display',serif;font-weight:900;font-size:1.8rem;color:rgba(61,186,126,.25);line-height:1;margin-bottom:4px">5</div>
+            <div style="font-weight:700;font-size:.85rem;margin-bottom:5px;color:var(--green)">Max Roth IRA</div>
+            <div style="font-size:.76rem;color:var(--white-dim);line-height:1.6">$7,000/year of tax-free growth. Open at Fidelity or Vanguard.</div>
+          </div>
+          <div style="background:var(--navy-card);border:1px solid var(--border);border-radius:10px;padding:14px 16px">
+            <div style="font-family:'Playfair Display',serif;font-weight:900;font-size:1.8rem;color:rgba(232,96,76,.2);line-height:1;margin-bottom:4px">6</div>
+            <div style="font-weight:700;font-size:.85rem;margin-bottom:5px">Max 401k + Invest More</div>
+            <div style="font-size:.76rem;color:var(--white-dim);line-height:1.6">$23,500 limit. Then taxable brokerage for anything beyond.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="path-cta-strip reveal">
+      <a href="calculator.html" class="btn-primary">Model your 401k growth →</a>
+      <a href="learn.html#401k" class="btn-outline">Deep dive on 401ks</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── FEATURE COMPARISON TABLE ── -->
+<div class="path-compare" style="background:var(--navy-mid);position:relative;z-index:1">
+  <div style="max-width:1160px;margin-inline:auto">
+    <div class="reveal">
+      <div class="s-eyebrow">What's available for you</div>
+      <h2>Everything Finnpath offers,<br/>by audience</h2>
+    </div>
+    <div class="compare-table-wrap reveal">
+      <table class="pt">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th class="teen">🎮 Teens</th>
+            <th class="young">🌱 Young Adults</th>
+            <th class="job">💼 First Jobbers</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Stock simulator with play money</td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+          <tr><td>Market event explainers</td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+          <tr><td>Compound interest visualizer</td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+          <tr><td>Interactive calculator</td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+          <tr><td>Learn: all 7 concepts</td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+          <tr><td>Roth IRA setup guide</td><td><span class="cross">—</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+          <tr><td>Investment order of operations</td><td><span class="cross">—</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+          <tr><td>401k document decoder</td><td><span class="cross">—</span></td><td><span class="cross">—</span></td><td><span class="soon">Coming Soon</span></td></tr>
+          <tr><td>Employer match optimizer</td><td><span class="cross">—</span></td><td><span class="cross">—</span></td><td><span class="check">✓</span></td></tr>
+          <tr><td>Vesting schedule explainer</td><td><span class="cross">—</span></td><td><span class="cross">—</span></td><td><span class="check">✓</span></td></tr>
+          <tr><td>Weekly newsletter</td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ── FAQ ── -->
+<div class="faq-section">
+  <div class="faq-inner">
+    <div class="reveal">
+      <div class="s-eyebrow">Common questions</div>
+      <h2>Things people ask us</h2>
+    </div>
+    <div class="faq-list reveal">
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFAQ(this)">
+          <span class="faq-q-text">Is Finnpath financial advice?</span>
+          <span class="faq-arrow">+</span>
+        </div>
+        <div class="faq-a">No. Finnpath is purely educational. We explain how financial concepts work, provide calculators and tools to help you understand your options, and describe what various products do — but we never tell you what to buy, sell, or invest in. Always consult a qualified financial advisor for personalized advice.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFAQ(this)">
+          <span class="faq-q-text">How old do you need to be to open a Roth IRA?</span>
+          <span class="faq-arrow">+</span>
+        </div>
+        <div class="faq-a">You must have <strong>earned income</strong> to contribute to a Roth IRA, but there's no minimum age. A 15-year-old with a summer job can open and contribute to a Roth IRA — up to the amount they earned that year (or the $7,000 limit, whichever is lower). Parents can open a custodial Roth IRA for a minor. This is one of the most powerful financial moves a teenager can make.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFAQ(this)">
+          <span class="faq-q-text">What if I can only invest $25 or $50 a month?</span>
+          <span class="faq-arrow">+</span>
+        </div>
+        <div class="faq-a"><strong>Start anyway.</strong> At 7% returns, $50/month started at 22 grows to over $190,000 by age 65 — that's $190k from just $26,400 in contributions. The amount matters far less than starting early and staying consistent. Most brokerages have no account minimums and allow fractional shares, so $25 is enough to own a piece of any index fund.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFAQ(this)">
+          <span class="faq-q-text">I have student loans. Should I invest or pay them off first?</span>
+          <span class="faq-arrow">+</span>
+        </div>
+        <div class="faq-a">It depends on the interest rate. The general rule: <strong>if your loan rate is above 7%</strong>, pay it off aggressively first — it's a guaranteed return equal to that rate. <strong>If it's below 7%</strong>, make minimum payments and invest the rest, because historically the market has outperformed that rate over long periods. Always capture your full employer 401k match regardless — that instant 50-100% return beats everything.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFAQ(this)">
+          <span class="faq-q-text">Is the stock simulator using real stocks?</span>
+          <span class="faq-arrow">+</span>
+        </div>
+        <div class="faq-a">No. The simulator uses fictional companies with fun names like Burger Bonanza and RocketShip Inc. Prices move based on simulated market logic and fictional news events. This keeps things educational without attaching emotional or financial weight to real companies — which is exactly the right environment for learning.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFAQ(this)">
+          <span class="faq-q-text">When is the 401k document decoder available?</span>
+          <span class="faq-arrow">+</span>
+        </div>
+        <div class="faq-a">We're actively building it. The 401k decoder will let you upload your plan documents and get a plain-English breakdown of your fund options, expense ratios, employer match formula, and vesting schedule. Sign up for our newsletter to be notified when it launches — newsletter subscribers get early access.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NEWSLETTER -->
+<section id="newsletter">
+  <div class="container">
+    <div class="nl-wrap reveal">
+      <div class="s-eyebrow" style="justify-content:center">Stay sharp</div>
+      <h2>One money lesson.<br/>Every week.</h2>
+      <p class="nl-sub">Short, practical financial education delivered to your inbox — written for real people at every stage of their journey. Newsletter subscribers get early access to the 401k decoder when it launches.</p>
+      <div class="email-form">
+        <input class="email-input" type="email" placeholder="you@email.com"/>
+        <button class="btn-sub">Join Free</button>
+      </div>
+      <p class="nl-note">No spam. Unsubscribe anytime. Early access to new features.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div>
+      <div class="f-logo">Finnpath<span>.</span></div>
+      <p class="f-tagline">Financial education for every stage of life — from your first trade to your first 401k and beyond.</p>
+    </div>
+    <nav class="footer-nav">
+      <a href="index.html">Home</a>
+      <a href="learn.html">Learn</a>
+      <a href="calculator.html">Calculator</a>
+      <a href="simulator.html">Simulator</a>
+      <a href="paths.html">Your Path</a>
+    </nav>
+  </div>
+  <div class="footer-bottom">
+    <span class="footer-copy">© 2025 Finnpath · finnpath.com</span>
+    <p class="disclaimer">For educational and informational purposes only. Not financial, investment, or tax advice. Always consult a qualified financial advisor before making investment decisions. Past market performance does not guarantee future results.</p>
+  </div>
+</footer>
+
+<script>
+// ── AUDIENCE SCROLL ──
+function scrollTo(id, btn) {
+  document.querySelectorAll('.aud-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const el = document.getElementById(id);
+  if (el) {
+    const offset = 68 + 20;
+    window.scrollTo({ top: el.offsetTop - offset, behavior: 'smooth' });
+  }
+}
+
+// ── FAQ TOGGLE ──
+function toggleFAQ(el) {
+  const item = el.closest('.faq-item');
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+
+// ── UPLOAD ZONE DRAG ──
+const zone = document.getElementById('upload-zone');
+if (zone) {
+  ['dragenter','dragover'].forEach(ev => {
+    zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.add('dragging'); });
+  });
+  ['dragleave','drop'].forEach(ev => {
+    zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.remove('dragging'); });
+  });
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    const files = e.dataTransfer?.files;
+    if (files?.length) {
+      zone.querySelector('.upload-desc').textContent = `"${files[0].name}" received — 401k decoder coming soon! Sign up for early access below.`;
+    }
+  });
+}
+
+// ── SCROLL REVEAL ──
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); obs.unobserve(e.target); } });
+}, { threshold: 0.06 });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+(function(){
+  var burger = document.querySelector('.nav-burger');
+  var links  = document.querySelector('.nav-links');
+  if (!burger || !links) return;
+  burger.addEventListener('click', function(){
+    var open = links.classList.toggle('open');
+    burger.classList.toggle('open', open);
+    document.body.style.overflow = open ? 'hidden' : '';
+  });
+  links.querySelectorAll('a').forEach(function(a){
+    a.addEventListener('click', function(){
+      links.classList.remove('open');
+      burger.classList.remove('open');
+      document.body.style.overflow = '';
+    });
+  });
+  window.addEventListener('resize', function(){
+    if (window.innerWidth > 720) {
+      links.classList.remove('open');
+      burger.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Compound Interest Calculator — Finnpath</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="shared.css"/>
+  <style>
+    .page-hero {
+      padding:calc(var(--nav-h) + 56px) 56px 56px;
+      background:var(--navy-mid); border-bottom:1px solid var(--border);
+      position:relative; z-index:1;
+    }
+    .page-hero-inner { max-width:1160px; margin-inline:auto; }
+    .page-hero h1 {
+      font-family:'Playfair Display',serif; font-weight:900;
+      font-size:clamp(2rem,4vw,3rem); letter-spacing:-.02em; line-height:1.1;
+      animation:fadeUp .5s ease both;
+    }
+    .page-hero h1 em { font-style:italic; color:var(--coral); }
+    .page-hero p {
+      font-size:.97rem; color:var(--white-dim); font-weight:300;
+      line-height:1.75; max-width:560px; margin-top:12px;
+      animation:fadeUp .5s .08s ease both;
+    }
+
+    /* ── CALCULATOR LAYOUT ── */
+    .calc-page { padding:48px 56px 80px; position:relative; z-index:1; }
+    .calc-page-inner { max-width:1160px; margin-inline:auto; }
+    .calc-main-grid { display:grid; grid-template-columns:380px 1fr; gap:32px; align-items:start; }
+
+    /* ── INPUT PANEL ── */
+    .input-panel {
+      background:var(--navy-mid); border:1px solid var(--border); border-radius:var(--radius);
+      overflow:hidden; position:sticky; top:calc(var(--nav-h) + 20px);
+    }
+    .panel-head {
+      padding:20px 24px; border-bottom:1px solid var(--border);
+      background:var(--navy-card);
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .panel-head-title { font-family:'Playfair Display',serif; font-weight:700; font-size:1rem; }
+    .panel-head p { font-size:.72rem; color:var(--white-dim); margin-top:2px; }
+    .live-badge {
+      display:flex; align-items:center; gap:5px;
+      background:rgba(232,96,76,.10); border:1px solid rgba(232,96,76,.18);
+      border-radius:100px; padding:4px 12px; white-space:nowrap;
+      font-size:.65rem; font-weight:700; letter-spacing:.06em; color:var(--coral); text-transform:uppercase;
+    }
+    .live-dot { width:5px; height:5px; background:var(--coral); border-radius:50%; animation:blink 2s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+    .fields-wrap { padding:20px 24px; display:flex; flex-direction:column; gap:20px; }
+
+    /* each field: label + dual input (text box + slider) */
+    .field { display:flex; flex-direction:column; gap:8px; }
+    .field-label {
+      font-size:.68rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase;
+      color:var(--white-dim); display:flex; justify-content:space-between; align-items:center;
+    }
+    .field-hint { font-size:.64rem; color:rgba(250,249,247,.2); font-weight:400; letter-spacing:0; text-transform:none; }
+    .field-input-row { display:flex; align-items:center; gap:10px; }
+    .field-prefix {
+      font-family:'Playfair Display',serif; font-weight:700; font-size:1.2rem;
+      color:var(--white-dim); flex-shrink:0;
+    }
+    .field-input {
+      flex:1; background:var(--navy-card); border:1px solid var(--border);
+      border-radius:8px; padding:10px 14px;
+      font-family:'Playfair Display',serif; font-weight:700; font-size:1.2rem;
+      color:var(--white); outline:none; transition:border-color .2s;
+      -moz-appearance:textfield; width:100%;
+    }
+    .field-input::-webkit-outer-spin-button,
+    .field-input::-webkit-inner-spin-button { -webkit-appearance:none; }
+    .field-input:focus { border-color:var(--coral); }
+    .field-suffix {
+      font-family:'Playfair Display',serif; font-weight:700; font-size:1.2rem;
+      color:var(--coral); flex-shrink:0;
+    }
+    input[type=range] {
+      width:100%; height:3px; border-radius:100px; background:var(--navy-card);
+      outline:none; cursor:pointer; -webkit-appearance:none; appearance:none;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance:none; width:16px; height:16px; border-radius:50%;
+      background:var(--coral); cursor:pointer;
+      box-shadow:0 0 0 3px rgba(232,96,76,.2);
+    }
+    .range-labels { display:flex; justify-content:space-between; }
+    .range-labels span { font-size:.62rem; color:rgba(250,249,247,.18); }
+
+    .preset-row { display:flex; gap:6px; flex-wrap:wrap; padding:0 24px 20px; }
+    .preset-label { font-size:.62rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:rgba(250,249,247,.22); width:100%; margin-bottom:4px; }
+    .preset-btn {
+      background:var(--navy-card); border:1px solid var(--border); border-radius:6px;
+      color:var(--white-dim); font-size:.72rem; font-weight:600; padding:6px 12px;
+      cursor:pointer; transition:all .15s; font-family:'Plus Jakarta Sans',sans-serif;
+    }
+    .preset-btn:hover { border-color:var(--coral); color:var(--white); background:rgba(232,96,76,.08); }
+
+    .reset-btn {
+      margin:0 24px 20px; width:calc(100% - 48px);
+      background:transparent; border:1px solid var(--border); border-radius:8px;
+      color:var(--white-dim); font-size:.78rem; font-weight:600; padding:10px;
+      cursor:pointer; transition:all .2s; font-family:'Plus Jakarta Sans',sans-serif;
+    }
+    .reset-btn:hover { border-color:rgba(250,249,247,.24); color:var(--white); }
+
+    /* ── RESULTS PANEL ── */
+    .results-panel { display:flex; flex-direction:column; gap:24px; }
+
+    /* summary cards */
+    .summary-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+    .sum-card {
+      background:var(--navy-mid); border:1px solid var(--border); border-radius:var(--radius);
+      padding:20px 22px;
+    }
+    .sum-card.hero-card {
+      background:linear-gradient(135deg,var(--coral),#bf3f2d); border-color:transparent;
+      grid-column:span 3;
+      display:grid; grid-template-columns:1fr auto; align-items:center; gap:20px;
+    }
+    .sum-label { font-size:.66rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--white-dim); margin-bottom:7px; }
+    .hero-card .sum-label { color:rgba(255,255,255,.62); }
+    .sum-val { font-family:'Playfair Display',serif; font-weight:900; font-size:1.6rem; letter-spacing:-.02em; line-height:1; }
+    .hero-card .sum-val { font-size:clamp(2.2rem,3.5vw,3rem); color:#fff; }
+    .sum-sub { font-size:.72rem; color:var(--white-dim); margin-top:5px; }
+    .hero-card .sum-sub { color:rgba(255,255,255,.58); }
+    .sum-val.sky { color:var(--sky); }
+    .sum-val.green { color:var(--green); }
+    .sum-val.gold { color:var(--gold); }
+
+    .hero-mult {
+      text-align:center;
+      background:rgba(255,255,255,.12); border-radius:12px; padding:14px 20px;
+      flex-shrink:0;
+    }
+    .hero-mult-num { font-family:'Playfair Display',serif; font-weight:900; font-size:2.2rem; color:#fff; line-height:1; }
+    .hero-mult-label { font-size:.66rem; color:rgba(255,255,255,.6); margin-top:4px; letter-spacing:.04em; text-transform:uppercase; }
+
+    /* breakdown bar */
+    .breakdown-card {
+      background:var(--navy-mid); border:1px solid var(--border); border-radius:var(--radius); padding:24px;
+    }
+    .bd-title { font-family:'Playfair Display',serif; font-weight:700; font-size:.95rem; margin-bottom:18px; }
+    .bd-bar-wrap { height:24px; border-radius:8px; overflow:hidden; display:flex; margin-bottom:16px; }
+    .bd-bar-contrib { background:var(--sky); transition:width .6s cubic-bezier(.34,1.2,.64,1); }
+    .bd-bar-growth  { background:var(--coral); transition:width .6s cubic-bezier(.34,1.2,.64,1); flex:1; }
+    .bd-legend { display:flex; gap:24px; }
+    .bd-leg-item { display:flex; align-items:center; gap:8px; }
+    .bd-leg-dot { width:8px; height:8px; border-radius:50%; }
+    .bd-leg-label { font-size:.75rem; color:var(--white-dim); }
+    .bd-leg-val { font-size:.88rem; font-weight:700; margin-left:auto; }
+
+    /* chart */
+    .chart-card {
+      background:var(--navy-mid); border:1px solid var(--border); border-radius:var(--radius);
+      padding:24px;
+    }
+    .chart-title { font-family:'Playfair Display',serif; font-weight:700; font-size:.95rem; margin-bottom:4px; }
+    .chart-sub { font-size:.72rem; color:var(--white-dim); margin-bottom:20px; }
+    .chart-wrap { position:relative; height:280px; }
+    canvas#growth-chart { width:100% !important; height:100% !important; }
+
+    /* table */
+    .table-card {
+      background:var(--navy-mid); border:1px solid var(--border); border-radius:var(--radius);
+      overflow:hidden;
+    }
+    .table-head {
+      padding:20px 24px; border-bottom:1px solid var(--border); background:var(--navy-card);
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .table-head h3 { font-family:'Playfair Display',serif; font-weight:700; font-size:.95rem; }
+    .table-head p { font-size:.72rem; color:var(--white-dim); margin-top:2px; }
+    .table-filter { display:flex; gap:6px; }
+    .tf-btn {
+      background:var(--navy-card); border:1px solid var(--border); border-radius:6px;
+      color:var(--white-dim); font-size:.7rem; font-weight:600; padding:5px 12px;
+      cursor:pointer; transition:all .15s; font-family:'Plus Jakarta Sans',sans-serif;
+    }
+    .tf-btn.active { background:var(--coral); border-color:var(--coral); color:#fff; }
+    .tf-btn:hover:not(.active) { border-color:rgba(250,249,247,.2); color:var(--white); }
+
+    .table-scroll { overflow-x:auto; max-height:400px; overflow-y:auto; }
+    .table-scroll::-webkit-scrollbar { width:4px; height:4px; }
+    .table-scroll::-webkit-scrollbar-track { background:transparent; }
+    .table-scroll::-webkit-scrollbar-thumb { background:rgba(250,249,247,.12); border-radius:100px; }
+
+    table { width:100%; border-collapse:collapse; font-size:.82rem; }
+    thead th {
+      padding:12px 20px; text-align:right; font-size:.65rem; font-weight:700;
+      letter-spacing:.08em; text-transform:uppercase; color:var(--white-dim);
+      border-bottom:1px solid var(--border); background:var(--navy-card);
+      position:sticky; top:0;
+    }
+    thead th:first-child { text-align:left; }
+    tbody tr { border-bottom:1px solid rgba(250,249,247,.04); transition:background .15s; }
+    tbody tr:last-child { border-bottom:none; }
+    tbody tr:hover { background:rgba(250,249,247,.03); }
+    tbody tr.milestone { background:rgba(232,96,76,.05); }
+    tbody tr.milestone td:first-child { color:var(--coral); font-weight:700; }
+    td { padding:12px 20px; text-align:right; color:var(--white-dim); }
+    td:first-child { text-align:left; color:var(--white); font-weight:600; }
+    td.pos { color:var(--green); font-weight:600; }
+    td.total { color:var(--white); font-weight:700; font-family:'Playfair Display',serif; }
+
+    /* action callout */
+    .action-callout {
+      background:linear-gradient(135deg,rgba(74,144,217,.08),rgba(232,96,76,.06));
+      border:1px solid var(--border); border-radius:var(--radius);
+      padding:28px 32px; display:grid; grid-template-columns:1fr auto; gap:24px; align-items:center;
+    }
+    .ac-title { font-family:'Playfair Display',serif; font-weight:700; font-size:1.05rem; margin-bottom:6px; }
+    .ac-sub { font-size:.82rem; color:var(--white-dim); line-height:1.6; }
+    .ac-btns { display:flex; gap:10px; flex-shrink:0; }
+
+    @media(max-width:1000px){
+      .calc-main-grid { grid-template-columns:1fr; }
+      .input-panel { position:static; }
+    }
+    @media(max-width:720px){
+      .calc-page { padding:32px 20px 60px; }
+      .page-hero { padding:calc(var(--nav-h)+32px) 20px 36px; }
+      .summary-cards { grid-template-columns:1fr; }
+      .sum-card.hero-card { grid-column:span 1; grid-template-columns:1fr; }
+      .action-callout { grid-template-columns:1fr; }
+      .ac-btns { flex-direction:column; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="logo">Finnpath<span class="logo-dot">.</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="learn.html">Learn</a></li>
+    <li><a href="calculator.html" class="active">Calculator</a></li>
+    <li><a href="simulator.html">Simulator</a></li>
+    <li><a href="paths.html">Your Path</a></li>
+  </ul>
+  <button class="nav-burger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+  <a href="learn.html" class="nav-cta">Learn More</a>
+</nav>
+
+<!-- PAGE HERO -->
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <div class="s-eyebrow">Compound Interest Calculator</div>
+    <h1>See your future<br/>wealth <em>right now</em></h1>
+    <p>Enter your numbers below. Watch a live chart and year-by-year breakdown update instantly — so you can see exactly what time and consistency will do for your money.</p>
+  </div>
+</div>
+
+<!-- CALCULATOR -->
+<div class="calc-page">
+  <div class="calc-page-inner">
+    <div class="calc-main-grid">
+
+      <!-- LEFT: INPUTS -->
+      <div class="input-panel">
+        <div class="panel-head">
+          <div>
+            <div class="panel-head-title">Your Numbers</div>
+            <p>Type or drag to adjust</p>
+          </div>
+          <div class="live-badge"><span class="live-dot"></span>Live</div>
+        </div>
+
+        <div class="fields-wrap">
+          <!-- Monthly Contribution -->
+          <div class="field">
+            <div class="field-label">Monthly Contribution <span class="field-hint">how much you invest each month</span></div>
+            <div class="field-input-row">
+              <span class="field-prefix">$</span>
+              <input class="field-input" type="number" id="t-monthly" min="0" max="10000" value="300"/>
+            </div>
+            <input type="range" id="s-monthly" min="0" max="3000" step="25" value="300"/>
+            <div class="range-labels"><span>$0</span><span>$3,000/mo</span></div>
+          </div>
+
+          <!-- Current Age -->
+          <div class="field">
+            <div class="field-label">Current Age <span class="field-hint">we'll calculate to age 65</span></div>
+            <div class="field-input-row">
+              <input class="field-input" type="number" id="t-age" min="10" max="64" value="22" style="text-align:center"/>
+              <span class="field-suffix">yrs</span>
+            </div>
+            <input type="range" id="s-age" min="10" max="64" step="1" value="22"/>
+            <div class="range-labels"><span>10</span><span>64</span></div>
+          </div>
+
+          <!-- Return Rate -->
+          <div class="field">
+            <div class="field-label">Annual Return Rate <span class="field-hint">historical S&amp;P avg ≈ 7%</span></div>
+            <div class="field-input-row">
+              <input class="field-input" type="number" id="t-rate" min="1" max="20" step="0.5" value="7" style="text-align:center"/>
+              <span class="field-suffix">%</span>
+            </div>
+            <input type="range" id="s-rate" min="1" max="20" step="0.5" value="7"/>
+            <div class="range-labels"><span>1%</span><span>20%</span></div>
+          </div>
+
+          <!-- Starting Balance -->
+          <div class="field">
+            <div class="field-label">Starting Balance <span class="field-hint">any lump sum you have today</span></div>
+            <div class="field-input-row">
+              <span class="field-prefix">$</span>
+              <input class="field-input" type="number" id="t-lump" min="0" max="500000" step="500" value="1000"/>
+            </div>
+            <input type="range" id="s-lump" min="0" max="50000" step="500" value="1000"/>
+            <div class="range-labels"><span>$0</span><span>$50,000</span></div>
+          </div>
+        </div>
+
+        <!-- Presets -->
+        <div class="preset-row">
+          <div class="preset-label">Quick Scenarios</div>
+          <button class="preset-btn" onclick="applyPreset(22,100,7,0)">Teen start · $100/mo</button>
+          <button class="preset-btn" onclick="applyPreset(22,300,7,1000)">Young adult · $300/mo</button>
+          <button class="preset-btn" onclick="applyPreset(25,500,7,5000)">First job · $500/mo</button>
+          <button class="preset-btn" onclick="applyPreset(30,583,7,10000)">Max Roth · $583/mo</button>
+        </div>
+
+        <button class="reset-btn" onclick="applyPreset(22,300,7,1000)">↺ Reset to defaults</button>
+      </div>
+
+      <!-- RIGHT: RESULTS -->
+      <div class="results-panel">
+
+        <!-- Summary Cards -->
+        <div class="summary-cards">
+          <div class="sum-card hero-card">
+            <div>
+              <div class="sum-label">Estimated Balance at Age 65</div>
+              <div class="sum-val" id="r-total">$1,147,000</div>
+              <div class="sum-sub" id="r-years">over 43 years of compounding</div>
+            </div>
+            <div class="hero-mult">
+              <div class="hero-mult-num" id="r-mult">7.4×</div>
+              <div class="hero-mult-label">money multiplier</div>
+            </div>
+          </div>
+          <div class="sum-card">
+            <div class="sum-label">Your Total Contributions</div>
+            <div class="sum-val sky" id="r-contrib">$154,800</div>
+            <div class="sum-sub" id="r-contrib-sub">what you personally put in</div>
+          </div>
+          <div class="sum-card">
+            <div class="sum-label">Market Growth Earned</div>
+            <div class="sum-val green" id="r-growth">$992,200</div>
+            <div class="sum-sub">earned for you by compounding</div>
+          </div>
+          <div class="sum-card">
+            <div class="sum-label">Years to Double (Rule of 72)</div>
+            <div class="sum-val gold" id="r-double">10.3 yrs</div>
+            <div class="sum-sub" id="r-double-sub">at your chosen return rate</div>
+          </div>
+        </div>
+
+        <!-- Breakdown bar -->
+        <div class="breakdown-card">
+          <div class="bd-title">Contribution vs. Growth Breakdown</div>
+          <div class="bd-bar-wrap">
+            <div class="bd-bar-contrib" id="bd-contrib-bar" style="width:13%"></div>
+            <div class="bd-bar-growth"></div>
+          </div>
+          <div class="bd-legend">
+            <div class="bd-leg-item">
+              <div class="bd-leg-dot" style="background:var(--sky)"></div>
+              <span class="bd-leg-label">Your contributions</span>
+            </div>
+            <div class="bd-leg-item" style="margin-left:auto">
+              <div class="bd-leg-dot" style="background:var(--coral)"></div>
+              <span class="bd-leg-label">Market growth</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="chart-card">
+          <div class="chart-title">Portfolio Growth Over Time</div>
+          <div class="chart-sub" id="chart-sub">Showing growth from age 22 to 65</div>
+          <div class="chart-wrap">
+            <canvas id="growth-chart"></canvas>
+          </div>
+        </div>
+
+        <!-- Year by Year Table -->
+        <div class="table-card">
+          <div class="table-head">
+            <div>
+              <h3>Year-by-Year Breakdown</h3>
+              <p>See exactly how your money grows each year</p>
+            </div>
+            <div class="table-filter">
+              <button class="tf-btn active" onclick="setView('every1',this)">Every year</button>
+              <button class="tf-btn" onclick="setView('every5',this)">Every 5 yrs</button>
+              <button class="tf-btn" onclick="setView('milestones',this)">Milestones</button>
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Year / Age</th>
+                  <th>Annual Contrib.</th>
+                  <th>Total Contrib.</th>
+                  <th>Interest Earned</th>
+                  <th>Total Balance</th>
+                </tr>
+              </thead>
+              <tbody id="table-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Action callout -->
+        <div class="action-callout">
+          <div>
+            <div class="ac-title">Ready to start investing?</div>
+            <div class="ac-sub">These numbers are based on real historical returns. The best time to start was yesterday — the second best time is today. Learn exactly how to open your first account.</div>
+          </div>
+          <div class="ac-btns">
+            <a href="learn.html" class="btn-primary">Learn how →</a>
+            <a href="paths.html" class="btn-outline">Your path</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div>
+      <div class="f-logo">Finnpath<span>.</span></div>
+      <p class="f-tagline">Financial education for every stage of life.</p>
+    </div>
+    <nav class="footer-nav">
+      <a href="index.html">Home</a>
+      <a href="learn.html">Learn</a>
+      <a href="calculator.html">Calculator</a>
+      <a href="simulator.html">Simulator</a>
+      <a href="paths.html">Your Path</a>
+    </nav>
+  </div>
+  <div class="footer-bottom">
+    <span class="footer-copy">© 2025 Finnpath · finnpath.com</span>
+    <p class="disclaimer">For educational and informational purposes only. Not financial, investment, or tax advice. Consult a qualified financial advisor before making investment decisions. Past market performance does not guarantee future results.</p>
+  </div>
+</footer>
+
+<script>
+// ─────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────
+let tableView = 'every1';
+let chartInstance = null;
+
+function getValues() {
+  return {
+    monthly: Math.max(0, +document.getElementById('t-monthly').value || 0),
+    age:     Math.min(64, Math.max(10, +document.getElementById('t-age').value || 22)),
+    rate:    Math.min(20, Math.max(0.1, +document.getElementById('t-rate').value || 7)),
+    lump:    Math.max(0, +document.getElementById('t-lump').value || 0),
+  };
+}
+
+// ─────────────────────────────────────────────
+//  SYNC TEXT <-> SLIDER
+// ─────────────────────────────────────────────
+function linkField(textId, sliderId, min, max) {
+  const t = document.getElementById(textId);
+  const s = document.getElementById(sliderId);
+  t.addEventListener('input', () => {
+    let v = parseFloat(t.value);
+    if (!isNaN(v)) {
+      v = Math.min(max, Math.max(min, v));
+      s.value = v;
+    }
+    recalc();
+  });
+  s.addEventListener('input', () => {
+    t.value = s.value;
+    recalc();
+  });
+}
+linkField('t-monthly', 's-monthly', 0, 3000);
+linkField('t-age',     's-age',     10, 64);
+linkField('t-rate',    's-rate',    1, 20);
+linkField('t-lump',    's-lump',    0, 50000);
+
+// ─────────────────────────────────────────────
+//  CALCULATE
+// ─────────────────────────────────────────────
+function buildYearData(monthly, age, rate, lump) {
+  const years = Math.max(1, 65 - age);
+  const mr = rate / 100 / 12;
+  const rows = [];
+  let balance = lump;
+  let totalContrib = lump;
+
+  for (let y = 1; y <= years; y++) {
+    const openingBalance = balance;
+    const annualContrib = monthly * 12;
+    const interest = (openingBalance + annualContrib / 2) * (rate / 100);
+    balance = openingBalance + annualContrib + interest;
+    totalContrib += annualContrib;
+    rows.push({
+      year: y,
+      age: age + y,
+      annualContrib,
+      totalContrib,
+      interestThisYear: interest,
+      totalInterest: balance - totalContrib,
+      balance,
+    });
+  }
+  return rows;
+}
+
+function fmt(n)  { return '$' + Math.round(Math.max(0,n)).toLocaleString(); }
+function fmtD(n) { return n.toFixed(1); }
+
+function recalc() {
+  const { monthly, age, rate, lump } = getValues();
+  const rows = buildYearData(monthly, age, rate, lump);
+  const last = rows[rows.length - 1];
+  const years = rows.length;
+  const contrib = last.totalContrib;
+  const total   = last.balance;
+  const growth  = Math.max(0, total - contrib);
+  const mult    = contrib > 0 ? total / contrib : 1;
+  const double72 = 72 / rate;
+  const pctC = total > 0 ? contrib / total : 0.5;
+
+  // summary
+  document.getElementById('r-total').textContent    = fmt(total);
+  document.getElementById('r-years').textContent    = `over ${years} year${years!==1?'s':''} of compounding`;
+  document.getElementById('r-mult').textContent     = mult.toFixed(1) + '×';
+  document.getElementById('r-contrib').textContent  = fmt(contrib);
+  document.getElementById('r-contrib-sub').textContent = `$${monthly.toLocaleString()}/mo for ${years} years`;
+  document.getElementById('r-growth').textContent   = fmt(growth);
+  document.getElementById('r-double').textContent   = fmtD(double72) + ' yrs';
+  document.getElementById('r-double-sub').textContent = `at ${fmtD(rate)}% annual return`;
+  document.getElementById('chart-sub').textContent  = `Showing growth from age ${age} to 65`;
+
+  // breakdown bar
+  document.getElementById('bd-contrib-bar').style.width = (pctC * 100) + '%';
+
+  // chart
+  updateChart(rows, age);
+
+  // table
+  updateTable(rows);
+}
+
+// ─────────────────────────────────────────────
+//  CHART
+// ─────────────────────────────────────────────
+function updateChart(rows, startAge) {
+  const canvas = document.getElementById('growth-chart');
+  const ctx = canvas.getContext('2d');
+
+  // sample every year or every 2 years for readability
+  const step = rows.length > 30 ? 2 : 1;
+  const labels    = [];
+  const balances  = [];
+  const contribs  = [];
+
+  rows.forEach((r, i) => {
+    if (i === 0 || i === rows.length - 1 || i % step === 0) {
+      labels.push(`Age ${r.age}`);
+      balances.push(Math.round(r.balance));
+      contribs.push(Math.round(r.totalContrib));
+    }
+  });
+
+  if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+
+  // manual canvas chart — no external lib needed
+  drawChart(ctx, canvas, labels, balances, contribs);
+}
+
+function drawChart(ctx, canvas, labels, balances, contribs) {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width  = rect.width  * dpr;
+  canvas.height = rect.height * dpr;
+  ctx.scale(dpr, dpr);
+  const W = rect.width, H = rect.height;
+
+  const padL = 72, padR = 20, padT = 20, padB = 40;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+  const maxVal = Math.max(...balances) * 1.05;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // grid lines
+  ctx.strokeStyle = 'rgba(250,249,247,.06)';
+  ctx.lineWidth = 1;
+  const gridLines = 5;
+  for (let i = 0; i <= gridLines; i++) {
+    const y = padT + chartH - (i / gridLines) * chartH;
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+    // y labels
+    ctx.fillStyle = 'rgba(250,249,247,.28)';
+    ctx.font = '600 10px Plus Jakarta Sans';
+    ctx.textAlign = 'right';
+    const val = (maxVal * i / gridLines);
+    ctx.fillText(val >= 1000000 ? '$' + (val/1000000).toFixed(1) + 'M' : '$' + Math.round(val/1000) + 'k', padL - 6, y + 4);
+  }
+
+  // x labels
+  ctx.fillStyle = 'rgba(250,249,247,.28)';
+  ctx.font = '600 10px Plus Jakarta Sans';
+  ctx.textAlign = 'center';
+  const xStep = Math.ceil(labels.length / 6);
+  labels.forEach((l, i) => {
+    if (i === 0 || i === labels.length - 1 || i % xStep === 0) {
+      const x = padL + (i / (labels.length - 1)) * chartW;
+      ctx.fillText(l, x, H - padB + 16);
+    }
+  });
+
+  function toXY(i, val) {
+    return {
+      x: padL + (i / (labels.length - 1)) * chartW,
+      y: padT + chartH - (val / maxVal) * chartH,
+    };
+  }
+
+  // contribution area fill
+  ctx.beginPath();
+  ctx.moveTo(padL, padT + chartH);
+  contribs.forEach((v, i) => { const p = toXY(i, v); ctx.lineTo(p.x, p.y); });
+  ctx.lineTo(padL + chartW, padT + chartH);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(74,144,217,.18)';
+  ctx.fill();
+
+  // total balance area fill
+  ctx.beginPath();
+  ctx.moveTo(padL, padT + chartH);
+  balances.forEach((v, i) => { const p = toXY(i, v); ctx.lineTo(p.x, p.y); });
+  ctx.lineTo(padL + chartW, padT + chartH);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(232,96,76,.14)';
+  ctx.fill();
+
+  // contribution line
+  ctx.beginPath();
+  contribs.forEach((v, i) => {
+    const p = toXY(i, v);
+    i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y);
+  });
+  ctx.strokeStyle = 'rgba(74,144,217,.8)'; ctx.lineWidth = 2; ctx.stroke();
+
+  // total balance line
+  ctx.beginPath();
+  balances.forEach((v, i) => {
+    const p = toXY(i, v);
+    i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y);
+  });
+  ctx.strokeStyle = 'rgba(232,96,76,.9)'; ctx.lineWidth = 2.5; ctx.stroke();
+
+  // end dot — total
+  const last = toXY(labels.length - 1, balances[balances.length - 1]);
+  ctx.beginPath(); ctx.arc(last.x, last.y, 5, 0, Math.PI * 2);
+  ctx.fillStyle = 'var(--coral)'; ctx.fill();
+
+  // legend
+  ctx.font = '600 11px Plus Jakarta Sans';
+  ctx.textAlign = 'left';
+  [[20, 'rgba(74,144,217,.8)', 'Contributions'], [150, 'rgba(232,96,76,.9)', 'Total balance']].forEach(([x, color, label]) => {
+    ctx.strokeStyle = color; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(padL + x, padT + 8); ctx.lineTo(padL + x + 22, padT + 8); ctx.stroke();
+    ctx.fillStyle = 'rgba(250,249,247,.5)';
+    ctx.fillText(label, padL + x + 28, padT + 12);
+  });
+}
+
+// ─────────────────────────────────────────────
+//  TABLE
+// ─────────────────────────────────────────────
+function setView(view, btn) {
+  tableView = view;
+  document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  recalc();
+}
+
+const MILESTONES = [1, 5, 10, 15, 20, 25, 30, 35, 40, 43, 45];
+
+function updateTable(rows) {
+  let filtered = rows;
+  if (tableView === 'every5') filtered = rows.filter(r => r.year % 5 === 0 || r.year === rows.length || r.year === 1);
+  if (tableView === 'milestones') filtered = rows.filter(r => MILESTONES.includes(r.year) || r.year === rows.length);
+
+  const tbody = document.getElementById('table-body');
+  tbody.innerHTML = '';
+
+  filtered.forEach(r => {
+    const isMilestone = r.year % 10 === 0;
+    const tr = document.createElement('tr');
+    if (isMilestone) tr.classList.add('milestone');
+    tr.innerHTML = `
+      <td>Year ${r.year} <span style="color:var(--white-dim);font-weight:400;font-size:.72rem">· Age ${r.age}</span>${isMilestone ? ' 🏁' : ''}</td>
+      <td>${fmt(r.annualContrib)}</td>
+      <td>${fmt(r.totalContrib)}</td>
+      <td class="pos">+${fmt(r.interestThisYear)}</td>
+      <td class="total">${fmt(r.balance)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ─────────────────────────────────────────────
+//  PRESETS
+// ─────────────────────────────────────────────
+function applyPreset(age, monthly, rate, lump) {
+  ['t-age','s-age'].forEach(id => document.getElementById(id).value = age);
+  ['t-monthly','s-monthly'].forEach(id => document.getElementById(id).value = monthly);
+  ['t-rate','s-rate'].forEach(id => document.getElementById(id).value = rate);
+  ['t-lump','s-lump'].forEach(id => document.getElementById(id).value = lump);
+  recalc();
+}
+
+// ─────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────
+recalc();
+window.addEventListener('resize', recalc);
+
+// scroll reveal
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); obs.unobserve(e.target); } });
+}, { threshold:.08 });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+(function(){
+  var burger = document.querySelector('.nav-burger');
+  var links  = document.querySelector('.nav-links');
+  if (!burger || !links) return;
+  burger.addEventListener('click', function(){
+    var open = links.classList.toggle('open');
+    burger.classList.toggle('open', open);
+    document.body.style.overflow = open ? 'hidden' : '';
+  });
+  links.querySelectorAll('a').forEach(function(a){
+    a.addEventListener('click', function(){
+      links.classList.remove('open');
+      burger.classList.remove('open');
+      document.body.style.overflow = '';
+    });
+  });
+  window.addEventListener('resize', function(){
+    if (window.innerWidth > 720) {
+      links.classList.remove('open');
+      burger.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Compete — Finnpath Stock Simulator</title>
+  <meta name="description" content="Create a group, invite friends and family, and compete on a live leaderboard. Who builds the most wealth?"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="shared.css"/>
+  <style>
+
+    /* ══════════════════════════════════
+       SCREENS — only one visible at a time
+    ══════════════════════════════════ */
+    .screen { display: none; min-height: 100vh; }
+    .screen.active { display: block; }
+
+    /* ══════════════════════════════════
+       SCREEN 1: LANDING
+    ══════════════════════════════════ */
+    .landing-hero {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      padding: calc(var(--nav-h) + 60px) 56px 80px;
+      position: relative; overflow: hidden; text-align: center;
+    }
+    .landing-hero::before {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 60% 60% at 20% 40%, rgba(74,144,217,.08) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 50% at 80% 30%, rgba(232,96,76,.07) 0%, transparent 60%),
+        radial-gradient(ellipse 45% 55% at 50% 90%, rgba(61,186,126,.06) 0%, transparent 65%);
+    }
+    .landing-inner { position: relative; z-index: 1; max-width: 760px; margin-inline: auto; }
+
+    .trophy-icon { font-size: 4rem; margin-bottom: 20px; animation: bounceIn .6s ease both; }
+    @keyframes bounceIn { 0%{opacity:0;transform:scale(.6)} 70%{transform:scale(1.1)} 100%{opacity:1;transform:scale(1)} }
+
+    .landing-hero h1 {
+      font-family: 'Playfair Display', serif; font-weight: 900;
+      font-size: clamp(2.8rem, 6vw, 5rem); letter-spacing: -.03em; line-height: 1.06;
+      animation: fadeUp .5s .1s ease both;
+    }
+    .landing-hero h1 em { font-style: italic; color: var(--gold); }
+    .landing-hero p {
+      font-size: 1.05rem; color: var(--white-dim); font-weight: 300;
+      line-height: 1.8; margin-top: 20px; margin-bottom: 40px;
+      animation: fadeUp .5s .2s ease both;
+    }
+
+    .landing-btns {
+      display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+      animation: fadeUp .5s .3s ease both;
+    }
+    .btn-gold {
+      background: linear-gradient(135deg, var(--gold), #a8872a);
+      color: var(--navy); font-weight: 800; font-size: 1rem;
+      padding: 16px 40px; border-radius: 10px; text-decoration: none; border: none;
+      cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif;
+      transition: transform .2s, box-shadow .2s;
+      box-shadow: 0 4px 24px rgba(201,168,76,.25);
+    }
+    .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 8px 36px rgba(201,168,76,.35); }
+
+    /* how it works */
+    .how-strip {
+      display: flex; gap: 0; justify-content: center; margin-top: 64px;
+      border: 1px solid var(--border); border-radius: var(--radius);
+      overflow: hidden; max-width: 680px; margin-inline: auto;
+      animation: fadeUp .5s .4s ease both;
+    }
+    .how-step {
+      flex: 1; padding: 22px 18px; text-align: center;
+      border-right: 1px solid var(--border); background: rgba(250,249,247,.03);
+    }
+    .how-step:last-child { border-right: none; }
+    .how-num {
+      width: 32px; height: 32px; border-radius: 50%; background: var(--gold);
+      color: var(--navy); font-family: 'Playfair Display', serif; font-weight: 900;
+      font-size: .9rem; display: grid; place-items: center; margin: 0 auto 10px;
+    }
+    .how-step h4 { font-size: .85rem; font-weight: 700; margin-bottom: 5px; }
+    .how-step p { font-size: .74rem; color: var(--white-dim); line-height: 1.55; }
+
+    /* feature pills */
+    .feature-row {
+      display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 32px;
+      animation: fadeUp .5s .5s ease both;
+    }
+    .feat-pill {
+      background: var(--navy-card); border: 1px solid var(--border);
+      border-radius: 100px; padding: 7px 16px;
+      font-size: .76rem; font-weight: 600; color: var(--white-dim);
+    }
+
+    /* ══════════════════════════════════
+       SCREEN 2: AUTH (signup/login)
+    ══════════════════════════════════ */
+    .auth-screen {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      padding: calc(var(--nav-h) + 40px) 20px 60px;
+    }
+    .auth-card {
+      background: var(--navy-mid); border: 1px solid var(--border);
+      border-radius: 24px; padding: 48px 44px; width: 100%; max-width: 440px;
+    }
+    .auth-logo { text-align: center; margin-bottom: 28px; }
+    .auth-logo span { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.3rem; }
+    .auth-logo span em { font-style: normal; color: var(--coral); }
+    .auth-tabs { display: flex; background: var(--navy-card); border-radius: 10px; padding: 4px; margin-bottom: 28px; }
+    .auth-tab {
+      flex: 1; padding: 9px; text-align: center; border-radius: 7px; cursor: pointer;
+      font-size: .82rem; font-weight: 700; color: var(--white-dim); transition: all .2s;
+      border: none; background: transparent; font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .auth-tab.active { background: var(--navy-mid); color: var(--white); box-shadow: 0 2px 8px rgba(0,0,0,.2); }
+
+    .auth-form { display: flex; flex-direction: column; gap: 14px; }
+    .form-field { display: flex; flex-direction: column; gap: 6px; }
+    .form-label { font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--white-dim); }
+    .form-input {
+      background: var(--navy-card); border: 1px solid var(--border); border-radius: 10px;
+      padding: 12px 16px; font-size: .92rem; color: var(--white); outline: none;
+      font-family: 'Plus Jakarta Sans', sans-serif; transition: border-color .2s;
+    }
+    .form-input:focus { border-color: rgba(232,96,76,.5); }
+    .form-input::placeholder { color: rgba(250,249,247,.2); }
+    .form-submit {
+      background: var(--coral); color: #fff; border: none; border-radius: 10px;
+      padding: 14px; font-weight: 800; font-size: .95rem; cursor: pointer;
+      font-family: 'Plus Jakarta Sans', sans-serif; margin-top: 6px;
+      transition: background .2s, transform .2s; box-shadow: 0 4px 16px var(--coral-glow);
+    }
+    .form-submit:hover { background: var(--coral-soft); transform: translateY(-1px); }
+    .form-hint { font-size: .74rem; color: var(--white-dim); text-align: center; margin-top: 8px; line-height: 1.55; }
+    .form-error { font-size: .76rem; color: var(--coral); background: rgba(232,96,76,.08); border: 1px solid rgba(232,96,76,.2); border-radius: 8px; padding: 10px 14px; display: none; }
+    .form-error.show { display: block; }
+
+    /* ══════════════════════════════════
+       SCREEN 3: GROUP HUB
+    ══════════════════════════════════ */
+    .hub-page {
+      padding: calc(var(--nav-h) + 40px) 56px 80px;
+      position: relative; z-index: 1;
+    }
+    .hub-inner { max-width: 1000px; margin-inline: auto; }
+
+    .hub-greeting {
+      margin-bottom: 40px;
+    }
+    .hub-greeting h2 {
+      font-family: 'Playfair Display', serif; font-weight: 900;
+      font-size: clamp(1.8rem, 3vw, 2.6rem); letter-spacing: -.02em;
+    }
+    .hub-greeting h2 span { color: var(--gold); }
+    .hub-greeting p { font-size: .9rem; color: var(--white-dim); margin-top: 6px; }
+
+    .hub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 32px; }
+
+    /* create / join cards */
+    .action-card {
+      background: var(--navy-mid); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 28px; display: flex; flex-direction: column; gap: 14px;
+    }
+    .action-card.create { border-color: rgba(201,168,76,.25); background: rgba(201,168,76,.05); }
+    .action-card.join   { border-color: rgba(74,144,217,.22); background: rgba(74,144,217,.04); }
+    .ac-icon { font-size: 1.8rem; }
+    .ac-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.15rem; }
+    .ac-desc { font-size: .82rem; color: var(--white-dim); line-height: 1.65; }
+    .ac-input {
+      background: var(--navy-card); border: 1px solid var(--border); border-radius: 9px;
+      padding: 11px 14px; font-size: .88rem; color: var(--white); outline: none;
+      font-family: 'Plus Jakarta Sans', sans-serif; transition: border-color .2s; width: 100%;
+    }
+    .ac-input:focus { border-color: var(--coral); }
+    .ac-input::placeholder { color: rgba(250,249,247,.2); }
+    .btn-create {
+      background: linear-gradient(135deg, var(--gold), #a8872a); color: var(--navy);
+      font-weight: 800; font-size: .88rem; padding: 12px 20px; border-radius: 9px;
+      border: none; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .btn-create:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(201,168,76,.25); }
+    .btn-join {
+      background: var(--sky); color: #fff; font-weight: 800; font-size: .88rem;
+      padding: 12px 20px; border-radius: 9px; border: none; cursor: pointer;
+      font-family: 'Plus Jakarta Sans', sans-serif; transition: background .2s, transform .2s;
+    }
+    .btn-join:hover { background: #5ba3e8; transform: translateY(-1px); }
+
+    /* my groups list */
+    .my-groups-title { font-size: .7rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--white-dim); margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+    .my-groups-title::before { content: ''; width: 22px; height: 1px; background: var(--white-dim); }
+    .groups-list { display: flex; flex-direction: column; gap: 10px; }
+    .group-row {
+      background: var(--navy-mid); border: 1px solid var(--border); border-radius: 14px;
+      padding: 18px 22px; display: grid; grid-template-columns: 1fr auto auto;
+      gap: 16px; align-items: center; transition: border-color .2s;
+    }
+    .group-row:hover { border-color: rgba(250,249,247,.18); }
+    .gr-name { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1rem; }
+    .gr-meta { font-size: .72rem; color: var(--white-dim); margin-top: 3px; }
+    .gr-rank {
+      font-family: 'Playfair Display', serif; font-weight: 900;
+      font-size: 1.4rem; color: var(--gold); text-align: center; min-width: 40px;
+    }
+    .gr-rank-label { font-size: .6rem; color: var(--white-dim); text-align: center; }
+    .btn-enter {
+      background: var(--coral); color: #fff; font-weight: 700; font-size: .78rem;
+      padding: 9px 18px; border-radius: 8px; border: none; cursor: pointer;
+      font-family: 'Plus Jakarta Sans', sans-serif; transition: background .2s;
+      white-space: nowrap;
+    }
+    .btn-enter:hover { background: var(--coral-soft); }
+
+    .hub-empty {
+      text-align: center; padding: 40px 20px;
+      background: var(--navy-mid); border: 1px solid var(--border); border-radius: var(--radius);
+      color: var(--white-dim); font-size: .88rem; line-height: 1.7;
+    }
+    .hub-empty span { font-size: 2.2rem; display: block; margin-bottom: 10px; }
+
+    /* ══════════════════════════════════
+       SCREEN 4: COMPETITION VIEW
+    ══════════════════════════════════ */
+    .comp-page {
+      padding: calc(var(--nav-h) + 28px) 56px 72px;
+      position: relative; z-index: 1;
+    }
+    .comp-inner { max-width: 1160px; margin-inline: auto; }
+
+    /* group header */
+    .comp-header {
+      background: var(--navy-mid); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 22px 28px; margin-bottom: 24px;
+      display: grid; grid-template-columns: 1fr auto auto; gap: 20px; align-items: center;
+    }
+    .ch-name { font-family: 'Playfair Display', serif; font-weight: 900; font-size: 1.4rem; letter-spacing: -.02em; }
+    .ch-meta { font-size: .76rem; color: var(--white-dim); margin-top: 3px; display: flex; gap: 16px; flex-wrap: wrap; }
+    .ch-meta span { display: flex; align-items: center; gap: 5px; }
+    .ch-code {
+      background: var(--navy-card); border: 1px solid var(--border); border-radius: 10px;
+      padding: 10px 16px; text-align: center;
+    }
+    .ch-code-label { font-size: .6rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--white-dim); margin-bottom: 4px; }
+    .ch-code-val { font-family: 'Playfair Display', serif; font-weight: 900; font-size: 1.4rem; letter-spacing: .08em; color: var(--gold); cursor: pointer; }
+    .ch-code-hint { font-size: .6rem; color: rgba(250,249,247,.2); margin-top: 2px; }
+    .btn-leave {
+      background: transparent; border: 1px solid var(--border); border-radius: 8px;
+      color: var(--white-dim); font-size: .76rem; font-weight: 600; padding: 8px 14px;
+      cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; transition: all .2s;
+      white-space: nowrap;
+    }
+    .btn-leave:hover { border-color: var(--coral); color: var(--coral); }
+
+    /* comp main grid */
+    .comp-grid { display: grid; grid-template-columns: 380px 1fr; gap: 22px; align-items: start; }
+
+    /* ── LEADERBOARD ── */
+    .lb-panel { background: var(--navy-mid); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .lb-head {
+      padding: 16px 20px; border-bottom: 1px solid var(--border); background: var(--navy-card);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .lb-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: .95rem; }
+    .live-badge {
+      display: flex; align-items: center; gap: 5px;
+      background: rgba(61,186,126,.10); border: 1px solid rgba(61,186,126,.2);
+      border-radius: 100px; padding: 4px 12px;
+      font-size: .62rem; font-weight: 700; letter-spacing: .06em; color: var(--green); text-transform: uppercase;
+    }
+    .live-dot { width: 5px; height: 5px; background: var(--green); border-radius: 50%; animation: blink 2s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+    .lb-list { padding: 8px 0; }
+    .lb-row {
+      padding: 14px 20px; border-bottom: 1px solid rgba(250,249,247,.04);
+      display: grid; grid-template-columns: 32px 1fr auto;
+      gap: 12px; align-items: center; transition: background .15s;
+    }
+    .lb-row:last-child { border-bottom: none; }
+    .lb-row:hover { background: rgba(250,249,247,.03); }
+    .lb-row.me { background: rgba(201,168,76,.05); border-color: rgba(201,168,76,.12); }
+    .lb-row.me:hover { background: rgba(201,168,76,.08); }
+
+    /* rank badge */
+    .rank-badge {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: grid; place-items: center;
+      font-family: 'Playfair Display', serif; font-weight: 900; font-size: .9rem;
+      flex-shrink: 0;
+    }
+    .rank-1 { background: linear-gradient(135deg, #ffd700, #c9a020); color: var(--navy); }
+    .rank-2 { background: linear-gradient(135deg, #c0c0c0, #909090); color: var(--navy); }
+    .rank-3 { background: linear-gradient(135deg, #cd7f32, #9d5f22); color: #fff; }
+    .rank-n { background: var(--navy-card); color: var(--white-dim); font-size: .78rem; }
+
+    .lb-player {}
+    .lb-name { font-weight: 700; font-size: .86rem; display: flex; align-items: center; gap: 6px; }
+    .you-tag { font-size: .58rem; font-weight: 700; background: var(--gold); color: var(--navy); padding: 1px 6px; border-radius: 100px; letter-spacing: .04em; }
+    .lb-best { font-size: .66rem; color: var(--white-dim); margin-top: 2px; }
+
+    .lb-stats { text-align: right; }
+    .lb-val { font-family: 'Playfair Display', serif; font-weight: 900; font-size: 1rem; }
+    .lb-ret { font-size: .7rem; font-weight: 700; margin-top: 2px; }
+    .pos { color: var(--green); } .neg { color: var(--coral); }
+
+    /* stats summary below leaderboard */
+    .lb-footer { padding: 14px 20px; border-top: 1px solid var(--border); background: var(--navy-card); }
+    .lb-footer-row { display: flex; justify-content: space-between; align-items: center; }
+    .lbf-label { font-size: .68rem; color: var(--white-dim); }
+    .lbf-val { font-size: .8rem; font-weight: 700; }
+
+    /* my rank card */
+    .my-rank-card {
+      background: linear-gradient(135deg, rgba(201,168,76,.12), rgba(201,168,76,.05));
+      border: 1px solid rgba(201,168,76,.25); border-radius: var(--radius);
+      padding: 18px 20px; margin-bottom: 0;
+      display: grid; grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px; text-align: center;
+    }
+    .mrc-stat {}
+    .mrc-label { font-size: .62rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: rgba(250,249,247,.35); margin-bottom: 5px; }
+    .mrc-val { font-family: 'Playfair Display', serif; font-weight: 900; font-size: 1.3rem; }
+
+    /* invite panel */
+    .invite-card {
+      background: var(--navy-mid); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 20px; margin-top: 0;
+    }
+    .inv-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: .9rem; margin-bottom: 6px; }
+    .inv-desc { font-size: .76rem; color: var(--white-dim); line-height: 1.6; margin-bottom: 14px; }
+    .inv-link-wrap {
+      background: var(--navy-card); border: 1px solid var(--border); border-radius: 9px;
+      padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    }
+    .inv-link { font-size: .76rem; color: var(--white-dim); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .inv-copy-btn {
+      background: var(--coral); color: #fff; font-size: .7rem; font-weight: 700;
+      padding: 6px 14px; border-radius: 7px; border: none; cursor: pointer;
+      font-family: 'Plus Jakarta Sans', sans-serif; transition: background .2s; white-space: nowrap;
+    }
+    .inv-copy-btn:hover { background: var(--coral-soft); }
+
+    .inv-emails { margin-top: 12px; display: flex; gap: 8px; }
+    .inv-email-input {
+      flex: 1; background: var(--navy-card); border: 1px solid var(--border); border-radius: 8px;
+      padding: 9px 12px; font-size: .82rem; color: var(--white); outline: none;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .inv-email-input::placeholder { color: rgba(250,249,247,.2); }
+    .inv-send-btn {
+      background: var(--navy-card); border: 1px solid var(--border); border-radius: 8px;
+      color: var(--white-dim); font-size: .76rem; font-weight: 700; padding: 9px 16px;
+      cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; transition: all .2s; white-space: nowrap;
+    }
+    .inv-send-btn:hover { border-color: var(--coral); color: var(--coral); }
+
+    /* ── RIGHT: SIMULATOR ── */
+    .sim-column { display: flex; flex-direction: column; gap: 18px; }
+
+    /* panel base */
+    .panel { background: var(--navy-mid); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .panel-head {
+      padding: 14px 20px; border-bottom: 1px solid var(--border); background: var(--navy-card);
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    }
+    .panel-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: .9rem; }
+    .panel-sub { font-size: .68rem; color: var(--white-dim); margin-top: 1px; }
+
+    /* cash strip */
+    .cash-strip {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0;
+      background: rgba(250,249,247,.03); border-radius: var(--radius);
+      border: 1px solid var(--border); overflow: hidden;
+    }
+    .cs-cell { padding: 14px 18px; border-right: 1px solid var(--border); }
+    .cs-cell:last-child { border-right: none; }
+    .cs-label { font-size: .62rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--white-dim); margin-bottom: 5px; }
+    .cs-val { font-family: 'Playfair Display', serif; font-weight: 900; font-size: 1.2rem; }
+
+    /* stock list */
+    .stock-list { padding: 4px 0; }
+    .stock-row {
+      display: grid; grid-template-columns: 34px 1fr 80px 110px;
+      align-items: center; gap: 10px; padding: 10px 18px;
+      border-bottom: 1px solid rgba(250,249,247,.04); transition: background .15s;
+    }
+    .stock-row:last-child { border-bottom: none; }
+    .stock-row:hover { background: rgba(250,249,247,.03); }
+    .s-emoji { font-size: 1.2rem; text-align: center; }
+    .s-info .s-name { font-weight: 700; font-size: .8rem; }
+    .s-info .s-ticker { font-size: .62rem; color: rgba(250,249,247,.3); }
+    .s-price-wrap { text-align: right; }
+    .s-price { font-family: 'Playfair Display', serif; font-weight: 700; font-size: .88rem; }
+    .s-chg { font-size: .66rem; font-weight: 700; margin-top: 1px; }
+    .buy-ctrl { display: flex; align-items: center; gap: 4px; justify-content: flex-end; }
+    .qty-btn {
+      width: 22px; height: 22px; border-radius: 50%; background: var(--navy-card);
+      border: 1px solid var(--border); color: var(--white); font-size: .85rem;
+      cursor: pointer; display: grid; place-items: center; transition: all .15s;
+      font-family: 'Playfair Display', serif; font-weight: 700; flex-shrink: 0;
+    }
+    .qty-btn:hover { background: rgba(61,186,126,.2); border-color: var(--green); }
+    .qty-disp { font-family: 'Playfair Display', serif; font-weight: 700; font-size: .78rem; min-width: 16px; text-align: center; }
+    .buy-btn {
+      background: var(--green); color: var(--navy); border: none; cursor: pointer;
+      font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: .64rem;
+      padding: 4px 9px; border-radius: 6px; transition: opacity .15s, transform .15s;
+    }
+    .buy-btn:hover:not(:disabled) { transform: scale(1.06); }
+    .buy-btn:disabled { opacity: .3; cursor: not-allowed; transform: none; }
+
+    /* holdings */
+    .h-list { padding: 4px 0; }
+    .h-row {
+      padding: 9px 18px; border-bottom: 1px solid rgba(250,249,247,.04);
+      display: grid; grid-template-columns: 26px 1fr auto; gap: 8px; align-items: center;
+    }
+    .h-row:last-child { border-bottom: none; }
+    .h-emoji { font-size: 1rem; }
+    .h-name { font-weight: 700; font-size: .78rem; }
+    .h-shares { font-size: .62rem; color: var(--white-dim); }
+    .h-right { text-align: right; }
+    .h-val { font-family: 'Playfair Display', serif; font-weight: 700; font-size: .84rem; }
+    .h-gain { font-size: .62rem; font-weight: 700; }
+    .sell-btn {
+      display: block; margin-top: 2px; margin-left: auto;
+      background: rgba(232,96,76,.1); border: none; border-radius: 5px;
+      color: var(--coral); font-size: .58rem; font-weight: 700;
+      padding: 2px 7px; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .sell-btn:hover { background: rgba(232,96,76,.22); }
+    .h-empty { padding: 16px 18px; font-size: .78rem; color: rgba(250,249,247,.25); text-align: center; }
+
+    /* events */
+    .events-list { padding: 10px 16px; display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; }
+    .events-list::-webkit-scrollbar { width: 3px; }
+    .events-list::-webkit-scrollbar-thumb { background: rgba(250,249,247,.12); border-radius: 100px; }
+    .ev-card {
+      background: var(--navy-card); border: 1px solid var(--border); border-radius: 10px;
+      padding: 11px 14px; animation: slideIn .35s ease;
+    }
+    @keyframes slideIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+    .ev-badge {
+      font-size: .58rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+      padding: 2px 8px; border-radius: 100px; display: inline-block; margin-bottom: 5px;
+    }
+    .ev-b-geo   { background: rgba(232,96,76,.12); color: var(--coral); }
+    .ev-b-tech  { background: rgba(61,186,126,.10); color: var(--green); }
+    .ev-b-mkt   { background: rgba(74,144,217,.12); color: var(--sky); }
+    .ev-b-gold  { background: rgba(201,168,76,.12); color: var(--gold); }
+    .ev-headline { font-weight: 700; font-size: .78rem; margin-bottom: 4px; line-height: 1.4; }
+    .ev-explain { font-size: .7rem; color: var(--white-dim); line-height: 1.55; margin-bottom: 6px; }
+    .ev-impacts { display: flex; gap: 5px; flex-wrap: wrap; }
+    .ev-imp { font-size: .62rem; font-weight: 700; padding: 2px 8px; border-radius: 100px; }
+    .ev-imp.up { background: rgba(61,186,126,.12); color: var(--green); }
+    .ev-imp.dn { background: rgba(232,96,76,.10);  color: var(--coral); }
+
+    @keyframes flashG { 0%,100%{background:transparent} 40%{background:rgba(61,186,126,.10)} }
+    @keyframes flashR { 0%,100%{background:transparent} 40%{background:rgba(232,96,76,.08)} }
+    .flash-g { animation: flashG .5s ease; }
+    .flash-r { animation: flashR .5s ease; }
+
+    /* speed */
+    .spd-wrap { display: flex; gap: 4px; }
+    .spd-btn {
+      background: var(--navy); border: 1px solid var(--border); border-radius: 5px;
+      color: var(--white-dim); font-size: .62rem; font-weight: 700; padding: 3px 9px;
+      cursor: pointer; transition: all .15s; font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .spd-btn.active { background: var(--coral); border-color: var(--coral); color: #fff; }
+
+    /* toast */
+    #toast {
+      position: fixed; bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(70px);
+      background: var(--navy-card); border: 1px solid rgba(250,249,247,.12);
+      color: var(--white); font-weight: 700; font-size: .82rem;
+      padding: 11px 22px; border-radius: 100px; box-shadow: 0 6px 28px rgba(0,0,0,.35);
+      transition: transform .3s cubic-bezier(.34,1.56,.64,1), opacity .3s;
+      opacity: 0; z-index: 999; white-space: nowrap; pointer-events: none;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+    /* responsive */
+    @media(max-width: 1000px) {
+      .comp-grid { grid-template-columns: 1fr; }
+      .hub-grid { grid-template-columns: 1fr; }
+    }
+    @media(max-width: 720px) {
+      .comp-page, .hub-page { padding: calc(var(--nav-h)+20px) 16px 56px; }
+      .comp-header { grid-template-columns: 1fr auto; }
+      .btn-leave { display: none; }
+      .my-rank-card { grid-template-columns: 1fr 1fr; }
+      .stock-row { grid-template-columns: 28px 1fr 100px; }
+      .cash-strip { grid-template-columns: 1fr 1fr; }
+      .cs-cell:last-child { display: none; }
+      .how-strip { flex-direction: column; }
+      .how-step { border-right: none; border-bottom: 1px solid var(--border); }
+      .how-step:last-child { border-bottom: none; }
+      .landing-hero { padding: calc(var(--nav-h)+40px) 20px 64px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="logo">Finnpath<span class="logo-dot">.</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="learn.html">Learn</a></li>
+    <li><a href="calculator.html">Calculator</a></li>
+    <li><a href="simulator.html">Simulator</a></li>
+    <li><a href="compete.html" class="active">Compete</a></li>
+  </ul>
+  <button class="nav-burger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+  <div id="nav-user" style="display:none;font-size:.82rem;font-weight:600;color:var(--white-dim);display:flex;align-items:center;gap:12px">
+    <span id="nav-username"></span>
+    <button onclick="logout()" style="background:transparent;border:1px solid var(--border);border-radius:7px;color:var(--white-dim);font-size:.72rem;padding:5px 12px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .2s" onmouseover="this.style.borderColor='var(--coral)';this.style.color='var(--coral)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--white-dim)'">Sign out</button>
+  </div>
+  <a href="#" id="nav-signin" class="nav-cta" onclick="showScreen('auth');return false">Sign In</a>
+</nav>
+
+<!-- ══════════════════════════════════
+     SCREEN 1: LANDING
+══════════════════════════════════ -->
+<div class="screen active" id="screen-landing">
+  <div class="landing-hero">
+    <div class="landing-inner">
+      <div class="trophy-icon">🏆</div>
+      <h1>Compete with<br/><em>friends & family</em></h1>
+      <p>Create a group, invite your people, and see who builds the most wealth. Everyone starts with $10,000 of play money — the same stocks, the same market events, the best trader wins.</p>
+      <div class="landing-btns">
+        <button class="btn-gold" onclick="showScreen('auth')">Create a Group →</button>
+        <a href="simulator.html" class="btn-outline">Solo Practice First</a>
+      </div>
+      <div class="how-strip">
+        <div class="how-step">
+          <div class="how-num">1</div>
+          <h4>Sign up free</h4>
+          <p>Create your account with just a name and email. No credit card.</p>
+        </div>
+        <div class="how-step">
+          <div class="how-num">2</div>
+          <h4>Create a group</h4>
+          <p>Name your league and get a shareable invite link instantly.</p>
+        </div>
+        <div class="how-step">
+          <div class="how-num">3</div>
+          <h4>Invite friends</h4>
+          <p>Share the link or code. Everyone joins and starts with $10k.</p>
+        </div>
+        <div class="how-step">
+          <div class="how-num">4</div>
+          <h4>Watch the board</h4>
+          <p>Live leaderboard updates as everyone trades. Best portfolio wins.</p>
+        </div>
+      </div>
+      <div class="feature-row">
+        <div class="feat-pill">🏅 Live leaderboard</div>
+        <div class="feat-pill">📊 Portfolio % return</div>
+        <div class="feat-pill">🏆 Best single trade stat</div>
+        <div class="feat-pill">📰 Shared market events</div>
+        <div class="feat-pill">✉️ Email invite</div>
+        <div class="feat-pill">💸 Always free</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     SCREEN 2: AUTH
+══════════════════════════════════ -->
+<div class="screen" id="screen-auth">
+  <div class="auth-screen">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <span>Finnpath<em>.</em></span>
+        <div style="font-size:.74rem;color:var(--white-dim);margin-top:4px">Join the competition</div>
+      </div>
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchTab('signup',this)">Create account</button>
+        <button class="auth-tab" onclick="switchTab('login',this)">Sign in</button>
+      </div>
+
+      <!-- Signup form -->
+      <div id="form-signup">
+        <div class="auth-form">
+          <div class="form-error" id="signup-error"></div>
+          <div class="form-field">
+            <label class="form-label">Display Name</label>
+            <input class="form-input" id="su-name" type="text" placeholder="How you appear on the leaderboard" maxlength="24"/>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Email Address</label>
+            <input class="form-input" id="su-email" type="email" placeholder="you@email.com"/>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Password</label>
+            <input class="form-input" id="su-pass" type="password" placeholder="At least 8 characters"/>
+          </div>
+          <button class="form-submit" onclick="doSignup()">Create Account & Start Competing</button>
+          <div class="form-hint">Free forever · No credit card · Unsubscribe anytime</div>
+        </div>
+      </div>
+
+      <!-- Login form -->
+      <div id="form-login" style="display:none">
+        <div class="auth-form">
+          <div class="form-error" id="login-error"></div>
+          <div class="form-field">
+            <label class="form-label">Email Address</label>
+            <input class="form-input" id="li-email" type="email" placeholder="you@email.com"/>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Password</label>
+            <input class="form-input" id="li-pass" type="password" placeholder="Your password"/>
+          </div>
+          <button class="form-submit" onclick="doLogin()">Sign In</button>
+        </div>
+      </div>
+
+      <div style="text-align:center;margin-top:20px">
+        <a href="#" onclick="showScreen('landing');return false" style="font-size:.74rem;color:var(--white-dim);text-decoration:none">← Back</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     SCREEN 3: GROUP HUB
+══════════════════════════════════ -->
+<div class="screen" id="screen-hub">
+  <div class="hub-page">
+    <div class="hub-inner">
+      <div class="hub-greeting">
+        <h2>Welcome back, <span id="hub-name">Player</span></h2>
+        <p>Create a new competition or join one a friend invited you to.</p>
+      </div>
+
+      <div class="hub-grid">
+        <!-- Create group -->
+        <div class="action-card create">
+          <div class="ac-icon">🏆</div>
+          <div class="ac-title">Create a Group</div>
+          <div class="ac-desc">Start a new competition league. You'll get a shareable link and code to invite friends and family.</div>
+          <input class="ac-input" id="new-group-name" type="text" placeholder="e.g. Family Finance Bowl, Work Desk League..." maxlength="40"/>
+          <button class="btn-create" onclick="createGroup()">Create League →</button>
+        </div>
+
+        <!-- Join group -->
+        <div class="action-card join">
+          <div class="ac-icon">🔗</div>
+          <div class="ac-title">Join a Group</div>
+          <div class="ac-desc">Have a code from a friend? Enter it below to join their competition and appear on their leaderboard.</div>
+          <input class="ac-input" id="join-code" type="text" placeholder="Enter 6-digit group code" maxlength="6" style="text-transform:uppercase;letter-spacing:.1em;font-family:'Playfair Display',serif;font-weight:700;font-size:1.1rem"/>
+          <button class="btn-join" onclick="joinGroup()">Join League →</button>
+        </div>
+      </div>
+
+      <!-- My groups -->
+      <div class="my-groups-title">My Groups</div>
+      <div class="groups-list" id="groups-list">
+        <div class="hub-empty">
+          <span>🏁</span>
+          You haven't joined any groups yet.<br/>
+          Create one above or enter a friend's code to get started.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     SCREEN 4: COMPETITION
+══════════════════════════════════ -->
+<div class="screen" id="screen-comp">
+  <div class="comp-page">
+    <div class="comp-inner">
+
+      <!-- Group header -->
+      <div class="comp-header">
+        <div>
+          <div class="ch-name" id="comp-group-name">League Name</div>
+          <div class="ch-meta">
+            <span>👥 <span id="comp-member-count">1</span> members</span>
+            <span>💰 $10,000 starting balance</span>
+            <span id="comp-time-meta">⏱ Competition running</span>
+          </div>
+        </div>
+        <div class="ch-code" onclick="copyCode()">
+          <div class="ch-code-label">Invite Code</div>
+          <div class="ch-code-val" id="comp-code">——</div>
+          <div class="ch-code-hint">Click to copy</div>
+        </div>
+        <button class="btn-leave" onclick="leaveGroup()">← Leave group</button>
+      </div>
+
+      <!-- My rank summary -->
+      <div class="my-rank-card" style="margin-bottom:20px">
+        <div class="mrc-stat">
+          <div class="mrc-label">My Rank</div>
+          <div class="mrc-val" id="my-rank" style="color:var(--gold)">#1</div>
+        </div>
+        <div class="mrc-stat">
+          <div class="mrc-label">Portfolio Value</div>
+          <div class="mrc-val" id="my-total" style="color:var(--green)">$10,000</div>
+        </div>
+        <div class="mrc-stat">
+          <div class="mrc-label">Total Return</div>
+          <div class="mrc-val" id="my-return">+0.00%</div>
+        </div>
+      </div>
+
+      <div class="comp-grid">
+
+        <!-- LEFT: LEADERBOARD + INVITE -->
+        <div style="display:flex;flex-direction:column;gap:16px">
+
+          <div class="lb-panel">
+            <div class="lb-head">
+              <div>
+                <div class="lb-title">🏆 Leaderboard</div>
+              </div>
+              <div class="live-badge"><span class="live-dot"></span>Live</div>
+            </div>
+            <div class="lb-list" id="lb-list">
+              <!-- JS renders -->
+            </div>
+            <div class="lb-footer">
+              <div class="lb-footer-row">
+                <span class="lbf-label">🥇 Leading by</span>
+                <span class="lbf-val" id="lead-by">—</span>
+              </div>
+              <div class="lb-footer-row" style="margin-top:6px">
+                <span class="lbf-label">📈 Best trade this session</span>
+                <span class="lbf-val" id="best-trade-label">—</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Invite card -->
+          <div class="invite-card">
+            <div class="inv-title">Invite more players</div>
+            <div class="inv-desc">Share this link — anyone who clicks it will be taken straight to your group.</div>
+            <div class="inv-link-wrap">
+              <div class="inv-link" id="invite-link-display">finnpath.com/join/——</div>
+              <button class="inv-copy-btn" onclick="copyInviteLink()">Copy Link</button>
+            </div>
+            <div class="inv-emails" style="margin-top:12px">
+              <input class="inv-email-input" id="invite-email-input" type="email" placeholder="friend@email.com"/>
+              <button class="inv-send-btn" onclick="sendInvite()">Send invite</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: SIMULATOR -->
+        <div class="sim-column">
+
+          <!-- Cash strip -->
+          <div class="cash-strip">
+            <div class="cs-cell">
+              <div class="cs-label">Cash Available</div>
+              <div class="cs-val" id="c-cash" style="color:var(--green)">$10,000</div>
+            </div>
+            <div class="cs-cell">
+              <div class="cs-label">Stocks Value</div>
+              <div class="cs-val" id="c-stocks">$0</div>
+            </div>
+            <div class="cs-cell">
+              <div class="cs-label">Total Portfolio</div>
+              <div class="cs-val" id="c-total">$10,000</div>
+            </div>
+          </div>
+
+          <!-- Market -->
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">🏪 Live Market</div>
+                <div class="panel-sub">Use +/− to set qty then BUY · Market events affect everyone simultaneously</div>
+              </div>
+              <div class="spd-wrap">
+                <button class="spd-btn" onclick="setSpd(3000,this)">Slow</button>
+                <button class="spd-btn active" onclick="setSpd(1500,this)">Normal</button>
+                <button class="spd-btn" onclick="setSpd(700,this)">Fast</button>
+              </div>
+            </div>
+            <div class="stock-list" id="c-stock-list"></div>
+          </div>
+
+          <!-- Holdings -->
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-title">💼 My Holdings</div>
+            </div>
+            <div class="h-list" id="c-holdings"></div>
+          </div>
+
+          <!-- Events -->
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">📰 Market Events</div>
+                <div class="panel-sub">Fires simultaneously for all players · <span id="evt-countdown">Next event soon...</span></div>
+              </div>
+            </div>
+            <div class="events-list" id="c-events">
+              <div class="ev-card">
+                <span class="ev-badge ev-b-gold">Welcome</span>
+                <div class="ev-headline">Competition started — markets are open</div>
+                <div class="ev-explain">Everyone in your group starts with $10,000. Market events will fire simultaneously for all players. May the best investor win.</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  STOCKS (shared with simulator.html)
+// ═══════════════════════════════════════════════════════
+const STOCKS = [
+  { ticker:'BRGR', name:'Burger Bonanza',   emoji:'🍔', base:24.50,  price:24.50,  vol:.030, trend: .0002, hist:[], qty:0 },
+  { ticker:'ROKT', name:'RocketShip Inc',   emoji:'🚀', base:142.00, price:142.00, vol:.055, trend: .0004, hist:[], qty:0 },
+  { ticker:'PAWS', name:'Puppy Planet',     emoji:'🐶', base:38.75,  price:38.75,  vol:.028, trend: .0001, hist:[], qty:0 },
+  { ticker:'GRNZ', name:'GreenLeaf Foods',  emoji:'🥦', base:61.20,  price:61.20,  vol:.022, trend: .0003, hist:[], qty:0 },
+  { ticker:'GLDN', name:'GoldRush Mining',  emoji:'⛏️', base:88.90,  price:88.90,  vol:.045, trend:-.0001, hist:[], qty:0 },
+  { ticker:'WAVE', name:'WaveStream Media', emoji:'🎵', base:19.30,  price:19.30,  vol:.042, trend: .0002, hist:[], qty:0 },
+  { ticker:'SOLR', name:'SolarMax Energy',  emoji:'☀️', base:55.60,  price:55.60,  vol:.038, trend: .0005, hist:[], qty:0 },
+  { ticker:'ZCND', name:'ZeroCandy Corp',   emoji:'🍭', base:12.80,  price:12.80,  vol:.048, trend:-.0002, hist:[], qty:0 },
+  { ticker:'BRNK', name:'BrainBank AI',     emoji:'🤖', base:210.50, price:210.50, vol:.065, trend: .0006, hist:[], qty:0 },
+  { ticker:'TREK', name:'Trail Blazers Co', emoji:'⛺', base:45.20,  price:45.20,  vol:.030, trend: .0001, hist:[], qty:0 },
+];
+STOCKS.forEach(s => s.hist = [s.price]);
+
+const EVENTS = [
+  { badge:'geo',  headline:'Middle East tensions spike — oil supply threatened', explain:'Conflict near oil-producing regions creates supply fears. Energy stocks rise; consumer goods and airlines face higher fuel costs.', impacts:{SOLR:.08,GLDN:.05,ROKT:-.04,BRGR:-.03,ZCND:-.03}, tags:[{t:'SOLR +8%',up:true},{t:'GLDN +5%',up:true},{t:'Consumer −3%',up:false}] },
+  { badge:'tech', headline:'Major AI breakthrough surpasses human benchmarks', explain:'Significant AI capability leaps send investors rushing into the sector. Traditional industries face uncertainty about automation.', impacts:{BRNK:.13,ROKT:.07,WAVE:.04,GRNZ:-.02}, tags:[{t:'BRNK +13%',up:true},{t:'ROKT +7%',up:true},{t:'Traditional −2%',up:false}] },
+  { badge:'mkt',  headline:'Federal Reserve raises rates by 0.5% unexpectedly', explain:'Higher rates make borrowing expensive. Growth stocks fall hard; stable dividend-payers hold better. Gold often benefits from rate uncertainty.', impacts:{BRNK:-.07,ROKT:-.06,WAVE:-.04,GLDN:.03,TREK:.01}, tags:[{t:'Tech −6 to −7%',up:false},{t:'GLDN +3%',up:true}] },
+  { badge:'mkt',  headline:'US economy adds 350,000 jobs — beats all forecasts', explain:'Strong jobs signal confident consumers. Discretionary spending stocks rally. Tech may slip if Fed keeps rates high to cool the economy.', impacts:{BRGR:.05,WAVE:.05,ZCND:.06,PAWS:.04,TREK:.03,BRNK:-.02}, tags:[{t:'Consumer +4 to +6%',up:true},{t:'Tech −2%',up:false}] },
+  { badge:'geo',  headline:'Global supply chain disruption hits manufacturing hubs', explain:'Supply disruptions raise costs and delay products. Gold rises as a safe-haven. Companies relying on imports face the biggest squeeze.', impacts:{GLDN:.07,ZCND:-.05,PAWS:-.04,BRGR:-.03,GRNZ:.02}, tags:[{t:'GLDN +7%',up:true},{t:'Consumer −4%',up:false},{t:'GRNZ +2%',up:true}] },
+  { badge:'tech', headline:'Clean energy bill passes — $200B in government subsidies', explain:'Government backing for renewables makes solar and clean energy companies far more profitable. Fossil-fuel adjacent stocks face increased competition.', impacts:{SOLR:.14,GRNZ:.06,TREK:.04,GLDN:-.04}, tags:[{t:'SOLR +14%',up:true},{t:'GRNZ +6%',up:true},{t:'GLDN −4%',up:false}] },
+  { badge:'mkt',  headline:'Inflation falls to 2.1% — lowest in three years', explain:'Low inflation reduces pressure on the Fed to raise rates. Growth stocks love cheap money. Broad market tends to rally on good inflation data.', impacts:{BRNK:.08,ROKT:.06,WAVE:.05,BRGR:.04,PAWS:.03,ZCND:.04}, tags:[{t:'Tech +6 to +8%',up:true},{t:'Consumer +3 to +4%',up:true}] },
+  { badge:'mkt',  headline:'Consumer confidence hits 5-year high', explain:'Confident consumers spend freely. Entertainment, food, pet care, and consumer goods companies benefit directly when people feel wealthy.', impacts:{BRGR:.06,WAVE:.06,PAWS:.07,ZCND:.08,TREK:.05,GRNZ:.04}, tags:[{t:'ZCND +8%',up:true},{t:'PAWS +7%',up:true},{t:'Consumer +5 to +8%',up:true}] },
+];
+
+// ═══════════════════════════════════════════════════════
+//  AUTH STATE
+// ═══════════════════════════════════════════════════════
+const START_CASH = 10000;
+let currentUser = null; // { id, name, email }
+let currentGroup = null; // { id, code, name, members: [...] }
+let myPortfolio = { cash: START_CASH, holdings: {}, bestTrade: 0 };
+let tickInt = null;
+let evtIdx = 0;
+let evtCountdown = 22;
+let evtTimer = null;
+
+function loadUser() {
+  try { const u = localStorage.getItem('fp_user'); return u ? JSON.parse(u) : null; } catch(e){} return null;
+}
+function saveUser(u) { localStorage.setItem('fp_user', JSON.stringify(u)); }
+function loadGroups() {
+  try { const g = localStorage.getItem('fp_groups'); return g ? JSON.parse(g) : []; } catch(e){} return [];
+}
+function saveGroups(g) { localStorage.setItem('fp_groups', JSON.stringify(g)); }
+function loadPortfolio(groupId) {
+  try { const p = localStorage.getItem(`fp_port_${groupId}`); return p ? JSON.parse(p) : { cash: START_CASH, holdings: {}, bestTrade: 0 }; } catch(e){} return { cash: START_CASH, holdings: {}, bestTrade: 0 };
+}
+function savePortfolio(groupId) { localStorage.setItem(`fp_port_${groupId}`, JSON.stringify(myPortfolio)); }
+
+function genCode() { return Math.random().toString(36).substring(2,8).toUpperCase(); }
+function genId()   { return Date.now().toString(36) + Math.random().toString(36).substring(2,5); }
+
+// ═══════════════════════════════════════════════════════
+//  SCREEN MANAGEMENT
+// ═══════════════════════════════════════════════════════
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(`screen-${name}`).classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════
+//  AUTH
+// ═══════════════════════════════════════════════════════
+function switchTab(tab, btn) {
+  document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('form-signup').style.display = tab === 'signup' ? 'block' : 'none';
+  document.getElementById('form-login').style.display  = tab === 'login'  ? 'block' : 'none';
+}
+
+function doSignup() {
+  const name  = document.getElementById('su-name').value.trim();
+  const email = document.getElementById('su-email').value.trim();
+  const pass  = document.getElementById('su-pass').value;
+  const err   = document.getElementById('signup-error');
+
+  if (!name)  { showErr(err, 'Please enter your display name.'); return; }
+  if (!email || !email.includes('@')) { showErr(err, 'Please enter a valid email address.'); return; }
+  if (pass.length < 8) { showErr(err, 'Password must be at least 8 characters.'); return; }
+  err.classList.remove('show');
+
+  // In production: POST /api/auth/signup
+  // For now: store locally and simulate
+  currentUser = { id: genId(), name, email };
+  saveUser(currentUser);
+  onLoggedIn();
+}
+
+function doLogin() {
+  const email = document.getElementById('li-email').value.trim();
+  const pass  = document.getElementById('li-pass').value;
+  const err   = document.getElementById('login-error');
+
+  if (!email || !email.includes('@')) { showErr(err, 'Please enter a valid email.'); return; }
+  if (!pass) { showErr(err, 'Please enter your password.'); return; }
+  err.classList.remove('show');
+
+  // In production: POST /api/auth/login
+  // For now: load saved user or create
+  const saved = loadUser();
+  if (saved && saved.email === email) {
+    currentUser = saved;
+  } else {
+    currentUser = { id: genId(), name: email.split('@')[0], email };
+    saveUser(currentUser);
+  }
+  onLoggedIn();
+}
+
+function showErr(el, msg) { el.textContent = msg; el.classList.add('show'); }
+
+function onLoggedIn() {
+  document.getElementById('nav-user').style.display = 'flex';
+  document.getElementById('nav-username').textContent = currentUser.name;
+  document.getElementById('nav-signin').style.display = 'none';
+  document.getElementById('hub-name').textContent = currentUser.name;
+  renderGroupList();
+  showScreen('hub');
+}
+
+function logout() {
+  currentUser = null; currentGroup = null;
+  stopGame();
+  document.getElementById('nav-user').style.display = 'none';
+  document.getElementById('nav-signin').style.display = '';
+  showScreen('landing');
+}
+
+// ═══════════════════════════════════════════════════════
+//  GROUPS
+// ═══════════════════════════════════════════════════════
+function createGroup() {
+  if (!currentUser) { showScreen('auth'); return; }
+  const name = document.getElementById('new-group-name').value.trim();
+  if (!name) { toast('Please enter a group name first.'); return; }
+
+  const group = {
+    id: genId(),
+    name,
+    code: genCode(),
+    createdBy: currentUser.id,
+    members: [{ id: currentUser.id, name: currentUser.name }],
+    simulatedMembers: generateSimMembers(), // demo opponents
+  };
+
+  const groups = loadGroups();
+  groups.push(group);
+  saveGroups(groups);
+  document.getElementById('new-group-name').value = '';
+  enterGroup(group);
+}
+
+function joinGroup() {
+  if (!currentUser) { showScreen('auth'); return; }
+  const code = document.getElementById('join-code').value.trim().toUpperCase();
+  if (code.length !== 6) { toast('Please enter a 6-character group code.'); return; }
+
+  const groups = loadGroups();
+  const found = groups.find(g => g.code === code);
+  if (!found) {
+    toast('Group code not found. Check the code and try again.'); return;
+  }
+  // add member if not already in
+  if (!found.members.find(m => m.id === currentUser.id)) {
+    found.members.push({ id: currentUser.id, name: currentUser.name });
+    saveGroups(groups);
+  }
+  document.getElementById('join-code').value = '';
+  enterGroup(found);
+}
+
+function leaveGroup() {
+  stopGame();
+  currentGroup = null;
+  renderGroupList();
+  showScreen('hub');
+}
+
+function renderGroupList() {
+  const groups = loadGroups().filter(g =>
+    g.members.find(m => m.id === currentUser?.id)
+  );
+  const list = document.getElementById('groups-list');
+  if (!groups.length) {
+    list.innerHTML = `<div class="hub-empty"><span>🏁</span>You haven't joined any groups yet.<br/>Create one above or enter a friend's code to get started.</div>`;
+    return;
+  }
+  list.innerHTML = '';
+  groups.forEach(g => {
+    const port = loadPortfolio(g.id);
+    const total = getTotal(port);
+    const ret   = ((total - START_CASH) / START_CASH * 100).toFixed(2);
+    const isUp  = total >= START_CASH;
+    const row = document.createElement('div');
+    row.className = 'group-row';
+    const memberCount = g.members.length + (g.simulatedMembers?.length || 0);
+    row.innerHTML = `
+      <div>
+        <div class="gr-name">${g.name}</div>
+        <div class="gr-meta">👥 ${memberCount} member${memberCount !== 1 ? 's' : ''} · Code: <strong style="color:var(--gold);letter-spacing:.06em">${g.code}</strong></div>
+      </div>
+      <div>
+        <div class="gr-rank">#1</div>
+        <div class="gr-rank-label">your rank</div>
+      </div>
+      <button class="btn-enter" onclick="enterGroupById('${g.id}')">Enter →</button>`;
+    list.appendChild(row);
+  });
+}
+
+function enterGroupById(id) {
+  const groups = loadGroups();
+  const g = groups.find(g => g.id === id);
+  if (g) enterGroup(g);
+}
+
+function enterGroup(group) {
+  currentGroup = group;
+  myPortfolio  = loadPortfolio(group.id);
+  // reset stock prices
+  STOCKS.forEach(s => { s.price = s.base; s.hist = [s.base]; s.qty = 0; });
+
+  document.getElementById('comp-group-name').textContent = group.name;
+  document.getElementById('comp-code').textContent       = group.code;
+  const memberCount = group.members.length + (group.simulatedMembers?.length || 0);
+  document.getElementById('comp-member-count').textContent = memberCount;
+  document.getElementById('invite-link-display').textContent = `finnpath.com/join/${group.code}`;
+
+  buildCompStockList();
+  renderCompHoldings();
+  updateCompCash();
+  renderLeaderboard();
+  startGame();
+  showScreen('comp');
+  renderGroupList();
+}
+
+// ═══════════════════════════════════════════════════════
+//  SIMULATED OPPONENTS
+// ═══════════════════════════════════════════════════════
+function generateSimMembers() {
+  const names = ['Alex M.','Jordan K.','Sam T.','Riley B.','Casey P.','Morgan W.'];
+  const count = 2 + Math.floor(Math.random() * 3); // 2-4 bots
+  return names.slice(0, count).map((name, i) => ({
+    id: `bot_${i}`, name, isBot: true,
+    portfolio: START_CASH + (Math.random() - 0.5) * 800,
+    bestTrade: Math.floor(Math.random() * 180),
+    returnPct: (Math.random() - 0.45) * 8,
+  }));
+}
+
+function updateBotPortfolios() {
+  if (!currentGroup?.simulatedMembers) return;
+  currentGroup.simulatedMembers.forEach(bot => {
+    const drift = (Math.random() - 0.47) * 0.8;
+    bot.portfolio = Math.max(8000, bot.portfolio * (1 + drift / 100));
+    bot.returnPct = (bot.portfolio - START_CASH) / START_CASH * 100;
+    bot.bestTrade = Math.max(bot.bestTrade, Math.floor(Math.random() * 40));
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+//  LEADERBOARD
+// ═══════════════════════════════════════════════════════
+function renderLeaderboard() {
+  if (!currentGroup) return;
+  updateBotPortfolios();
+
+  const myTotal  = getTotal(myPortfolio);
+  const myReturn = (myTotal - START_CASH) / START_CASH * 100;
+
+  // build entries
+  const entries = [
+    {
+      id: currentUser.id, name: currentUser.name, isMe: true,
+      total: myTotal, ret: myReturn, bestTrade: myPortfolio.bestTrade || 0,
+    },
+    ...(currentGroup.simulatedMembers || []).map(b => ({
+      id: b.id, name: b.name, isMe: false,
+      total: b.portfolio, ret: b.returnPct, bestTrade: b.bestTrade,
+    })),
+  ];
+  entries.sort((a, b) => b.total - a.total);
+
+  const myRank = entries.findIndex(e => e.isMe) + 1;
+  document.getElementById('my-rank').textContent = `#${myRank}`;
+  document.getElementById('my-total').textContent = fmtD(myTotal);
+  const retEl = document.getElementById('my-return');
+  retEl.textContent = `${myReturn >= 0 ? '+' : ''}${myReturn.toFixed(2)}%`;
+  retEl.style.color = myReturn >= 0 ? 'var(--green)' : 'var(--coral)';
+
+  const list = document.getElementById('lb-list');
+  list.innerHTML = '';
+  entries.forEach((e, i) => {
+    const rank   = i + 1;
+    const isUp   = e.ret >= 0;
+    const rankCl = rank <= 3 ? `rank-${rank}` : 'rank-n';
+    const rankTx = rank <= 3 ? ['🥇','🥈','🥉'][rank-1] : rank;
+    const row = document.createElement('div');
+    row.className = `lb-row${e.isMe ? ' me' : ''}`;
+    row.innerHTML = `
+      <div class="rank-badge ${rankCl}">${rankTx}</div>
+      <div class="lb-player">
+        <div class="lb-name">${e.name}${e.isMe ? ' <span class="you-tag">YOU</span>' : ''}</div>
+        <div class="lb-best">🏆 Best trade: +$${e.bestTrade.toFixed(0)}</div>
+      </div>
+      <div class="lb-stats">
+        <div class="lb-val">${fmtD(e.total)}</div>
+        <div class="lb-ret ${isUp ? 'pos' : 'neg'}">${isUp ? '+' : ''}${e.ret.toFixed(2)}%</div>
+      </div>`;
+    list.appendChild(row);
+  });
+
+  // footer stats
+  if (entries.length > 1) {
+    const gap = Math.abs(entries[0].total - entries[1].total);
+    document.getElementById('lead-by').textContent = fmtD(gap);
+  }
+  const allBest = entries.reduce((best, e) => e.bestTrade > best.val ? { name: e.name, val: e.bestTrade } : best, { name: '—', val: 0 });
+  document.getElementById('best-trade-label').textContent = `${allBest.name} (+$${allBest.val.toFixed(0)})`;
+}
+
+// ═══════════════════════════════════════════════════════
+//  GAME ENGINE
+// ═══════════════════════════════════════════════════════
+function startGame() {
+  stopGame();
+  tickInt = setInterval(gameTick, 1500);
+  evtCountdown = 22;
+  evtTimer = setInterval(() => {
+    evtCountdown--;
+    const el = document.getElementById('evt-countdown');
+    if (el) el.textContent = `Next event in ~${Math.max(0,evtCountdown)}s`;
+    if (evtCountdown <= 0) { fireEvent(); evtCountdown = 22; }
+  }, 1000);
+}
+
+function stopGame() {
+  clearInterval(tickInt);
+  clearInterval(evtTimer);
+}
+
+function setSpd(ms, btn) {
+  document.querySelectorAll('.spd-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  clearInterval(tickInt);
+  tickInt = setInterval(gameTick, ms);
+}
+
+function gameTick() {
+  STOCKS.forEach(s => {
+    const rng = (Math.random() - 0.49) * s.vol + s.trend;
+    const spike = Math.random() < 0.03 ? (Math.random() - 0.5) * s.vol * 2 : 0;
+    s.price = Math.max(0.5, s.price * (1 + rng + spike));
+    s.hist.push(s.price); if (s.hist.length > 50) s.hist.shift();
+  });
+  updateCompStockRows();
+  updateCompCash();
+  renderLeaderboard();
+}
+
+function fireEvent() {
+  const ev = EVENTS[evIdx % EVENTS.length]; evIdx++;
+  Object.entries(ev.impacts || {}).forEach(([t, pct]) => {
+    const s = STOCKS.find(s => s.ticker === t);
+    if (s) { s.price = Math.max(0.5, s.price * (1 + pct)); s.hist.push(s.price); }
+  });
+  const list = document.getElementById('c-events');
+  const card = document.createElement('div'); card.className = 'ev-card';
+  card.innerHTML = `
+    <span class="ev-badge ev-b-${ev.badge}">📰 ${ev.badge.toUpperCase()}</span>
+    <div class="ev-headline">${ev.headline}</div>
+    <div class="ev-explain">${ev.explain}</div>
+    <div class="ev-impacts">${(ev.tags||[]).map(t=>`<span class="ev-imp ${t.up?'up':'dn'}">${t.up?'↑':'↓'} ${t.t}</span>`).join('')}</div>`;
+  list.insertBefore(card, list.firstChild);
+  updateCompStockRows();
+  updateCompCash();
+  renderLeaderboard();
+  toast(`📰 ${ev.headline.substring(0,52)}…`);
+}
+
+// ═══════════════════════════════════════════════════════
+//  COMPETITION SIMULATOR UI
+// ═══════════════════════════════════════════════════════
+function buildCompStockList() {
+  const container = document.getElementById('c-stock-list');
+  container.innerHTML = '';
+  STOCKS.forEach(s => {
+    const row = document.createElement('div');
+    row.className = 'stock-row'; row.id = `csr-${s.ticker}`;
+    row.innerHTML = `
+      <div class="s-emoji">${s.emoji}</div>
+      <div class="s-info"><div class="s-name">${s.name}</div><div class="s-ticker">${s.ticker}</div></div>
+      <div class="s-price-wrap">
+        <div class="s-price" id="cp-${s.ticker}">${fmtP(s.price)}</div>
+        <div class="s-chg" id="cc-${s.ticker}">—</div>
+      </div>
+      <div class="buy-ctrl">
+        <button class="qty-btn" onclick="cAdj('${s.ticker}',-1)">−</button>
+        <span class="qty-disp" id="cq-${s.ticker}">0</span>
+        <button class="qty-btn" onclick="cAdj('${s.ticker}',1)">+</button>
+        <button class="buy-btn" id="cb-${s.ticker}" onclick="cBuy('${s.ticker}')" disabled>BUY</button>
+      </div>`;
+    container.appendChild(row);
+  });
+}
+
+function updateCompStockRows() {
+  STOCKS.forEach(s => {
+    const prev = s.hist.length > 1 ? s.hist[s.hist.length-2] : s.price;
+    const diff = s.price - prev; const pct = (diff/prev)*100; const isUp = diff >= 0;
+    const pe = document.getElementById(`cp-${s.ticker}`);
+    const ce = document.getElementById(`cc-${s.ticker}`);
+    const row= document.getElementById(`csr-${s.ticker}`);
+    if (!pe) return;
+    pe.textContent = fmtP(s.price);
+    ce.textContent = `${isUp?'+':''}${pct.toFixed(2)}%`;
+    ce.className = `s-chg ${isUp?'up':'dn'}`;
+    row.classList.remove('flash-g','flash-r'); void row.offsetWidth;
+    row.classList.add(isUp?'flash-g':'flash-r');
+    const btn = document.getElementById(`cb-${s.ticker}`);
+    if (btn) btn.disabled = s.qty === 0 || s.price*s.qty > myPortfolio.cash;
+  });
+}
+
+function cAdj(ticker, d) {
+  const s = STOCKS.find(s => s.ticker === ticker);
+  s.qty = Math.max(0, s.qty + d);
+  const dEl = document.getElementById(`cq-${ticker}`);
+  const btn  = document.getElementById(`cb-${ticker}`);
+  if (dEl) dEl.textContent = s.qty;
+  if (btn)  btn.disabled = s.qty===0 || s.price*s.qty > myPortfolio.cash;
+}
+
+function cBuy(ticker) {
+  const s = STOCKS.find(s => s.ticker === ticker);
+  const qty = s.qty; const cost = s.price*qty;
+  if (qty===0 || cost>myPortfolio.cash) return;
+  myPortfolio.cash -= cost;
+  if (!myPortfolio.holdings[ticker]) myPortfolio.holdings[ticker]={shares:0,avgCost:0};
+  const h = myPortfolio.holdings[ticker];
+  h.avgCost = (h.avgCost*h.shares+cost)/(h.shares+qty);
+  h.shares += qty;
+  s.qty = 0;
+  const dEl = document.getElementById(`cq-${ticker}`);
+  const btn  = document.getElementById(`cb-${ticker}`);
+  if (dEl) dEl.textContent = '0';
+  if (btn)  btn.disabled = true;
+  if (currentGroup) savePortfolio(currentGroup.id);
+  renderCompHoldings(); updateCompCash(); renderLeaderboard();
+  toast(`✅ Bought ${qty}× ${s.ticker} for ${fmtD(cost)}`);
+}
+
+function cSell(ticker) {
+  const s = STOCKS.find(s => s.ticker === ticker);
+  const h = myPortfolio.holdings[ticker]; if (!h||h.shares===0) return;
+  const proceeds = s.price*h.shares;
+  const gain     = proceeds - h.avgCost*h.shares;
+  myPortfolio.cash += proceeds;
+  if (gain > (myPortfolio.bestTrade||0)) myPortfolio.bestTrade = gain;
+  delete myPortfolio.holdings[ticker];
+  if (currentGroup) savePortfolio(currentGroup.id);
+  renderCompHoldings(); updateCompCash(); renderLeaderboard();
+  toast(`${gain>=0?'🤑':'😬'} Sold ${ticker}: ${gain>=0?'+':''}${fmtD(gain)}`);
+}
+
+function renderCompHoldings() {
+  const list = document.getElementById('c-holdings');
+  const tickers = Object.keys(myPortfolio.holdings);
+  if (!tickers.length) { list.innerHTML = `<div class="h-empty">No holdings yet — buy some stocks!</div>`; return; }
+  list.innerHTML = '';
+  tickers.forEach(ticker => {
+    const h = myPortfolio.holdings[ticker];
+    const s = STOCKS.find(s => s.ticker === ticker); if (!s) return;
+    const curVal = s.price*h.shares; const cost = h.avgCost*h.shares;
+    const gain   = curVal-cost; const pct = (gain/cost)*100; const isUp = gain>=0;
+    const row = document.createElement('div'); row.className='h-row';
+    row.innerHTML = `
+      <div class="h-emoji">${s.emoji}</div>
+      <div><div class="h-name">${s.name}</div><div class="h-shares">${h.shares} share${h.shares!==1?'s':''}</div></div>
+      <div class="h-right">
+        <div class="h-val">${fmtD(curVal)}</div>
+        <div class="h-gain ${isUp?'pos':'neg'}">${isUp?'+':''}${pct.toFixed(1)}%</div>
+        <button class="sell-btn" onclick="cSell('${ticker}')">Sell</button>
+      </div>`;
+    list.appendChild(row);
+  });
+}
+
+function updateCompCash() {
+  const stocksVal = Object.entries(myPortfolio.holdings).reduce((t,[tk,h]) => {
+    const s = STOCKS.find(s=>s.ticker===tk); return t + (s?s.price*h.shares:0);
+  }, 0);
+  const total = myPortfolio.cash + stocksVal;
+  document.getElementById('c-cash').textContent   = fmtD(myPortfolio.cash);
+  document.getElementById('c-stocks').textContent = fmtD(stocksVal);
+  document.getElementById('c-total').textContent  = fmtD(total);
+}
+
+// ═══════════════════════════════════════════════════════
+//  INVITE ACTIONS
+// ═══════════════════════════════════════════════════════
+function copyCode() {
+  if (!currentGroup) return;
+  navigator.clipboard.writeText(currentGroup.code).catch(()=>{});
+  toast(`📋 Code ${currentGroup.code} copied!`);
+}
+
+function copyInviteLink() {
+  if (!currentGroup) return;
+  const link = `https://finnpath.com/join/${currentGroup.code}`;
+  navigator.clipboard.writeText(link).catch(()=>{});
+  toast('🔗 Invite link copied!');
+}
+
+function sendInvite() {
+  const email = document.getElementById('invite-email-input').value.trim();
+  if (!email||!email.includes('@')) { toast('Please enter a valid email address.'); return; }
+  document.getElementById('invite-email-input').value = '';
+  // In production: POST /api/groups/:id/invite { email }
+  toast(`✉️ Invite sent to ${email}!`);
+}
+
+// ═══════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════
+function getTotal(port) {
+  let v = port.cash;
+  Object.entries(port.holdings||{}).forEach(([tk,h]) => {
+    const s = STOCKS.find(s=>s.ticker===tk); if (s) v += s.price*h.shares;
+  });
+  return v;
+}
+function fmtP(n) { return '$'+n.toFixed(2); }
+function fmtD(n) { return '$'+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+let toastTimer = null;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+// ═══════════════════════════════════════════════════════
+//  INIT — check if already logged in
+// ═══════════════════════════════════════════════════════
+window.addEventListener('load', () => {
+  currentUser = loadUser();
+  if (currentUser) {
+    onLoggedIn();
+    // check for join code in URL
+    const code = new URLSearchParams(location.search).get('code');
+    if (code) {
+      document.getElementById('join-code').value = code;
+      joinGroup();
+    }
+  }
+});
+(function(){
+  var burger = document.querySelector('.nav-burger');
+  var links  = document.querySelector('.nav-links');
+  if (!burger || !links) return;
+  burger.addEventListener('click', function(){
+    var open = links.classList.toggle('open');
+    burger.classList.toggle('open', open);
+    document.body.style.overflow = open ? 'hidden' : '';
+  });
+  links.querySelectorAll('a').forEach(function(a){
+    a.addEventListener('click', function(){
+      links.classList.remove('open');
+      burger.classList.remove('open');
+      document.body.style.overflow = '';
+    });
+  });
+  window.addEventListener('resize', function(){
+    if (window.innerWidth > 720) {
+      links.classList.remove('open');
+      burger.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  });
+})();
+</script>
+</body>
+</html>
