@@ -1,0 +1,4 @@
+praw
+google-generativeai
+psycopg2-binary
+python-dotenv
