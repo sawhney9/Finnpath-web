@@ -857,13 +857,13 @@ document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
     links.classList.remove('open');
     burger.classList.remove('open');
     if (backdrop) backdrop.classList.remove('open');
-    document.body.style.overflow = '';
+    document.body.classList.remove('nav-open');
   }
   burger.addEventListener('click', function(){
     var open = links.classList.toggle('open');
     burger.classList.toggle('open', open);
     if (backdrop) backdrop.classList.toggle('open', open);
-    document.body.style.overflow = open ? 'hidden' : '';
+    document.body.classList.toggle('nav-open', open);
   });
   if (backdrop) backdrop.addEventListener('click', closeNav);
   links.querySelectorAll('a').forEach(function(a){

@@ -26,6 +26,9 @@ body {
   background: var(--navy); color: var(--white);
   overflow-x: hidden; line-height: 1.6;
 }
+body.nav-open {
+  position: fixed; width: 100%; overflow: hidden;
+}
 body::after {
   content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
   background-image: repeating-linear-gradient(-45deg,transparent,transparent 40px,rgba(250,249,247,.010) 40px,rgba(250,249,247,.010) 41px);
