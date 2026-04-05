@@ -39,7 +39,10 @@ nav {
   position:fixed; top:0; left:0; right:0; z-index:200; height:var(--nav-h);
   display:flex; align-items:center; justify-content:space-between;
   padding:0 56px;
-  background:rgba(10,22,40,.94); backdrop-filter:blur(24px);
+}
+nav::before {
+  content: ''; position:absolute; inset:0; z-index:-1;
+  background:rgba(10,22,40,.94); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px);
   border-bottom:1px solid var(--border);
 }
 .logo {
@@ -167,7 +170,7 @@ h2 em { font-style:italic; color:var(--coral); }
   .nav-burger { display:flex; position:relative; z-index:10000; }
   .nav-cta { display:none; }
   .nav-links {
-    position:absolute; top:0; right:0; height:100vh;
+    position:fixed; top:0; right:0; bottom:0;
     width:72vw; max-width:300px;
     flex-direction:column; gap:0;
     background:rgba(8,16,32,.98); backdrop-filter:blur(28px);
