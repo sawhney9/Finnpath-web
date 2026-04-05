@@ -7,7 +7,7 @@
   <meta name="description" content="Money Moves by Finnpath — real financial wisdom for the 18–30 crowd. Crypto, prediction markets, investing, and everything in between, explained plainly."/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="shared.css"/>
+  <link rel="stylesheet" href="shared.css?v=5"/>
   <style>
 
     /* ── PAGE HERO ── */
@@ -1243,8 +1243,21 @@ document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
   links.querySelectorAll('a').forEach(function(a){
     a.addEventListener('click', closeNav);
   });
+  function checkPos() {
+    if (window.innerWidth <= 720) {
+      if (links.parentNode !== document.body) document.body.appendChild(links);
+    } else {
+      if (links.parentNode === document.body) {
+        var nav = document.querySelector('nav');
+        nav.insertBefore(links, burger);
+        closeNav();
+      }
+    }
+  }
+  checkPos();
   window.addEventListener('resize', function(){
     if (window.innerWidth > 720) closeNav();
+    checkPos();
   });
 })();
 </script>
