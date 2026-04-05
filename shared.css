@@ -167,13 +167,14 @@ h2 em { font-style:italic; color:var(--coral); }
 /* ── RESPONSIVE ── */
 @media(max-width:720px){
   nav { padding:0 20px; }
+  body.nav-open nav::before { backdrop-filter:none; -webkit-backdrop-filter:none; background:var(--navy); }
   .nav-burger { display:flex; position:relative; z-index:10000; }
   .nav-cta { display:none; }
   .nav-links {
     position:fixed; top:0; right:0; bottom:0;
     width:72vw; max-width:300px;
     flex-direction:column; gap:0;
-    background:rgba(8,16,32,.98); backdrop-filter:blur(28px);
+    background:#081020;
     padding:calc(var(--nav-h) + 8px) 28px 48px;
     z-index:9999; overflow-y:auto;
     transform:translateX(100%);
