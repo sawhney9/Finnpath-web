@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Stock Market Simulator — Finnpath</title>
-  <meta name="description" content="Learn to invest with $10,000 of play money. Buy and sell stocks, watch real-time prices, and see how world events move markets — zero real risk."/>
+  <title>Real Stock Tracker — Finnpath</title>
+  <meta name="description" content="Track your hypothetical real-world stock purchases and see how they perform over time."/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="shared.css?v=5"/>
   <style>
-
-    /* ── PAGE HERO ── */
+    /* PAGE HERO / AUTH STATE */
     .page-hero {
       padding: calc(var(--nav-h) + 48px) 56px 52px;
       background: var(--navy-mid); border-bottom: 1px solid var(--border);
       position: relative; z-index: 1; overflow: hidden;
+      text-align: center;
     }
     .page-hero::before {
       content: ''; position: absolute; inset: 0; pointer-events: none;
@@ -23,8 +23,8 @@
         radial-gradient(ellipse 45% 60% at 5%  50%, rgba(74,144,217,.07) 0%, transparent 65%);
     }
     .hero-inner-row {
-      max-width: 1160px; margin-inline: auto; position: relative; z-index: 1;
-      display: grid; grid-template-columns: 1fr auto; gap: 40px; align-items: center;
+      max-width: 800px; margin-inline: auto; position: relative; z-index: 1;
+      display: flex; flex-direction: column; align-items: center; gap: 20px;
     }
     .page-hero h1 {
       font-family: 'Playfair Display', serif; font-weight: 900;
@@ -32,286 +32,76 @@
     }
     .page-hero h1 em { font-style: italic; color: var(--green); }
     .page-hero p { font-size: .92rem; color: var(--white-dim); font-weight: 300; line-height: 1.75; margin-top: 10px; max-width: 520px; }
-    .hero-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+
+    /* AUTH BUTTONS */
+    .btn-google {
+      background: #fff; color: #333; font-weight: 700; font-family: 'Plus Jakarta Sans', sans-serif;
+      padding: 12px 24px; border-radius: 8px; border: none; cursor: pointer;
+      display: flex; align-items: center; gap: 12px; font-size: .95rem;
+      transition: all .2s; margin-top: 20px;
+    }
+    .btn-google:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(255,255,255,.15); }
+    .btn-google img { width: 20px; height: 20px; }
+    
+    #user-menu { display: none; align-items: center; gap: 10px; }
+    .user-avatar { width: 32px; height: 32px; border-radius: 50%; }
+    .btn-logout { background: transparent; border: 1px solid var(--border); color: var(--white-dim); border-radius: 6px; padding: 6px 12px; font-size: .75rem; cursor: pointer; }
+
+    /* DASHBOARD */
+    .dashboard-wrap {
+      max-width: 1160px; margin-inline: auto; padding: 28px 56px 72px;
+      display: none; /* hidden until logged in */
+    }
+    .dash-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; }
+    .port-metrics { display: flex; gap: 20px; }
+    .metric-card {
+      background: var(--navy-card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 18px 24px; min-width: 200px;
+    }
+    .metric-card.primary { background: linear-gradient(135deg, rgba(61,186,126,.12), rgba(74,144,217,.08)); border-color: rgba(61,186,126,.2); }
+    .m-label { font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--white-dim); margin-bottom: 8px; }
+    .m-val { font-family: 'Playfair Display', serif; font-weight: 900; font-size: 1.8rem; line-height: 1; }
+    .m-sub { font-size: .75rem; font-weight: 700; margin-top: 6px; }
+    .up { color: var(--green); } .dn { color: var(--coral); }
+    
+    .btn-add { background: var(--green); color: var(--navy); border: none; padding: 10px 20px; font-weight: 800; border-radius: 8px; cursor: pointer; font-size: .85rem; }
+    .btn-outline { background: transparent; color: var(--green); border: 1px solid var(--green); padding: 9px 18px; font-weight: 800; border-radius: 8px; cursor: pointer; font-size: .75rem; margin-right: 10px; }
+    
+    /* TABLE */
+    .panel { background: var(--navy-mid); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-top: 24px; }
+    .table-head { display: grid; grid-template-columns: 100px 1.5fr 1fr 1fr 1fr 1fr; padding: 16px 24px; background: var(--navy-card); border-bottom: 1px solid var(--border); font-size: .7rem; font-weight: 700; color: var(--white-dim); text-transform: uppercase; letter-spacing: .05em; }
+    .table-row { display: grid; grid-template-columns: 100px 1.5fr 1fr 1fr 1fr 1fr; padding: 16px 24px; border-bottom: 1px solid rgba(250,249,247,.04); align-items: center; }
+    .table-row:last-child { border-bottom: none; }
+    .tr-ticker { font-weight: 800; font-size: .95rem; }
+    .tr-name { font-size: .75rem; color: var(--white-dim); }
+    .tr-num { font-family: 'Playfair Display', serif; font-weight: 700; font-size: .95rem; }
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--white-dim); }
+
+    /* MODAL */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(10,20,38,.8); backdrop-filter: blur(4px); z-index: 1000; display: none; place-items: center; }
+    .modal { background: var(--navy-mid); border: 1px solid var(--border); border-radius: 16px; padding: 32px; width: 100%; max-width: 480px; }
+    .modal h2 { font-family: 'Playfair Display', serif; margin-bottom: 20px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: .75rem; font-weight: 700; color: var(--white-dim); margin-bottom: 6px; }
+    .form-group input { width: 100%; background: var(--navy-card); border: 1px solid var(--border); color: #fff; padding: 12px; border-radius: 8px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: .9rem; outline: none; }
+    .form-group input:focus { border-color: var(--sky); }
+    .hero-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; justify-content: center; }
     .hbadge {
       background: var(--navy-card); border: 1px solid var(--border);
       border-radius: 100px; padding: 5px 14px;
       font-size: .72rem; font-weight: 600; color: var(--white-dim);
     }
     .hbadge.green { border-color: rgba(61,186,126,.25); color: var(--green); background: rgba(61,186,126,.07); }
-
-    /* portfolio summary strip in hero */
-    .port-summary {
-      display: flex; flex-direction: column; gap: 10px; min-width: 220px;
-    }
-    .ps-card {
-      background: var(--navy-card); border: 1px solid var(--border); border-radius: 14px;
-      padding: 14px 18px;
-    }
-    .ps-card.featured { background: linear-gradient(135deg, var(--coral), #bf3f2d); border-color: transparent; }
-    .ps-label { font-size: .62rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--white-dim); margin-bottom: 5px; }
-    .ps-card.featured .ps-label { color: rgba(255,255,255,.6); }
-    .ps-val { font-family: 'Playfair Display', serif; font-weight: 900; font-size: 1.5rem; letter-spacing: -.02em; line-height: 1; }
-    .ps-card.featured .ps-val { color: #fff; }
-    .ps-sub { font-size: .68rem; color: var(--white-dim); margin-top: 4px; }
-    .ps-card.featured .ps-sub { color: rgba(255,255,255,.55); }
-
-    /* ── MAIN SIMULATOR LAYOUT ── */
-    .sim-page { position: relative; z-index: 1; }
-    .sim-wrap {
-      max-width: 1160px; margin-inline: auto;
-      padding: 28px 56px 72px;
-      display: grid; grid-template-columns: 1fr 320px;
-      gap: 24px; align-items: start;
-    }
-
-    /* ── LEFT COLUMN ── */
-    .sim-left { display: flex; flex-direction: column; gap: 20px; }
-
-    /* panel base */
-    .panel {
-      background: var(--navy-mid); border: 1px solid var(--border);
-      border-radius: var(--radius); overflow: hidden;
-    }
-    .panel-head {
-      padding: 16px 22px; border-bottom: 1px solid var(--border);
-      background: var(--navy-card);
-      display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    }
-    .panel-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: .95rem; }
-    .panel-sub { font-size: .7rem; color: var(--white-dim); margin-top: 2px; }
-
-    /* speed control */
-    .speed-wrap { display: flex; gap: 5px; }
-    .spd-btn {
-      background: var(--navy); border: 1px solid var(--border); border-radius: 6px;
-      color: var(--white-dim); font-size: .66rem; font-weight: 700; padding: 4px 10px;
-      cursor: pointer; transition: all .15s; font-family: 'Plus Jakarta Sans', sans-serif;
-    }
-    .spd-btn.active { background: var(--coral); border-color: var(--coral); color: #fff; }
-    .spd-btn:hover:not(.active) { border-color: rgba(250,249,247,.2); color: var(--white); }
-
-    /* ── STOCK LIST ── */
-    .stock-list { padding: 6px 0; }
-    .stock-row {
-      display: grid; grid-template-columns: 40px 1fr 90px 80px 130px;
-      align-items: center; gap: 12px;
-      padding: 12px 22px; border-bottom: 1px solid rgba(250,249,247,.04);
-      transition: background .15s;
-    }
-    .stock-row:last-child { border-bottom: none; }
-    .stock-row:hover { background: rgba(250,249,247,.03); }
-
-    .s-emoji { font-size: 1.4rem; text-align: center; }
-
-    .s-info .s-name { font-weight: 700; font-size: .86rem; }
-    .s-info .s-ticker { font-size: .66rem; color: rgba(250,249,247,.3); margin-top: 1px; }
-    .s-info .s-sector { font-size: .62rem; color: rgba(250,249,247,.22); }
-
-    .s-price-wrap { text-align: right; }
-    .s-price { font-family: 'Playfair Display', serif; font-weight: 700; font-size: .95rem; }
-    .s-chg { font-size: .7rem; font-weight: 700; margin-top: 2px; }
-    .up { color: var(--green); } .dn { color: var(--coral); }
-
-    /* sparkline */
-    .s-spark { width: 72px; height: 28px; display: block; }
-
-    /* buy controls */
-    .buy-ctrl { display: flex; align-items: center; gap: 5px; justify-content: flex-end; }
-    .qty-btn {
-      width: 24px; height: 24px; border-radius: 50%;
-      background: var(--navy-card); border: 1px solid var(--border);
-      color: var(--white); font-size: .9rem; cursor: pointer;
-      display: grid; place-items: center; transition: all .15s;
-      font-family: 'Playfair Display', serif; font-weight: 700; flex-shrink: 0;
-    }
-    .qty-btn:hover { background: rgba(61,186,126,.2); border-color: var(--green); }
-    .qty-disp { font-family: 'Playfair Display', serif; font-weight: 700; font-size: .82rem; min-width: 18px; text-align: center; }
-    .buy-btn {
-      background: var(--green); color: var(--navy); border: none; cursor: pointer;
-      font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: .68rem;
-      padding: 5px 10px; border-radius: 7px; transition: opacity .15s, transform .15s;
-      letter-spacing: .02em;
-    }
-    .buy-btn:hover:not(:disabled) { transform: scale(1.05); }
-    .buy-btn:disabled { opacity: .3; cursor: not-allowed; transform: none; }
-
-    /* flash animations */
-    @keyframes flashG { 0%,100%{background:transparent} 40%{background:rgba(61,186,126,.12)} }
-    @keyframes flashR { 0%,100%{background:transparent} 40%{background:rgba(232,96,76,.10)} }
-    .flash-g { animation: flashG .55s ease; }
-    .flash-r { animation: flashR .55s ease; }
-
-    /* ── MARKET EVENTS ── */
-    .events-list { padding: 14px 20px; display: flex; flex-direction: column; gap: 10px; max-height: 340px; overflow-y: auto; }
-    .events-list::-webkit-scrollbar { width: 3px; }
-    .events-list::-webkit-scrollbar-thumb { background: rgba(250,249,247,.12); border-radius: 100px; }
-
-    .event-card {
-      background: var(--navy-card); border: 1px solid var(--border);
-      border-radius: 12px; padding: 14px 16px;
-      animation: slideIn .4s ease;
-    }
-    @keyframes slideIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
-    .event-card.new { border-color: rgba(201,168,76,.3); background: rgba(201,168,76,.06); }
-
-    .ev-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
-    .ev-badge {
-      font-size: .6rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
-      padding: 3px 9px; border-radius: 100px; flex-shrink: 0;
-    }
-    .ev-badge.breaking { background: rgba(201,168,76,.15); color: var(--gold); border: 1px solid rgba(201,168,76,.2); }
-    .ev-badge.market   { background: rgba(74,144,217,.12);  color: var(--sky);  border: 1px solid rgba(74,144,217,.2); }
-    .ev-badge.geo      { background: rgba(232,96,76,.12);   color: var(--coral);border: 1px solid rgba(232,96,76,.2); }
-    .ev-badge.tech     { background: rgba(61,186,126,.10);  color: var(--green);border: 1px solid rgba(61,186,126,.2); }
-    .ev-time { font-size: .64rem; color: rgba(250,249,247,.25); }
-
-    .ev-headline { font-weight: 700; font-size: .84rem; margin-bottom: 5px; line-height: 1.4; }
-    .ev-explain { font-size: .76rem; color: var(--white-dim); line-height: 1.6; margin-bottom: 8px; }
-    .ev-impacts { display: flex; gap: 6px; flex-wrap: wrap; }
-    .ev-impact {
-      font-size: .66rem; font-weight: 700; padding: 3px 9px; border-radius: 100px;
-    }
-    .ev-impact.up { background: rgba(61,186,126,.12); color: var(--green); }
-    .ev-impact.dn { background: rgba(232,96,76,.10);  color: var(--coral); }
-
-    /* ── ACTIVITY LOG ── */
-    .log-list { padding: 10px 20px; max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 0; }
-    .log-list::-webkit-scrollbar { width: 3px; }
-    .log-list::-webkit-scrollbar-thumb { background: rgba(250,249,247,.12); border-radius: 100px; }
-    .log-item {
-      padding: 9px 0; border-bottom: 1px solid rgba(250,249,247,.04);
-      display: flex; align-items: center; justify-content: space-between; gap: 10px;
-    }
-    .log-item:last-child { border-bottom: none; }
-    .log-text { font-size: .78rem; color: var(--white-dim); line-height: 1.4; flex: 1; }
-    .log-text strong { color: var(--white); font-weight: 600; }
-    .log-badge {
-      font-size: .6rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
-      padding: 2px 8px; border-radius: 100px; flex-shrink: 0;
-    }
-    .lb-buy  { background: rgba(61,186,126,.12); color: var(--green); }
-    .lb-sell { background: rgba(232,96,76,.10);  color: var(--coral); }
-    .lb-info { background: rgba(250,249,247,.07); color: var(--white-dim); }
-    .lb-event{ background: rgba(201,168,76,.12);  color: var(--gold); }
-
-    /* ── RIGHT COLUMN ── */
-    .sim-right { display: flex; flex-direction: column; gap: 18px; position: sticky; top: calc(var(--nav-h) + 16px); }
-
-    /* cash card */
-    .cash-card {
-      background: linear-gradient(135deg, rgba(61,186,126,.12), rgba(74,144,217,.08));
-      border: 1px solid rgba(61,186,126,.2); border-radius: var(--radius);
-      padding: 20px 22px;
-    }
-    .cash-label { font-size: .62rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: rgba(250,249,247,.4); margin-bottom: 5px; }
-    .cash-val { font-family: 'Playfair Display', serif; font-weight: 900; font-size: 1.9rem; color: var(--green); letter-spacing: -.02em; line-height: 1; }
-    .cash-sub { font-size: .7rem; color: rgba(250,249,247,.35); margin-top: 4px; }
-
-    /* portfolio panel */
-    .port-panel { }
-    .holdings-label {
-      padding: 14px 18px 8px;
-      font-size: .62rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
-      color: rgba(250,249,247,.3); border-bottom: 1px solid var(--border);
-    }
-    .holdings-list { padding: 4px 0; }
-    .holding-row {
-      padding: 10px 18px; border-bottom: 1px solid rgba(250,249,247,.04);
-      display: grid; grid-template-columns: 28px 1fr auto; gap: 8px; align-items: center;
-    }
-    .holding-row:last-child { border-bottom: none; }
-    .h-emoji { font-size: 1.1rem; }
-    .h-name { font-weight: 700; font-size: .8rem; }
-    .h-shares { font-size: .64rem; color: var(--white-dim); margin-top: 1px; }
-    .h-right { text-align: right; }
-    .h-val { font-family: 'Playfair Display', serif; font-weight: 700; font-size: .88rem; }
-    .h-gain { font-size: .64rem; font-weight: 700; margin-top: 2px; }
-    .sell-btn {
-      background: rgba(232,96,76,.1); border: none; border-radius: 6px;
-      color: var(--coral); font-size: .62rem; font-weight: 700; padding: 3px 8px;
-      cursor: pointer; transition: background .15s; font-family: 'Plus Jakarta Sans', sans-serif;
-      display: block; margin-top: 3px; margin-left: auto;
-    }
-    .sell-btn:hover { background: rgba(232,96,76,.22); }
-
-    .empty-port {
-      padding: 24px 18px; text-align: center;
-      color: rgba(250,249,247,.25); font-size: .8rem; line-height: 1.7;
-    }
-    .empty-port span { font-size: 1.8rem; display: block; margin-bottom: 8px; }
-
-    /* portfolio value chart */
-    .port-chart-wrap { padding: 14px 18px 16px; }
-    .pct-label { font-size: .62rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: rgba(250,249,247,.3); margin-bottom: 10px; }
-    canvas.port-chart { width: 100% !important; height: 80px !important; display: block; }
-
-    /* reset button */
-    .reset-btn {
-      width: 100%; background: transparent; border: 1px solid var(--border);
-      border-radius: 10px; padding: 11px; color: var(--white-dim); font-size: .78rem;
-      font-weight: 600; cursor: pointer; transition: all .2s;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-    }
-    .reset-btn:hover { border-color: rgba(250,249,247,.22); color: var(--white); }
-
-    /* ── LEARN CALLOUT STRIP ── */
-    .learn-strip {
-      background: var(--navy-mid); border-top: 1px solid var(--border);
-      position: relative; z-index: 1;
-    }
-    .learn-strip-inner {
-      max-width: 1160px; margin-inline: auto;
-      padding: 48px 56px;
-      display: grid; grid-template-columns: repeat(3,1fr); gap: 20px;
-    }
-    .ls-card {
-      background: var(--navy); border: 1px solid var(--border); border-radius: var(--radius);
-      padding: 22px 20px;
-    }
-    .ls-icon { font-size: 1.4rem; margin-bottom: 10px; }
-    .ls-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: .95rem; margin-bottom: 8px; }
-    .ls-desc { font-size: .8rem; color: var(--white-dim); line-height: 1.7; }
-    .ls-link { display: inline-block; margin-top: 12px; font-size: .74rem; font-weight: 700; color: var(--coral); text-decoration: none; }
-    .ls-link:hover { text-decoration: underline; }
-
-    /* ── TOAST ── */
-    #toast {
-      position: fixed; bottom: 28px; left: 50%;
-      transform: translateX(-50%) translateY(80px);
-      background: var(--navy-card); border: 1px solid rgba(250,249,247,.12);
-      color: var(--white); font-weight: 700; font-size: .84rem;
-      padding: 12px 24px; border-radius: 100px;
-      box-shadow: 0 8px 32px rgba(0,0,0,.4);
-      transition: transform .35s cubic-bezier(.34,1.56,.64,1), opacity .3s;
-      opacity: 0; z-index: 999; white-space: nowrap; pointer-events: none;
-    }
-    #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-
-    @media(max-width:1000px){
-      .sim-wrap { grid-template-columns: 1fr; padding: 20px 20px 56px; }
-      .sim-right { position: static; }
-      .hero-inner-row { grid-template-columns: 1fr; }
-      .port-summary { flex-direction: row; flex-wrap: wrap; }
-    }
-    @media(max-width:720px){
-      .page-hero { padding: calc(var(--nav-h)+28px) 20px 36px; }
-      .stock-row { grid-template-columns: 32px 1fr 80px 110px; }
-      .stock-row .s-spark { display: none; }
-      .learn-strip-inner { grid-template-columns: 1fr; padding: 36px 20px; }
+    
+    @media(max-width: 800px){
+      .dash-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+      .port-metrics { flex-direction: column; width: 100%; }
+      .table-head { display: none; }
+      .table-row { grid-template-columns: 1fr 1fr; gap: 12px; padding: 16px; }
+      .tr-name { display: none; }
     }
   </style>
-  <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
-  <!-- Open Graph -->
-  <meta property="og:type" content="website"/>
-  <meta property="og:site_name" content="Finnpath"/>
-  <meta property="og:title" content="Stock Market Simulator — Finnpath"/>
-  <meta property="og:description" content="Trade stocks with $10,000 of play money. Build investing instincts before risking a single real dollar."/>
-  <meta property="og:url" content="https://finnpath.com/simulator.html"/>
-  <meta name="twitter:card" content="summary"/>
-  <meta name="twitter:title" content="Stock Market Simulator — Finnpath"/>
-  <meta name="twitter:description" content="Trade stocks with $10,000 of play money. Build investing instincts before risking a single real dollar."/>
 </head>
 <body>
 
@@ -322,773 +112,373 @@
     <li><a href="index.html">Home</a></li>
     <li><a href="learn.html">Learn</a></li>
     <li><a href="calculator.html">Calculator</a></li>
-    <li><a href="simulator.html" class="active">Simulator</a></li>
+    <li><a href="simulator.html" class="active">Tracker</a></li>
     <li><a href="paths.html">Your Path</a></li>
     <li><a href="blog.html">Money Moves</a></li>
   </ul>
-  <button class="nav-burger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
-  <a href="learn.html" class="nav-cta">Learn More</a>
+  
+  <div id="user-menu">
+    <img src="" alt="Avatar" class="user-avatar" id="avatar"/>
+    <button class="btn-logout" id="btn-out">Sign Out</button>
+  </div>
 </nav>
-<div class="nav-backdrop"></div>
 
-<!-- PAGE HERO -->
-<div class="page-hero">
+<!-- LOGGED OUT HERO -->
+<div class="page-hero" id="auth-hero">
   <div class="hero-inner-row">
+    <div class="s-eyebrow">Real Market Tracker</div>
+    <h1>Track stocks <br/><em>like a pro</em></h1>
+    <p>Log hypothetical stock purchases, track real-time prices, and see exactly how much money you would have made. Perfect for learning how the market works without risking a dime.</p>
+    <div class="hero-badges">
+      <div class="hbadge green">✓ Real Market Data</div>
+      <div class="hbadge">Track Portfolios</div>
+      <div class="hbadge">Share with Family</div>
+    </div>
+    <button class="btn-google" id="btn-google">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="G"/>
+      Sign in with Google
+    </button>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="dashboard-wrap" id="dashboard">
+  <div class="dash-header">
+    <div class="port-metrics">
+      <div class="metric-card primary">
+        <div class="m-label">Total Portfolio Value</div>
+        <div class="m-val" style="color:var(--green)" id="total-val">$0.00</div>
+        <div class="m-sub" id="total-ret">0.00% All Time</div>
+      </div>
+      <div class="metric-card">
+        <div class="m-label">Total Invested</div>
+        <div class="m-val" id="total-inv">$0.00</div>
+      </div>
+    </div>
     <div>
-      <div class="s-eyebrow">Stock Market Simulator</div>
-      <h1>Invest before<br/>the <em>stakes are real</em></h1>
-      <p>You get $10,000 of play money, 10 stocks to trade, and a live market that reacts to world events. Buy, sell, watch prices move, and learn why the market does what it does — zero real risk.</p>
-      <div class="hero-badges">
-        <div class="hbadge green">✓ No real money</div>
-        <div class="hbadge">10 stocks to trade</div>
-        <div class="hbadge">Live market events</div>
-        <div class="hbadge">Portfolio tracking</div>
+      <button class="btn-outline" id="btn-share">Invite via Email</button>
+      <button class="btn-add" id="btn-add-tx">+ Log Transaction</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header" style="padding: 16px 24px; font-family:'Playfair Display',serif; font-size: 1.1rem; border-bottom: 1px solid var(--border)">
+      My Primary Portfolio
+    </div>
+    <div class="table-head">
+      <div>Ticker</div>
+      <div>Shares</div>
+      <div>Average Cost</div>
+      <div>Current Price</div>
+      <div>Total Value</div>
+      <div>Total Return</div>
+    </div>
+    <div id="holdings-list">
+      <div class="empty-state">
+        <div style="font-size:2rem;margin-bottom:10px">📈</div>
+        <h3>No investments yet.</h3>
+        <p style="font-size:.85rem;margin-top:5px">Log your first hypothetical transaction to start tracking.</p>
       </div>
     </div>
-    <div class="port-summary">
-      <div class="ps-card featured">
-        <div class="ps-label">Total Portfolio Value</div>
-        <div class="ps-val" id="hero-total">$10,000.00</div>
-        <div class="ps-sub" id="hero-change">Starting balance — make your first trade</div>
+  </div>
+
+  <!-- SHARED WITH ME SECTION -->
+  <div id="shared-portfolios-container"></div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-backdrop" id="modal">
+  <div class="modal">
+    <h2>Log Transaction</h2>
+    <form id="tx-form">
+      <div class="form-group">
+        <label>Ticker Symbol (e.g. AAPL)</label>
+        <input type="text" id="tx-ticker" required placeholder="AAPL" style="text-transform:uppercase"/>
       </div>
-      <div class="ps-card">
-        <div class="ps-label">Cash Available</div>
-        <div class="ps-val" id="hero-cash" style="color:var(--green)">$10,000.00</div>
-        <div class="ps-sub">Ready to invest</div>
+      <div class="form-group">
+        <label>Shares Bought</label>
+        <input type="number" step="any" id="tx-shares" required placeholder="10"/>
       </div>
-    </div>
+      <div class="form-group">
+        <label>Purchase Price per Share ($)</label>
+        <input type="number" step="any" id="tx-price" required placeholder="150.00"/>
+      </div>
+      <div class="form-group">
+        <label>Date of Purchase</label>
+        <input type="date" id="tx-date" required/>
+      </div>
+      <button type="submit" class="btn-add" style="width:100%;margin-top:10px">Save Transaction</button>
+      <button type="button" class="btn-logout" style="width:100%;margin-top:10px;border:none" onclick="document.getElementById('modal').style.display='none'">Cancel</button>
+    </form>
   </div>
 </div>
 
-<!-- MARQUEE -->
-<div class="marquee-wrap">
-  <div class="marquee-track">
-    <span class="hi">Burger Bonanza · BRGR</span><span>·</span>
-    <span>RocketShip Inc · ROKT</span><span>·</span>
-    <span class="hi">SolarMax Energy · SOLR</span><span>·</span>
-    <span>BrainBank AI · BRNK</span><span>·</span>
-    <span class="hi">GoldRush Mining · GLDN</span><span>·</span>
-    <span>Puppy Planet · PAWS</span><span>·</span>
-    <span class="hi">WaveStream Media · WAVE</span><span>·</span>
-    <span>GreenLeaf Foods · GRNZ</span><span>·</span>
-    <span class="hi">ZeroCandy Corp · ZCND</span><span>·</span>
-    <span>Trail Blazers · TREK</span><span>·</span>
-    <span class="hi">Burger Bonanza · BRGR</span><span>·</span>
-    <span>RocketShip Inc · ROKT</span><span>·</span>
-    <span class="hi">SolarMax Energy · SOLR</span><span>·</span>
-    <span>BrainBank AI · BRNK</span><span>·</span>
-    <span class="hi">GoldRush Mining · GLDN</span><span>·</span>
-    <span>Puppy Planet · PAWS</span><span>·</span>
-    <span class="hi">WaveStream Media · WAVE</span><span>·</span>
-    <span>GreenLeaf Foods · GRNZ</span><span>·</span>
-    <span class="hi">ZeroCandy Corp · ZCND</span><span>·</span>
-    <span>Trail Blazers · TREK</span><span>·</span>
-  </div>
-</div>
 
-<!-- SIMULATOR -->
-<div class="sim-page">
-  <div class="sim-wrap">
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+  import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+  import { getFirestore, collection, addDoc, query, onSnapshot, orderBy, doc, setDoc, updateDoc, arrayUnion, where, getDocs } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
-    <!-- LEFT -->
-    <div class="sim-left">
+  // 1. Initialize Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyCBPd8YbW3uiZTtF92oW-1QuGi027faxKU",
+    authDomain: "finnpath-b82f3.firebaseapp.com",
+    projectId: "finnpath-b82f3",
+    storageBucket: "finnpath-b82f3.firebasestorage.app",
+    messagingSenderId: "1058942599170",
+    appId: "1:1058942599170:web:9aef88c5417e18b157e71b"
+  };
 
-      <!-- Market -->
-      <div class="panel">
-        <div class="panel-head">
-          <div>
-            <div class="panel-title">🏪 Live Market</div>
-            <div class="panel-sub">Prices update automatically · Use +/− to set quantity then BUY</div>
-          </div>
-          <div class="speed-wrap">
-            <button class="spd-btn" onclick="setSpeed(3000,this)">Slow</button>
-            <button class="spd-btn active" onclick="setSpeed(1500,this)">Normal</button>
-            <button class="spd-btn" onclick="setSpeed(600,this)">Fast</button>
-          </div>
-        </div>
-        <div class="stock-list" id="stock-list"></div>
-      </div>
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const provider = new GoogleAuthProvider();
 
-      <!-- Market Events -->
-      <div class="panel">
-        <div class="panel-head">
-          <div>
-            <div class="panel-title">📰 Market Events</div>
-            <div class="panel-sub">World news that moves prices — read why each event matters</div>
-          </div>
-          <div id="next-event-badge" style="font-size:.64rem;color:var(--white-dim);white-space:nowrap">Next event soon...</div>
-        </div>
-        <div class="events-list" id="events-list">
-          <div class="event-card">
-            <div class="ev-header">
-              <span class="ev-badge market">Welcome</span>
-              <span class="ev-time">Just now</span>
-            </div>
-            <div class="ev-headline">Markets open — your simulation has begun</div>
-            <div class="ev-explain">You have $10,000 to invest across 10 fictional companies. Prices move every few seconds. Market events will fire periodically and affect stock prices — read each one to understand <em>why</em> markets move the way they do.</div>
-            <div class="ev-impacts">
-              <span class="ev-impact up">↑ Good luck</span>
-            </div>
-          </div>
-        </div>
-      </div>
+  // Finnhub configuration
+  const FINNHUB_API_KEY = "d7ilfrpr01qn2qaug760d7ilfrpr01qn2qaug76g"; 
 
-      <!-- Activity Log -->
-      <div class="panel">
-        <div class="panel-head">
-          <div class="panel-title">📋 Activity Log</div>
-        </div>
-        <div class="log-list" id="log-list">
-          <div class="log-item">
-            <div class="log-text">Welcome to Finnpath Simulator. You have <strong>$10,000</strong> to invest — pick some stocks! 🎉</div>
-            <span class="log-badge lb-info">START</span>
-          </div>
-        </div>
-      </div>
+  // DOM Elements
+  const hero = document.getElementById('auth-hero');
+  const dash = document.getElementById('dashboard');
+  const userMenu = document.getElementById('user-menu');
+  const avatar = document.getElementById('avatar');
+  const holdingsList = document.getElementById('holdings-list');
+  const modal = document.getElementById('modal');
+  
+  let currentUser = null;
+  let activeUnsubscribe = null;
 
-    </div>
+  // 2. Auth State Listener
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      currentUser = user;
+      hero.style.display = 'none';
+      dash.style.display = 'block';
+      userMenu.style.display = 'flex';
+      avatar.src = user.photoURL || 'https://via.placeholder.com/32';
+      
+      // Initialize portfolio document if it doesn't exist
+      const portRef = doc(db, `portfolios/${user.uid}`);
+      await setDoc(portRef, { ownerEmail: user.email }, { merge: true });
 
-    <!-- RIGHT -->
-    <div class="sim-right">
-
-      <!-- Cash -->
-      <div class="cash-card">
-        <div class="cash-label">Cash Balance</div>
-        <div class="cash-val" id="cash-display">$10,000.00</div>
-        <div class="cash-sub" id="cash-sub">Buy stocks to start investing</div>
-      </div>
-
-      <!-- Portfolio -->
-      <div class="panel port-panel">
-        <div class="panel-head">
-          <div class="panel-title">💼 My Holdings</div>
-        </div>
-        <div class="holdings-label">STOCKS OWNED</div>
-        <div class="holdings-list" id="holdings-list">
-          <div class="empty-port">
-            <span>🛒</span>
-            No stocks yet.<br/>Head to the market and buy your first share!
-          </div>
-        </div>
-
-        <!-- Portfolio chart -->
-        <div style="border-top:1px solid var(--border)">
-          <div class="port-chart-wrap">
-            <div class="pct-label">Portfolio value over time</div>
-            <canvas class="port-chart" id="port-chart"></canvas>
-          </div>
-        </div>
-      </div>
-
-      <!-- Reset -->
-      <button class="reset-btn" onclick="resetGame()">↺ Reset — start fresh with $10,000</button>
-
-    </div>
-  </div>
-</div>
-
-<!-- LEARN STRIP -->
-<div class="learn-strip">
-  <div class="learn-strip-inner">
-    <div class="ls-card">
-      <div class="ls-icon">📉📈</div>
-      <div class="ls-title">Why do prices move?</div>
-      <p class="ls-desc">Stock prices change based on supply and demand, company news, economic data, and market sentiment. When more people want to buy than sell, the price rises — and vice versa.</p>
-      <a href="learn.html#compound" class="ls-link">Read the full guide →</a>
-    </div>
-    <div class="ls-card">
-      <div class="ls-icon">🌍</div>
-      <div class="ls-title">How world events move markets</div>
-      <p class="ls-desc">Wars, interest rate decisions, supply chain disruptions, and technological breakthroughs all affect stock prices. The simulator's market events teach you to connect real-world news to market movements.</p>
-      <a href="learn.html#dca" class="ls-link">Learn about DCA →</a>
-    </div>
-    <div class="ls-card">
-      <div class="ls-icon">⚖️</div>
-      <div class="ls-title">Risk vs. Reward</div>
-      <p class="ls-desc">Notice how some stocks swing wildly while others stay stable? That's volatility. Higher potential returns usually come with higher risk of loss — a core trade-off every investor faces.</p>
-      <a href="learn.html#indexfunds" class="ls-link">Learn about index funds →</a>
-    </div>
-  </div>
-</div>
-
-<!-- FOOTER -->
-<footer class="site-footer">
-  <div class="footer-inner">
-    <div>
-      <div class="f-logo">Finnpath<span>.</span></div>
-      <p class="f-tagline">Financial education for every stage of life — from your first trade to your first 401k and beyond.</p>
-    </div>
-    <nav class="footer-nav">
-      <a href="index.html">Home</a>
-      <a href="learn.html">Learn</a>
-      <a href="calculator.html">Calculator</a>
-      <a href="simulator.html">Simulator</a>
-      <a href="paths.html">Your Path</a>
-      <a href="blog.html">Money Moves</a>
-    </nav>
-  </div>
-  <div class="footer-bottom">
-    <span class="footer-copy">© 2025 Finnpath · finnpath.com · All prices are fictional</span>
-    <p class="disclaimer">Simulator uses fictional companies and play money only. For educational purposes. Not financial advice. No real money is involved.</p>
-  </div>
-</footer>
-
-<div id="toast"></div>
-
-<script>
-// ═══════════════════════════════════════════
-//  STOCKS DATA
-// ═══════════════════════════════════════════
-const STOCKS = [
-  { ticker:'BRGR', name:'Burger Bonanza',   emoji:'🍔', sector:'Food & Drink',     base:24.50,  price:24.50,  vol:.030, trend: .0002, hist:[], qty:0, sensitivity:{ energy:-.02, consumer:.04, tech: .00, geo:-.01 } },
-  { ticker:'ROKT', name:'RocketShip Inc',   emoji:'🚀', sector:'Technology',       base:142.00, price:142.00, vol:.055, trend: .0004, hist:[], qty:0, sensitivity:{ energy:.01,  consumer:.01, tech: .10, geo:-.03 } },
-  { ticker:'PAWS', name:'Puppy Planet',     emoji:'🐶', sector:'Pet Care',         base:38.75,  price:38.75,  vol:.028, trend: .0001, hist:[], qty:0, sensitivity:{ energy:-.01, consumer:.02, tech: .01, geo:-.01 } },
-  { ticker:'GRNZ', name:'GreenLeaf Foods',  emoji:'🥦', sector:'Health & Wellness',base:61.20,  price:61.20,  vol:.022, trend: .0003, hist:[], qty:0, sensitivity:{ energy:-.02, consumer:.03, tech: .00, geo:-.01 } },
-  { ticker:'GLDN', name:'GoldRush Mining',  emoji:'⛏️', sector:'Commodities',     base:88.90,  price:88.90,  vol:.045, trend:-.0001, hist:[], qty:0, sensitivity:{ energy:.03,  consumer:.00, tech:-.02, geo: .06 } },
-  { ticker:'WAVE', name:'WaveStream Media', emoji:'🎵', sector:'Entertainment',    base:19.30,  price:19.30,  vol:.042, trend: .0002, hist:[], qty:0, sensitivity:{ energy:-.01, consumer:.04, tech: .03, geo:-.02 } },
-  { ticker:'SOLR', name:'SolarMax Energy',  emoji:'☀️', sector:'Clean Energy',    base:55.60,  price:55.60,  vol:.038, trend: .0005, hist:[], qty:0, sensitivity:{ energy:.08,  consumer:.00, tech: .03, geo:-.02 } },
-  { ticker:'ZCND', name:'ZeroCandy Corp',   emoji:'🍭', sector:'Consumer Goods',   base:12.80,  price:12.80,  vol:.048, trend:-.0002, hist:[], qty:0, sensitivity:{ energy:-.02, consumer:.05, tech: .00, geo:-.01 } },
-  { ticker:'BRNK', name:'BrainBank AI',     emoji:'🤖', sector:'Artificial Intel', base:210.50, price:210.50, vol:.065, trend: .0006, hist:[], qty:0, sensitivity:{ energy:.00,  consumer:.00, tech: .14, geo:-.04 } },
-  { ticker:'TREK', name:'Trail Blazers Co', emoji:'⛺', sector:'Outdoors',         base:45.20,  price:45.20,  vol:.030, trend: .0001, hist:[], qty:0, sensitivity:{ energy:-.01, consumer:.02, tech: .01, geo:-.01 } },
-];
-STOCKS.forEach(s => { s.hist = [s.price]; });
-
-// ═══════════════════════════════════════════
-//  MARKET EVENTS
-// ═══════════════════════════════════════════
-const EVENTS = [
-  {
-    type:'geo', badge:'geo', headline:'Middle East tensions spike — oil supply threatened',
-    explain:'Conflict near major oil-producing regions creates fear of supply disruptions. Energy stocks rise on higher oil prices. Airlines and consumer goods companies pay more for fuel, hurting margins.',
-    impacts:{ SOLR:.08, GLDN:.05, ROKT:-.04, BRGR:-.03, ZCND:-.03, WAVE:-.02 },
-    tags:[{t:'SOLR +8%',up:true},{t:'GLDN +5%',up:true},{t:'ROKT −4%',up:false},{t:'Airlines −6%',up:false}],
-    key:'energy'
-  },
-  {
-    type:'tech', badge:'tech', headline:'Major AI breakthrough announced — new language model surpasses human performance',
-    explain:'A significant leap in AI capability tends to boost the entire AI and technology sector. Investors rush into AI-adjacent stocks while traditional industries face uncertainty about automation replacing jobs.',
-    impacts:{ BRNK:.13, ROKT:.07, WAVE:.04, GRNZ:-.02, BRGR:-.02 },
-    tags:[{t:'BRNK +13%',up:true},{t:'ROKT +7%',up:true},{t:'WAVE +4%',up:true},{t:'Traditional cos −2%',up:false}],
-    key:'tech'
-  },
-  {
-    type:'market', badge:'market', headline:'Federal Reserve raises interest rates by 0.5%',
-    explain:'Higher interest rates make borrowing more expensive for companies. Growth stocks (like tech) that rely on cheap capital fall the hardest. Banks and financial companies can benefit from higher lending rates. Stable, dividend-paying companies hold up better.',
-    impacts:{ BRNK:-.07, ROKT:-.06, WAVE:-.04, GRNZ:-.02, GLDN:.03, TREK:.01 },
-    tags:[{t:'Tech −5 to −7%',up:false},{t:'Growth cos −6%',up:false},{t:'GLDN +3%',up:true}],
-    key:'interest'
-  },
-  {
-    type:'market', badge:'market', headline:'US economy adds 350,000 jobs — stronger than expected',
-    explain:'Strong jobs data signals a healthy economy and confident consumers. Consumer discretionary stocks (entertainment, food, retail) benefit most. Tech may slip if the data suggests the Fed will keep rates high.',
-    impacts:{ BRGR:.05, WAVE:.05, ZCND:.06, PAWS:.04, TREK:.03, BRNK:-.02 },
-    tags:[{t:'Consumer stocks +4 to +6%',up:true},{t:'ZCND +6%',up:true},{t:'Tech −2%',up:false}],
-    key:'consumer'
-  },
-  {
-    type:'geo', badge:'geo', headline:'Global supply chain disruption hits manufacturing hubs',
-    explain:'Supply chain breakdowns delay production and increase costs across many sectors. Commodities like gold often rise during uncertainty as investors seek "safe havens." Companies relying on imports face the biggest pressure.',
-    impacts:{ GLDN:.07, ZCND:-.05, PAWS:-.04, BRGR:-.03, SOLR:-.03, TREK:-.02, GRNZ:.02 },
-    tags:[{t:'GLDN +7%',up:true},{t:'Consumer goods −4 to −5%',up:false},{t:'GRNZ +2%',up:true}],
-    key:'geo'
-  },
-  {
-    type:'tech', badge:'tech', headline:'Major social media platform announces record ad revenue',
-    explain:'Strong ad revenue signals that businesses are spending confidently on marketing. Media and entertainment companies benefit from increased ad budgets. It also signals strong consumer spending habits.',
-    impacts:{ WAVE:.09, BRNK:.04, ZCND:.03, BRGR:.02, PAWS:.02 },
-    tags:[{t:'WAVE +9%',up:true},{t:'BRNK +4%',up:true},{t:'Consumer cos +2 to +3%',up:true}],
-    key:'tech'
-  },
-  {
-    type:'geo', badge:'geo', headline:'Major hurricane hits Gulf Coast oil infrastructure',
-    explain:'Natural disasters affecting oil-producing regions spike energy prices. Refineries and pipelines face shutdowns, reducing supply. Energy and commodity stocks benefit; companies relying on fuel-heavy operations face cost increases.',
-    impacts:{ SOLR:.07, GLDN:.04, BRGR:-.04, TREK:-.03, ROKT:-.02, PAWS:-.02 },
-    tags:[{t:'SOLR +7%',up:true},{t:'GLDN +4%',up:true},{t:'Travel & food −3 to −4%',up:false}],
-    key:'energy'
-  },
-  {
-    type:'market', badge:'market', headline:'Inflation falls to 2.1% — lowest in 3 years',
-    explain:'Lower inflation means the Fed is less likely to raise rates, which is good news for growth stocks that rely on cheap borrowing. Consumer purchasing power improves. Broad market rally typically follows strong inflation data.',
-    impacts:{ BRNK:.08, ROKT:.06, WAVE:.05, BRGR:.04, PAWS:.03, ZCND:.04, GRNZ:.03 },
-    tags:[{t:'Tech +6 to +8%',up:true},{t:'Consumer +3 to +4%',up:true},{t:'Broad rally',up:true}],
-    key:'consumer'
-  },
-  {
-    type:'tech', badge:'tech', headline:'Clean energy bill passes Congress — $200B in subsidies',
-    explain:'Government subsidies for clean energy make solar, wind, and related companies significantly more profitable. Fossil fuel companies face increased competition. A major political tailwind for the sector.',
-    impacts:{ SOLR:.14, GRNZ:.06, TREK:.04, GLDN:-.04, ZCND:.02 },
-    tags:[{t:'SOLR +14%',up:true},{t:'GRNZ +6%',up:true},{t:'GLDN −4%',up:false}],
-    key:'tech'
-  },
-  {
-    type:'market', badge:'market', headline:'Consumer confidence index hits 5-year high',
-    explain:'High consumer confidence means people feel good about spending money. This directly benefits companies selling to consumers — food, entertainment, pet care, candy. When people feel wealthy, they spend freely.',
-    impacts:{ BRGR:.06, WAVE:.06, PAWS:.07, ZCND:.08, TREK:.05, GRNZ:.04 },
-    tags:[{t:'ZCND +8%',up:true},{t:'PAWS +7%',up:true},{t:'Consumer sector +5 to +8%',up:true}],
-    key:'consumer'
-  },
-];
-
-let evIdx = 0;
-let evTimer = null;
-const EVT_INTERVAL = 22000; // fire event every ~22 seconds
-let nextEvtIn = EVT_INTERVAL;
-let nextEvtTimer = null;
-
-// ═══════════════════════════════════════════
-//  GAME STATE
-// ═══════════════════════════════════════════
-const START_CASH = 10000;
-let state = loadState();
-
-function defaultState() {
-  return { cash: START_CASH, holdings: {}, portHistory: [START_CASH] };
-}
-function loadState() {
-  try { const s = localStorage.getItem('fpSimState'); if(s) return JSON.parse(s); } catch(e){}
-  return defaultState();
-}
-function saveState() {
-  try { localStorage.setItem('fpSimState', JSON.stringify(state)); } catch(e){}
-}
-function resetGame() {
-  if (!confirm('Reset everything and start fresh with $10,000?')) return;
-  state = defaultState();
-  STOCKS.forEach(s => { s.price = s.base; s.hist = [s.base]; s.qty = 0; });
-  evIdx = 0;
-  saveState();
-  document.getElementById('events-list').innerHTML = `
-    <div class="event-card">
-      <div class="ev-header"><span class="ev-badge market">Reset</span><span class="ev-time">Just now</span></div>
-      <div class="ev-headline">Game reset — fresh start with $10,000</div>
-      <div class="ev-explain">Your portfolio has been cleared. Start building again!</div>
-    </div>`;
-  document.getElementById('log-list').innerHTML = `
-    <div class="log-item"><div class="log-text">Game reset! You have <strong>$10,000</strong> to invest. 🎉</div><span class="log-badge lb-info">RESET</span></div>`;
-  renderAll();
-  showToast('Game reset! Good luck 🚀');
-}
-
-// ═══════════════════════════════════════════
-//  PRICE ENGINE
-// ═══════════════════════════════════════════
-let tickInterval = null;
-
-function randomWalk(s) {
-  const rng = (Math.random() - 0.49) * s.vol + s.trend;
-  const spike = Math.random() < 0.035 ? (Math.random() - 0.5) * s.vol * 2.5 : 0;
-  s.price = Math.max(0.50, s.price * (1 + rng + spike));
-  s.hist.push(s.price);
-  if (s.hist.length > 60) s.hist.shift();
-}
-
-function tick() {
-  STOCKS.forEach(randomWalk);
-  updateStockRows();
-  updatePortfolioSummary();
-  drawPortChart();
-  // track portfolio history
-  const total = getTotalValue();
-  state.portHistory.push(total);
-  if (state.portHistory.length > 80) state.portHistory.shift();
-}
-
-function setSpeed(ms, btn) {
-  document.querySelectorAll('.spd-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  clearInterval(tickInterval);
-  tickInterval = setInterval(tick, ms);
-}
-
-function getTotalValue() {
-  let v = state.cash;
-  Object.entries(state.holdings).forEach(([t, h]) => {
-    const s = STOCKS.find(s => s.ticker === t);
-    if (s) v += s.price * h.shares;
-  });
-  return v;
-}
-
-// ═══════════════════════════════════════════
-//  RENDER STOCK LIST (initial build)
-// ═══════════════════════════════════════════
-function buildStockList() {
-  const container = document.getElementById('stock-list');
-  container.innerHTML = '';
-  STOCKS.forEach(s => {
-    const row = document.createElement('div');
-    row.className = 'stock-row'; row.id = `row-${s.ticker}`;
-    row.innerHTML = `
-      <div class="s-emoji">${s.emoji}</div>
-      <div class="s-info">
-        <div class="s-name">${s.name}</div>
-        <div class="s-ticker">${s.ticker}</div>
-        <div class="s-sector">${s.sector}</div>
-      </div>
-      <div class="s-price-wrap">
-        <div class="s-price" id="price-${s.ticker}">${fmtP(s.price)}</div>
-        <div class="s-chg" id="chg-${s.ticker}">—</div>
-      </div>
-      <svg class="s-spark" id="spark-${s.ticker}" viewBox="0 0 72 28" preserveAspectRatio="none"></svg>
-      <div class="buy-ctrl">
-        <button class="qty-btn" onclick="adjQty('${s.ticker}',-1)">−</button>
-        <span class="qty-disp" id="qty-${s.ticker}">0</span>
-        <button class="qty-btn" onclick="adjQty('${s.ticker}',1)">+</button>
-        <button class="buy-btn" id="buy-${s.ticker}" onclick="buy('${s.ticker}')" disabled>BUY</button>
-      </div>`;
-    container.appendChild(row);
-    drawSpark(s);
-  });
-}
-
-// ═══════════════════════════════════════════
-//  UPDATE STOCK ROWS
-// ═══════════════════════════════════════════
-function updateStockRows() {
-  STOCKS.forEach(s => {
-    const prev = s.hist.length > 1 ? s.hist[s.hist.length - 2] : s.price;
-    const diff = s.price - prev;
-    const pct  = (diff / prev) * 100;
-    const isUp = diff >= 0;
-
-    const priceEl = document.getElementById(`price-${s.ticker}`);
-    const chgEl   = document.getElementById(`chg-${s.ticker}`);
-    const row     = document.getElementById(`row-${s.ticker}`);
-    if (!priceEl) return;
-
-    priceEl.textContent = fmtP(s.price);
-    chgEl.textContent   = `${isUp?'+':''}${pct.toFixed(2)}%`;
-    chgEl.className     = `s-chg ${isUp ? 'up' : 'dn'}`;
-
-    row.classList.remove('flash-g','flash-r');
-    void row.offsetWidth;
-    row.classList.add(isUp ? 'flash-g' : 'flash-r');
-
-    drawSpark(s);
-
-    const buyBtn = document.getElementById(`buy-${s.ticker}`);
-    if (buyBtn) buyBtn.disabled = s.qty === 0 || s.price * s.qty > state.cash;
-  });
-}
-
-// ═══════════════════════════════════════════
-//  SPARKLINES
-// ═══════════════════════════════════════════
-function drawSpark(s) {
-  const svg = document.getElementById(`spark-${s.ticker}`);
-  if (!svg || s.hist.length < 2) return;
-  const W = 72, H = 28;
-  const min = Math.min(...s.hist), max = Math.max(...s.hist);
-  const range = max - min || 1;
-  const pts = s.hist.map((p, i) => {
-    const x = (i / (s.hist.length - 1)) * W;
-    const y = H - ((p - min) / range) * (H - 4) - 2;
-    return `${x.toFixed(1)},${y.toFixed(1)}`;
-  }).join(' ');
-  const isUp = s.price >= s.hist[0];
-  const col  = isUp ? 'rgba(61,186,126,.8)' : 'rgba(232,96,76,.7)';
-  svg.innerHTML = `<polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>`;
-}
-
-// ═══════════════════════════════════════════
-//  BUY / SELL
-// ═══════════════════════════════════════════
-function adjQty(ticker, delta) {
-  const s = STOCKS.find(s => s.ticker === ticker);
-  s.qty = Math.max(0, s.qty + delta);
-  const disp = document.getElementById(`qty-${s.ticker}`);
-  const btn  = document.getElementById(`buy-${s.ticker}`);
-  if (disp) disp.textContent = s.qty;
-  if (btn)  btn.disabled = s.qty === 0 || s.price * s.qty > state.cash;
-}
-
-function buy(ticker) {
-  const s    = STOCKS.find(s => s.ticker === ticker);
-  const qty  = s.qty;
-  const cost = s.price * qty;
-  if (qty === 0 || cost > state.cash) return;
-
-  state.cash -= cost;
-  if (!state.holdings[ticker]) state.holdings[ticker] = { shares: 0, avgCost: 0 };
-  const h = state.holdings[ticker];
-  h.avgCost = (h.avgCost * h.shares + cost) / (h.shares + qty);
-  h.shares += qty;
-  s.qty = 0;
-
-  addLog(`Bought <strong>${qty}× ${s.emoji} ${s.name}</strong> @ ${fmtP(s.price)} · Total: ${fmtD(cost)}`, 'BUY');
-  showToast(`✅ Bought ${qty}× ${s.ticker} for ${fmtD(cost)}`);
-  saveState(); renderAll();
-}
-
-function sell(ticker) {
-  const s = STOCKS.find(s => s.ticker === ticker);
-  const h = state.holdings[ticker];
-  if (!h || h.shares === 0) return;
-  const proceeds = s.price * h.shares;
-  const gain     = proceeds - h.avgCost * h.shares;
-  state.cash += proceeds;
-  delete state.holdings[ticker];
-
-  addLog(`Sold <strong>${h.shares}× ${s.emoji} ${s.name}</strong> @ ${fmtP(s.price)} · ${gain >= 0 ? 'Gain' : 'Loss'}: ${gain >= 0 ? '+' : ''}${fmtD(gain)}`, 'SELL');
-  showToast(`${gain >= 0 ? '🤑' : '😬'} Sold ${s.ticker}: ${gain >= 0 ? '+' : ''}${fmtD(gain)}`);
-  saveState(); renderAll();
-}
-
-// ═══════════════════════════════════════════
-//  PORTFOLIO SUMMARY
-// ═══════════════════════════════════════════
-function updatePortfolioSummary() {
-  const total     = getTotalValue();
-  const stocksVal = total - state.cash;
-  const diff      = total - START_CASH;
-  const pct       = (diff / START_CASH) * 100;
-  const isUp      = diff >= 0;
-
-  document.getElementById('hero-total').textContent = fmtD(total);
-  document.getElementById('hero-change').textContent =
-    `${isUp ? '▲' : '▼'} ${isUp ? '+' : ''}${fmtD(diff)} (${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%) from start`;
-  document.getElementById('hero-change').style.color = isUp ? 'rgba(255,255,255,.7)' : 'rgba(255,150,130,.8)';
-
-  document.getElementById('cash-display').textContent = fmtD(state.cash);
-  const held = Object.keys(state.holdings).length;
-  document.getElementById('cash-sub').textContent =
-    held > 0 ? `${held} stock${held !== 1 ? 's' : ''} owned · ${fmtD(stocksVal)} in market` : 'Buy stocks to start investing';
-  document.getElementById('hero-cash').textContent = fmtD(state.cash);
-}
-
-// ═══════════════════════════════════════════
-//  HOLDINGS LIST
-// ═══════════════════════════════════════════
-function renderHoldings() {
-  const list = document.getElementById('holdings-list');
-  const tickers = Object.keys(state.holdings);
-  if (tickers.length === 0) {
-    list.innerHTML = `<div class="empty-port"><span>🛒</span>No stocks yet.<br/>Head to the market and buy your first share!</div>`;
-    return;
-  }
-  list.innerHTML = '';
-  tickers.forEach(ticker => {
-    const h = state.holdings[ticker];
-    const s = STOCKS.find(s => s.ticker === ticker);
-    if (!s) return;
-    const curVal = s.price * h.shares;
-    const cost   = h.avgCost * h.shares;
-    const gain   = curVal - cost;
-    const pct    = (gain / cost) * 100;
-    const isUp   = gain >= 0;
-    const row = document.createElement('div');
-    row.className = 'holding-row';
-    row.innerHTML = `
-      <div class="h-emoji">${s.emoji}</div>
-      <div>
-        <div class="h-name">${s.name}</div>
-        <div class="h-shares">${h.shares} share${h.shares !== 1 ? 's' : ''} · avg ${fmtP(h.avgCost)}</div>
-      </div>
-      <div class="h-right">
-        <div class="h-val">${fmtD(curVal)}</div>
-        <div class="h-gain ${isUp ? 'up' : 'dn'}">${isUp ? '+' : ''}${fmtD(gain)} (${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%)</div>
-        <button class="sell-btn" onclick="sell('${ticker}')">Sell all</button>
-      </div>`;
-    list.appendChild(row);
-  });
-}
-
-// ═══════════════════════════════════════════
-//  PORTFOLIO MINI CHART
-// ═══════════════════════════════════════════
-function drawPortChart() {
-  const canvas = document.getElementById('port-chart');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const hist = state.portHistory;
-  if (hist.length < 2) return;
-
-  const dpr = window.devicePixelRatio || 1;
-  const rect = canvas.parentElement.getBoundingClientRect();
-  const W = rect.width || 280, H = 80;
-  canvas.width  = W * dpr; canvas.height = H * dpr;
-  ctx.scale(dpr, dpr);
-  ctx.clearRect(0, 0, W, H);
-
-  const min = Math.min(...hist) * 0.998;
-  const max = Math.max(...hist) * 1.002;
-  const range = max - min || 1;
-  const padL = 4, padR = 4, padT = 4, padB = 4;
-  const cW = W - padL - padR, cH = H - padT - padB;
-
-  function toXY(i, v) {
-    return { x: padL + (i / (hist.length - 1)) * cW, y: padT + cH - ((v - min) / range) * cH };
-  }
-
-  const isUp = hist[hist.length - 1] >= hist[0];
-  const col  = isUp ? 'rgba(61,186,126,' : 'rgba(232,96,76,';
-
-  // area fill
-  ctx.beginPath();
-  ctx.moveTo(padL, padT + cH);
-  hist.forEach((v, i) => { const p = toXY(i, v); ctx.lineTo(p.x, p.y); });
-  ctx.lineTo(padL + cW, padT + cH); ctx.closePath();
-  ctx.fillStyle = col + '.12)'; ctx.fill();
-
-  // line
-  ctx.beginPath();
-  hist.forEach((v, i) => {
-    const p = toXY(i, v);
-    i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y);
-  });
-  ctx.strokeStyle = col + '.85)'; ctx.lineWidth = 1.8; ctx.stroke();
-
-  // baseline
-  const baseLine = toXY(0, START_CASH).y;
-  ctx.setLineDash([3, 4]);
-  ctx.beginPath(); ctx.moveTo(padL, baseLine); ctx.lineTo(padL + cW, baseLine);
-  ctx.strokeStyle = 'rgba(250,249,247,.12)'; ctx.lineWidth = 1; ctx.stroke();
-  ctx.setLineDash([]);
-}
-
-// ═══════════════════════════════════════════
-//  MARKET EVENTS ENGINE
-// ═══════════════════════════════════════════
-function fireEvent() {
-  const ev = EVENTS[evIdx % EVENTS.length];
-  evIdx++;
-
-  // apply price impacts
-  Object.entries(ev.impacts).forEach(([ticker, pct]) => {
-    const s = STOCKS.find(s => s.ticker === ticker);
-    if (s) { s.price = Math.max(0.5, s.price * (1 + pct)); s.hist.push(s.price); }
-  });
-
-  // render event card
-  const list = document.getElementById('events-list');
-  const card = document.createElement('div');
-  card.className = 'event-card new';
-  card.innerHTML = `
-    <div class="ev-header">
-      <span class="ev-badge ${ev.badge}">📰 ${ev.badge.toUpperCase()}</span>
-      <span class="ev-time">Just now</span>
-    </div>
-    <div class="ev-headline">${ev.headline}</div>
-    <div class="ev-explain">${ev.explain}</div>
-    <div class="ev-impacts">${ev.tags.map(t => `<span class="ev-impact ${t.up ? 'up' : 'dn'}">${t.up ? '↑' : '↓'} ${t.t}</span>`).join('')}</div>`;
-  list.insertBefore(card, list.firstChild);
-  setTimeout(() => card.classList.remove('new'), 2000);
-
-  addLog(`Market event: <strong>${ev.headline}</strong>`, 'EVENT');
-  showToast(`📰 ${ev.headline.substring(0, 48)}...`);
-  updateStockRows();
-  updatePortfolioSummary();
-  renderHoldings();
-}
-
-function startEventTimer() {
-  nextEvtIn = EVT_INTERVAL;
-  nextEvtTimer = setInterval(() => {
-    nextEvtIn -= 1000;
-    const badge = document.getElementById('next-event-badge');
-    if (badge) badge.textContent = `Next event in ~${Math.max(0, Math.round(nextEvtIn/1000))}s`;
-    if (nextEvtIn <= 0) {
-      fireEvent();
-      nextEvtIn = EVT_INTERVAL;
-    }
-  }, 1000);
-}
-
-// ═══════════════════════════════════════════
-//  ACTIVITY LOG
-// ═══════════════════════════════════════════
-function addLog(html, type) {
-  const list = document.getElementById('log-list');
-  const badgeClass = { BUY:'lb-buy', SELL:'lb-sell', EVENT:'lb-event' }[type] || 'lb-info';
-  const item = document.createElement('div');
-  item.className = 'log-item';
-  item.innerHTML = `<div class="log-text">${html}</div><span class="log-badge ${badgeClass}">${type}</span>`;
-  list.insertBefore(item, list.firstChild);
-  // keep log trimmed
-  while (list.children.length > 30) list.removeChild(list.lastChild);
-}
-
-// ═══════════════════════════════════════════
-//  TOAST
-// ═══════════════════════════════════════════
-let toastTimer = null;
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
-}
-
-// ═══════════════════════════════════════════
-//  FORMAT HELPERS
-// ═══════════════════════════════════════════
-function fmtP(n) { return '$' + n.toFixed(2); }
-function fmtD(n) { return '$' + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 }); }
-
-// ═══════════════════════════════════════════
-//  FULL RENDER PASS
-// ═══════════════════════════════════════════
-function renderAll() {
-  updateStockRows();
-  updatePortfolioSummary();
-  renderHoldings();
-  drawPortChart();
-  // reset qty displays
-  STOCKS.forEach(s => {
-    s.qty = 0;
-    const d = document.getElementById(`qty-${s.ticker}`);
-    const b = document.getElementById(`buy-${s.ticker}`);
-    if (d) d.textContent = '0';
-    if (b) b.disabled = true;
-  });
-}
-
-// ═══════════════════════════════════════════
-//  INIT
-// ═══════════════════════════════════════════
-buildStockList();
-renderAll();
-tickInterval = setInterval(tick, 1500);
-startEventTimer();
-window.addEventListener('resize', drawPortChart);
-(function(){
-  var burger   = document.querySelector('.nav-burger');
-  var links    = document.querySelector('.nav-links');
-  var backdrop = document.querySelector('.nav-backdrop');
-  if (!burger || !links) return;
-  function closeNav() {
-    links.classList.remove('open');
-    burger.classList.remove('open');
-    if (backdrop) backdrop.classList.remove('open');
-    document.body.classList.remove('nav-open');
-  }
-  burger.addEventListener('click', function(){
-    var open = links.classList.toggle('open');
-    burger.classList.toggle('open', open);
-    if (backdrop) backdrop.classList.toggle('open', open);
-    document.body.classList.toggle('nav-open', open);
-  });
-  if (backdrop) backdrop.addEventListener('click', closeNav);
-  links.querySelectorAll('a').forEach(function(a){
-    a.addEventListener('click', closeNav);
-  });
-  function checkPos() {
-    if (window.innerWidth <= 720) {
-      if (links.parentNode !== document.body) document.body.appendChild(links);
+      // Load user transactions
+      loadTransactions(user.uid);
+      // Load shared portfolios
+      loadSharedPortfolios(user.email);
     } else {
-      if (links.parentNode === document.body) {
-        var nav = document.querySelector('nav');
-        nav.insertBefore(links, burger);
-        closeNav();
+      currentUser = null;
+      hero.style.display = 'flex'; // It's not standard flex in css, but inner is
+      dash.style.display = 'none';
+      userMenu.style.display = 'none';
+      if(activeUnsubscribe) activeUnsubscribe();
+    }
+  });
+
+  // 3. Login / Logout
+  document.getElementById('btn-google').addEventListener('click', () => {
+    signInWithPopup(auth, provider).catch(e => console.error("Login failed:", e));
+  });
+  document.getElementById('btn-out').addEventListener('click', () => {
+    signOut(auth);
+  });
+
+  // 4. Modal Interactions
+  document.getElementById('btn-share').addEventListener('click', async () => {
+    const email = prompt("Enter the email address of the person you want to read-only share this portfolio with (e.g. kid/student):");
+    if (email && email.includes('@')) {
+      try {
+        const portRef = doc(db, `portfolios/${currentUser.uid}`);
+        await updateDoc(portRef, {
+          sharedWith: arrayUnion(email.trim().toLowerCase())
+        });
+        alert(`Success! When ${email} signs in, they will see your portfolio under 'Shared With Me'.`);
+      } catch (e) {
+        console.error("Share error:", e);
+        alert("Failed to share. Make sure your database allows this update.");
       }
     }
-  }
-  checkPos();
-  window.addEventListener('resize', function(){
-    if (window.innerWidth > 720) closeNav();
-    checkPos();
   });
-})();
+
+  document.getElementById('btn-add-tx').addEventListener('click', () => {
+    modal.style.display = 'grid';
+  });
+
+  document.getElementById('tx-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if(!currentUser) return;
+    
+    // Disable button to prevent double submits
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.textContent = "Saving...";
+    btn.disabled = true;
+
+    try {
+      const tx = {
+        ticker: document.getElementById('tx-ticker').value.toUpperCase().trim(),
+        shares: parseFloat(document.getElementById('tx-shares').value),
+        costBasis: parseFloat(document.getElementById('tx-price').value),
+        date: document.getElementById('tx-date').value,
+        createdAt: new Date()
+      };
+
+      // Add to Firestore under portfolios/{uid}/transactions
+      await addDoc(collection(db, `portfolios/${currentUser.uid}/transactions`), tx);
+      
+      modal.style.display = 'none';
+      e.target.reset();
+    } catch (err) {
+      console.error("Error adding document: ", err);
+      alert("Failed to save transaction. Error: " + err.message);
+    } finally {
+      btn.textContent = "Save Transaction";
+      btn.disabled = false;
+    }
+  });
+
+  // 5. Load & Render Data
+  function loadTransactions(uid, containerId = 'holdings-list', isShared = false) {
+    const q = query(collection(db, `portfolios/${uid}/transactions`), orderBy('createdAt', 'desc'));
+    
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
+      const container = document.getElementById(containerId);
+      if(!container) return;
+
+      if(snapshot.empty) {
+        if (!isShared) {
+        holdingsList.innerHTML = `<div class="empty-state">
+          <div style="font-size:2rem;margin-bottom:10px">📈</div>
+          <h3>No investments yet.</h3>
+          <p style="font-size:.85rem;margin-top:5px">Log your first hypothetical transaction to start tracking.</p>
+        </div>`;
+        return;
+      }
+
+      // Aggregate by ticker
+      const holdings = {};
+      let totalInvested = 0;
+
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if(!holdings[data.ticker]) {
+          holdings[data.ticker] = { shares: 0, totalCost: 0 };
+        }
+        holdings[data.ticker].shares += data.shares;
+        holdings[data.ticker].totalCost += (data.shares * data.costBasis);
+        totalInvested += (data.shares * data.costBasis);
+      });
+
+      // Prepare UI updates
+      let html = "";
+      let totalCurrentValue = 0;
+
+      // Fetch Live Prices from Finnhub in parallel
+      const tickers = Object.keys(holdings);
+      const pricePromises = tickers.map(ticker => 
+        fetch(`https://finnhub.io/api/v1/quote?symbol=${ticker}&token=${FINNHUB_API_KEY}`)
+          .then(res => res.json())
+          .then(data => ({ ticker, currentPrice: data.c || 0 })) // 'c' is current price in Finnhub
+          .catch(e => { console.error('Finnhub Error for', ticker, e); return { ticker, currentPrice: 0 }; })
+      );
+
+      const resolvedPrices = await Promise.all(pricePromises);
+      const priceMap = {};
+      resolvedPrices.forEach(p => priceMap[p.ticker] = p.currentPrice);
+
+      for (const [ticker, h] of Object.entries(holdings)) {
+        const avgCost = h.totalCost / h.shares;
+        
+        // Use Finnhub price, or fallback to exact cost if Finnhub failed/returned 0
+        let currentPrice = priceMap[ticker] > 0 ? priceMap[ticker] : avgCost; 
+        
+        let value = h.shares * currentPrice;
+        totalCurrentValue += value;
+        
+        let returnPct = ((currentPrice - avgCost) / avgCost) * 100;
+        let isUp = returnPct >= 0;
+
+        html += `
+          <div class="table-row">
+            <div class="tr-ticker">${ticker}</div>
+            <div>${h.shares.toFixed(2)}</div>
+            <div>$${avgCost.toFixed(2)}</div>
+            <div class="tr-num" ${priceMap[ticker] === 0 ? 'style="color:gray" title="Could not fetch live price"' : ''}>$${currentPrice.toFixed(2)}</div>
+            <div class="tr-num">$${value.toFixed(2)}</div>
+            <div class="tr-num ${isUp ? 'up' : 'dn'}">${isUp ? '+' : ''}${returnPct.toFixed(2)}%</div>
+          </div>
+        `;
+      }
+
+      container.innerHTML = html;
+      
+      // Update Summary Cards (only for primary portfolio)
+      if (!isShared) {
+        document.getElementById('total-inv').innerText = "$" + totalInvested.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+        document.getElementById('total-val').innerText = "$" + totalCurrentValue.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+        
+        if(totalInvested > 0) {
+          let totalRetPct = ((totalCurrentValue - totalInvested) / totalInvested) * 100;
+          let isTotalUp = totalRetPct >= 0;
+          let retEl = document.getElementById('total-ret');
+          retEl.innerText = `${isTotalUp ? '+' : ''}${totalRetPct.toFixed(2)}% All Time`;
+          retEl.className = `m-sub ${isTotalUp ? 'up' : 'dn'}`;
+        } else {
+          document.getElementById('total-ret').innerText = "0.00% All Time";
+          document.getElementById('total-ret').className = "m-sub";
+        }
+      }
+
+    }, (error) => {
+      console.error("Error listening to Firestore:", error);
+    });
+
+    if (!isShared) activeUnsubscribe = unsubscribe;
+  }
+
+  // 6. Shared Portfolios
+  async function loadSharedPortfolios(email) {
+    const container = document.getElementById('shared-portfolios-container');
+    container.innerHTML = ''; // clear
+
+    const q = query(collection(db, 'portfolios'), where('sharedWith', 'array-contains', email.toLowerCase()));
+    
+    try {
+      const snapshot = await getDocs(q);
+      snapshot.forEach(doc => {
+        const portData = doc.data();
+        const ownerEmail = portData.ownerEmail || 'Unknown User';
+        const uid = doc.id;
+        
+        const listId = `shared-list-${uid}`;
+
+        // Create Panel structure for this shared portfolio
+        const panelHtml = `
+          <div class="panel">
+            <div class="panel-header" style="padding: 16px 24px; font-family:'Playfair Display',serif; font-size: 1.1rem; border-bottom: 1px solid var(--border); color: var(--sky)">
+              Shared with me: <strong>${ownerEmail}</strong>
+            </div>
+            <div class="table-head">
+              <div>Ticker</div>
+              <div>Shares</div>
+              <div>Average Cost</div>
+              <div>Current Price</div>
+              <div>Total Value</div>
+              <div>Total Return</div>
+            </div>
+            <div id="${listId}">
+              <div style="padding:20px;text-align:center;color:gray">Loading shared transactions...</div>
+            </div>
+          </div>
+        `;
+        container.insertAdjacentHTML('beforeend', panelHtml);
+        
+        // Listen to this shared portfolio's transactions
+        loadTransactions(uid, listId, true);
+      });
+    } catch (e) {
+      console.error("Failed to load shared portfolios:", e);
+    }
+  }
+
 </script>
 </body>
 </html>
