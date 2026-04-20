@@ -17,7 +17,9 @@
   --green:       #3dba7e;
   --border:      rgba(250,249,247,.08);
   --radius:      16px;
-  --nav-h:       68px;
+  --nav-bar-h:   68px;
+  --ticker-h:    36px;
+  --nav-h:       calc(var(--nav-bar-h) + var(--ticker-h));
 }
 
 html { scroll-behavior: smooth; }
@@ -36,7 +38,7 @@ body::after {
 
 /* ── NAV ── */
 nav {
-  position:fixed; top:0; left:0; right:0; z-index:200; height:var(--nav-h);
+  position:fixed; top:0; left:0; right:0; z-index:200; height:var(--nav-bar-h);
   display:flex; align-items:center; justify-content:space-between;
   padding:0 56px;
 }
@@ -82,6 +84,43 @@ nav::before {
 }
 .marquee-track .hi { color:var(--coral); }
 @keyframes marquee { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+/* ── TICKER BAR ── */
+.ticker-bar {
+  position:fixed; top:var(--nav-bar-h); left:0; right:0; z-index:199;
+  height:var(--ticker-h); overflow:hidden;
+  background:rgba(9,18,35,.97); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  display:flex; align-items:center;
+}
+.ticker-inner { overflow:hidden; width:100%; height:100%; display:flex; align-items:center; }
+.ticker-track {
+  display:flex; align-items:center; white-space:nowrap; gap:0;
+  animation:ticker-scroll 60s linear infinite;
+}
+.ticker-bar:hover .ticker-track { animation-play-state:paused; }
+.ti {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:0 14px; font-size:.71rem; font-weight:600; letter-spacing:.01em;
+}
+.ti-sym   { color:var(--white); font-weight:700; }
+.ti-price { color:rgba(250,249,247,.55); }
+.ti-chg   { font-size:.68rem; }
+.ti-chg.up { color:var(--green); }
+.ti-chg.dn { color:var(--coral-soft); }
+.ti-dot  { color:rgba(250,249,247,.14); font-size:.7rem; user-select:none; }
+.ti-label {
+  display:inline-flex; align-items:center; padding:0 14px;
+  font-size:.62rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--coral); border-left:1px solid var(--border); border-right:1px solid var(--border);
+  margin:0 4px;
+}
+.ticker-loading { padding:0 20px; font-size:.71rem; color:rgba(250,249,247,.3); font-style:italic; }
+@keyframes ticker-scroll { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+@media(max-width:720px) {
+  .ticker-bar { height:30px; }
+  .ti { padding:0 10px; font-size:.68rem; }
+}
 
 /* ── FOOTER ── */
 .site-footer {

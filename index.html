@@ -223,6 +223,15 @@
 </nav>
 <div class="nav-backdrop"></div>
 
+<!-- TICKER BAR -->
+<div class="ticker-bar" id="tickerBar">
+  <div class="ticker-inner">
+    <div class="ticker-track" id="tickerTrack">
+      <span class="ticker-loading">Loading market data…</span>
+    </div>
+  </div>
+</div>
+
 <!-- HERO -->
 <section class="hero">
   <div class="hero-bg"></div>
@@ -502,5 +511,6 @@ document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
 })();
 </script>
 <script src="newsletter.js"></script>
+<script type="module" src="ticker.js"></script>
 </body>
 </html>

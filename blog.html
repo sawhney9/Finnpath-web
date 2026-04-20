@@ -410,6 +410,15 @@
 </nav>
 <div class="nav-backdrop"></div>
 
+<!-- TICKER BAR -->
+<div class="ticker-bar" id="tickerBar">
+  <div class="ticker-inner">
+    <div class="ticker-track" id="tickerTrack">
+      <span class="ticker-loading">Loading market data…</span>
+    </div>
+  </div>
+</div>
+
 <!-- BLOG HERO -->
 <div class="blog-hero">
   <div class="blog-hero-inner">
@@ -563,6 +572,144 @@
 //  ARTICLES DATA
 // ═══════════════════════════════════════════
 const ARTICLES = [
+  {
+    id: 'how-to-analyze-a-stock-portfolio-by-decade',
+    category: 'basics',
+    catLabel: '📘 Investing Basics',
+    catClass: 'cat-basics',
+    emoji: '🔬',
+    title: 'How to actually analyze a stock — and the ideal portfolio for every decade of your life',
+    excerpt: 'Picking stocks isn\'t guesswork. There are five numbers every serious investor checks before buying, and a clear portfolio blueprint for every age from 20 to 60+. This is the complete guide.',
+    readTime: '12 min read',
+    author: 'Finnpath Team',
+    authorEmoji: '📊',
+    authorRole: 'Finnpath Editorial',
+    date: 'April 20, 2026',
+    large: true,
+    content: `
+      <h3>Part 1: How to accurately analyze a stock</h3>
+      <p>Buying a stock because someone on social media said it\'s going to "10×" is gambling. Buying a stock because you understand the business, its financials, its competitive position, and its valuation — that\'s investing. Here\'s how to do the second thing.</p>
+
+      <h3>Step 1 — Understand the business first</h3>
+      <p>Before you look at a single number, ask: <strong>do I understand how this company makes money?</strong> Warren Buffett calls this his "circle of competence." If you can\'t explain the business model in two sentences to a 12-year-old, don\'t invest. This isn\'t about being elitist — it\'s about avoiding the trap of investing in things you can\'t evaluate.</p>
+      <p>For every company you research, answer: Who are their customers? What problem do they solve? How do they charge for it? Who are their main competitors? What happens to this business if interest rates rise, or if a recession hits?</p>
+
+      <h3>Step 2 — The five numbers that matter</h3>
+      <p>Once you understand the business, five metrics tell you most of what you need to know about financial health and valuation.</p>
+      <div class="article-stat-row">
+        <div class="ast-cell"><div class="ast-val" style="color:var(--sky)">P/E</div><div class="ast-label">Price-to-Earnings — what you\'re paying per $1 of profit</div></div>
+        <div class="ast-cell"><div class="ast-val" style="color:var(--green)">FCF</div><div class="ast-label">Free Cash Flow — actual cash left after running the business</div></div>
+        <div class="ast-cell"><div class="ast-val" style="color:var(--gold)">D/E</div><div class="ast-label">Debt-to-Equity — how leveraged the company is</div></div>
+      </div>
+      <ul class="article-list">
+        <li><strong>P/E Ratio (Price-to-Earnings):</strong> The stock price divided by annual earnings per share. A P/E of 20 means you\'re paying $20 for every $1 the company earns annually. Compare this to the company\'s historical average, its industry peers, and the S&amp;P 500 average (~22×). A very high P/E means investors expect strong growth; a very low P/E can mean undervaluation or a struggling business. Neither alone tells the whole story.</li>
+        <li><strong>Revenue Growth Rate:</strong> Is the company\'s top-line revenue growing year over year? A company growing revenue 20%+ annually is exciting but must be evaluated against its valuation. Flat or declining revenue in a growing market is a red flag.</li>
+        <li><strong>Free Cash Flow (FCF):</strong> This is the single most important number many professionals watch. FCF = Operating Cash Flow minus Capital Expenditures. It tells you how much real cash the business generates after keeping its operations running. Companies can manipulate accounting earnings; free cash flow is much harder to fake. Positive, growing FCF is a great sign.</li>
+        <li><strong>Debt-to-Equity Ratio:</strong> Total debt divided by shareholders\' equity. A ratio above 2.0 means the company owes twice as much as it\'s worth to shareholders. High debt isn\'t always bad (banks, utilities carry it intentionally), but for most businesses, excessive debt = fragility during downturns.</li>
+        <li><strong>Return on Equity (ROE):</strong> Net income divided by shareholders\' equity, expressed as a percentage. This measures how efficiently management uses investor capital to generate profits. An ROE consistently above 15% is considered strong. Buffett looks for companies that sustain high ROE over decades without excessive debt.</li>
+      </ul>
+
+      <div class="article-callout">
+        <p><strong>Where to find these numbers:</strong> Every publicly traded company files quarterly (10-Q) and annual (10-K) reports with the SEC. Free sources include the company\'s Investor Relations page, Morningstar, Macrotrends, and Yahoo Finance. You don\'t need a Bloomberg terminal to do real analysis.</p>
+      </div>
+
+      <h3>Step 3 — Check the moat</h3>
+      <p>A "moat" (borrowed from Warren Buffett) is a durable competitive advantage that protects a business from competitors. It\'s what makes a company hard to displace even when rivals try. There are five types:</p>
+      <ul class="article-list">
+        <li><strong>Network effects:</strong> The product gets more valuable as more people use it. Visa, Facebook, LinkedIn. Each new user makes the network more valuable for everyone.</li>
+        <li><strong>Switching costs:</strong> It\'s painful and expensive to leave. Enterprise software like Salesforce, Oracle, or Adobe — once a company builds workflows around them, switching is a multi-year project.</li>
+        <li><strong>Cost advantages:</strong> The company can produce goods or services cheaper than competitors. Amazon\'s fulfillment infrastructure, Costco\'s buying power, Geico\'s direct-sales model.</li>
+        <li><strong>Intangible assets:</strong> Brands, patents, regulatory licenses. Apple\'s brand commands premium pricing. A pharmaceutical company\'s patent protects exclusivity for 20 years.</li>
+        <li><strong>Efficient scale:</strong> Markets where only a few players can profitably operate. Airlines, railroads, pipelines — building a competing railroad to the one serving a city is economically impossible.</li>
+      </ul>
+      <p>A great business at a fair price beats a fair business at a great price almost every time. The moat determines how long a business can sustain its advantage — and therefore how confident you can be in projecting future earnings.</p>
+
+      <h3>Step 4 — Evaluate management</h3>
+      <p>Numbers can be engineered. Management can\'t be faked over the long term. Look for leaders who: <strong>own significant stock in the company</strong> (their interests align with yours), have a track record of doing what they say they\'ll do, communicate honestly about mistakes, and allocate capital intelligently (they buy back stock when it\'s cheap, make acquisitions that create value, don\'t overpay themselves). Red flags include: excessive executive compensation, frequent restatements of earnings, insiders selling large amounts of their own stock, and overpromising guidance that never materializes.</p>
+
+      <h3>Step 5 — Valuation: don\'t overpay</h3>
+      <p>Even a perfect business is a bad investment if you pay too much for it. The goal is to buy $1 of value for less than $1. Three ways to estimate fair value:</p>
+      <ul class="article-list">
+        <li><strong>Discounted Cash Flow (DCF):</strong> Estimate future cash flows and discount them back to today\'s dollars. This is the gold standard but requires assumptions about future growth and discount rates. Small changes in assumptions = large changes in output. Use it as a range, not a precise target.</li>
+        <li><strong>Comparable company analysis:</strong> If similar companies trade at 15–20× free cash flow and your company trades at 10×, it may be undervalued — or there\'s a reason the market discounts it. Investigate which.</li>
+        <li><strong>PEG ratio:</strong> P/E divided by growth rate. A PEG under 1.0 suggests a stock may be undervalued relative to its growth. A PEG of 2.0+ means you\'re paying a significant premium for growth expectations.</li>
+      </ul>
+      <p>The most important rule in valuation: <em>build in a margin of safety</em>. If your analysis says fair value is $100, only buy at $70-80. This cushion protects you from being wrong about your assumptions — which you will be, sometimes.</p>
+
+      <div class="article-callout">
+        <p><strong>The honest truth about stock picking:</strong> Studies consistently show that over 10+ year periods, roughly 90% of actively managed funds underperform a simple S&amp;P 500 index fund after fees. This isn\'t an argument against learning to analyze stocks — it\'s an argument for humility. For most investors, the core of your portfolio should be low-cost index funds. Picking individual stocks should be a smaller allocation you do only after doing real homework.</p>
+      </div>
+
+      <h3>Part 2: The ideal portfolio for every decade</h3>
+      <p>Your portfolio should evolve as you age. In your 20s, you have time to recover from losses and should be aggressively invested for growth. In your 60s, you need income and capital preservation. Here\'s the blueprint for each decade.</p>
+
+      <h3>Your 20s: Be aggressive. Time is your most valuable asset.</h3>
+      <p>You have 40+ years before retirement. A market crash in your 20s is an opportunity, not a disaster — you\'ll be buying cheap for years. The biggest risk you face isn\'t market volatility; it\'s not investing enough.</p>
+      <ul class="article-list">
+        <li><strong>80–100% stocks</strong> (primarily broad index funds: US total market + international)</li>
+        <li><strong>0–20% bonds</strong> (optional; some experts argue zero bonds in your 20s is fine)</li>
+        <li><strong>Accounts to prioritize:</strong> Max your Roth IRA ($7,000/year in 2025) first, then capture your full 401k employer match, then contribute more to your 401k</li>
+        <li><strong>Specific funds to consider:</strong> VTI (US total market), VXUS (international), VT (global all-world in one fund)</li>
+        <li><strong>Small-cap tilt optional:</strong> Historically, small-cap stocks have outperformed large-cap over very long periods. A 10-20% allocation to small-cap value (e.g., VBR) is supported by research</li>
+      </ul>
+      <div class="article-callout">
+        <p><strong>20s priority order:</strong> (1) Emergency fund: 3 months expenses in a high-yield savings account. (2) 401k match: always capture 100% of free employer money. (3) Roth IRA: max it. (4) Crypto/individual stocks: only after the above, with money you could lose entirely.</p>
+      </div>
+
+      <h3>Your 30s: Growth with discipline</h3>
+      <p>You\'re likely earning more but also have larger financial obligations — mortgage, kids, career transitions. Your time horizon is still long (30+ years to retirement), but you\'re starting to build real wealth and should be more intentional.</p>
+      <ul class="article-list">
+        <li><strong>80% stocks / 20% bonds</strong> is a common benchmark; some stay 90/10 in early 30s</li>
+        <li><strong>Increase contributions aggressively</strong> as income rises — a raise should translate to a higher contribution percentage, not just more spending</li>
+        <li><strong>Diversify globally:</strong> US stocks have outperformed recently but represent only ~60% of global market cap. International exposure smooths long-term returns</li>
+        <li><strong>Consider a taxable brokerage account</strong> once you\'ve maxed tax-advantaged accounts — this gives you flexibility before age 59½</li>
+        <li><strong>Term life insurance:</strong> Not an investment, but critical in your 30s if you have dependents. Get it while it\'s cheap.</li>
+      </ul>
+
+      <h3>Your 40s: The wealth-building decade</h3>
+      <p>Your 40s are typically peak earning years and the period where your wealth can compound most dramatically — because you have substantial assets AND significant time remaining. This is not the time to become conservative.</p>
+      <ul class="article-list">
+        <li><strong>70% stocks / 30% bonds</strong> is a reasonable 40s allocation for most investors</li>
+        <li><strong>Max all available tax-advantaged accounts:</strong> 401k ($23,000 limit in 2025), Roth IRA, HSA if eligible ($4,150 for individuals). These compound tax-free for 20+ more years.</li>
+        <li><strong>Real estate consideration:</strong> Many 40-somethings add real estate exposure through REITs (Real Estate Investment Trusts) or rental properties. REITs like VNQ give you real estate returns in your brokerage account without landlord headaches.</li>
+        <li><strong>Review your 401k fund fees:</strong> If you\'ve been in a default fund since your 20s, it may be time to optimize. A 0.5% expense ratio vs 0.05% is $10,000+ over the next 20 years on a $200k account.</li>
+        <li><strong>529 plans for children:</strong> If you have kids, the 529 college savings account grows tax-free for education expenses. Open one early — even $100/month compounds meaningfully over 10-15 years.</li>
+      </ul>
+
+      <h3>Your 50s: Shifting from accumulation to preservation</h3>
+      <p>Retirement is now 10-15 years away. You can\'t afford a major crash that takes 5 years to recover from — there may not be enough time to make it back before you need the money. Start the gradual shift toward capital preservation while still maintaining growth.</p>
+      <ul class="article-list">
+        <li><strong>60% stocks / 40% bonds</strong> is a common target by mid-50s</li>
+        <li><strong>Catch-up contributions:</strong> Once you turn 50, the 401k contribution limit rises to $30,500 (2025) and IRA to $8,000. Use these aggressively.</li>
+        <li><strong>Sequence-of-returns risk:</strong> A major market crash 2-3 years before retirement, followed by heavy withdrawals, can permanently damage your portfolio. Consider having 1-2 years of expenses in cash/short-term bonds as a "buffer" as retirement approaches.</li>
+        <li><strong>Begin Social Security planning:</strong> Claiming at 62 vs 67 vs 70 dramatically affects lifetime benefits. Model your specific numbers — delaying to 70 increases benefits by ~8%/year compared to 67.</li>
+        <li><strong>Long-term care insurance:</strong> Premiums are significantly lower in your 50s than your 60s. It\'s worth pricing out, especially given that roughly 70% of people over 65 will need some form of long-term care.</li>
+      </ul>
+
+      <h3>Your 60s+: Income, preservation, and legacy</h3>
+      <p>In retirement, your portfolio has two jobs: generate reliable income and last 25-30+ years (modern lifespans are long). The old "100 minus your age = stock allocation" rule is outdated — a 60-year-old could live to 95 and needs real growth exposure to avoid outliving their money.</p>
+      <ul class="article-list">
+        <li><strong>50% stocks / 50% bonds</strong> at age 65 is a reasonable starting point — more aggressive than old-school advice, justified by longer lifespans</li>
+        <li><strong>The 4% rule:</strong> Research suggests withdrawing 4% of your portfolio in year one, then adjusting for inflation annually, has historically lasted 30 years across most market scenarios. On a $1M portfolio, that\'s $40,000/year. On $2M, $80,000/year.</li>
+        <li><strong>Bucket strategy:</strong> Many retirees keep 1-2 years of expenses in cash (Bucket 1), 3-7 years in bonds/stable investments (Bucket 2), and the rest in stocks for long-term growth (Bucket 3). When stocks are up, refill buckets 1 and 2. When stocks are down, live from the cash buckets and let stocks recover.</li>
+        <li><strong>Required Minimum Distributions (RMDs):</strong> Starting at age 73, the IRS requires annual withdrawals from traditional 401k/IRA accounts. Plan for the tax impact — large RMDs can push you into a higher bracket. Roth accounts have no RMDs, another reason Roth conversions in your 60s can be valuable.</li>
+        <li><strong>Dividend-focused stocks:</strong> High-quality dividend payers (consumer staples, utilities, healthcare) provide income even when you\'re not selling shares. Reinvest dividends until you need the income.</li>
+      </ul>
+
+      <div class="article-stat-row">
+        <div class="ast-cell"><div class="ast-val" style="color:var(--green)">90/10</div><div class="ast-label">Stocks/bonds in your 20s — growth maximized</div></div>
+        <div class="ast-cell"><div class="ast-val" style="color:var(--sky)">70/30</div><div class="ast-label">Stocks/bonds in your 40s — peak wealth building</div></div>
+        <div class="ast-cell"><div class="ast-val" style="color:var(--gold)">50/50</div><div class="ast-label">Stocks/bonds at 65 — income + longevity protection</div></div>
+      </div>
+
+      <h3>The two rules that apply at every age</h3>
+      <p>Regardless of decade, two principles never change. First: <strong>keep costs as low as possible</strong>. Every dollar paid in fund expenses, trading commissions, or advisor fees is a dollar not compounding for you. Over 40 years, a 1% annual fee difference is the difference between retiring rich and retiring okay. Second: <strong>stay the course through downturns</strong>. Every decade will contain at least one scary market drop. The investors who panic-sell are the ones who turn temporary paper losses into permanent real losses. The investors who stay invested — and ideally buy more — are the ones who build generational wealth.</p>
+
+      <div class="article-cta">
+        <p><strong>See your decade-specific projection.</strong> Enter your age and contribution to model your exact wealth trajectory.</p>
+        <a href="calculator.html" class="cta-btn">Open Calculator →</a>
+      </div>`
+  },
   {
     id: 'unpacking-private-equity-beyond-public-stocks-in-emerging-ma',
     category: 'news',
@@ -1146,6 +1293,7 @@ const ARTICLES = [
 ];
 
 const TRENDING = [
+  { title: 'How to actually analyze a stock — and the ideal portfolio for every decade', cat: 'Investing Basics', time: '12 min read', id: 'how-to-analyze-a-stock-portfolio-by-decade' },
   { title: 'Crypto, staking & Polymarket: the money moves your generation is actually making', cat: 'Crypto', time: '9 min read', id: 'crypto-polymarket' },
   { title: 'What the Fed\'s latest rate decision means for your savings account', cat: 'Market News', time: '3 min read', id: 'market-volatility' },
   { title: 'The 50/30/20 budget rule — does it actually work in 2025?', cat: 'Basics', time: '5 min read', id: 'dollar-cost-averaging' },
@@ -1378,5 +1526,6 @@ document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
 })();
 </script>
 <script src="newsletter.js"></script>
+<script type="module" src="ticker.js"></script>
 </body>
 </html>

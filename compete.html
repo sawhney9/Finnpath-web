@@ -537,6 +537,15 @@
 </nav>
 <div class="nav-backdrop"></div>
 
+<!-- TICKER BAR -->
+<div class="ticker-bar" id="tickerBar">
+  <div class="ticker-inner">
+    <div class="ticker-track" id="tickerTrack">
+      <span class="ticker-loading">Loading market data…</span>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════════════════════════════
      SCREEN 1: LANDING
 ══════════════════════════════════ -->
@@ -1441,5 +1450,6 @@ window.addEventListener('load', () => {
   });
 })();
 </script>
+<script type="module" src="ticker.js"></script>
 </body>
 </html>

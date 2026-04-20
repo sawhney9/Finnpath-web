@@ -114,6 +114,15 @@
   </ul>
 </nav>
 
+<!-- TICKER BAR -->
+<div class="ticker-bar" id="tickerBar">
+  <div class="ticker-inner">
+    <div class="ticker-track" id="tickerTrack">
+      <span class="ticker-loading">Loading market data…</span>
+    </div>
+  </div>
+</div>
+
 <div class="page-hero">
   <div class="page-hero-inner">
     <div class="breadcrumb"><a href="tools.html">Tools</a> / Debt Paydown Planner</div>
@@ -417,5 +426,6 @@
   document.getElementById('btn-calculate').addEventListener('click', calculate);
   defaultDebts.forEach(d => addDebt(d.name, d.balance, d.apr, d.min));
 </script>
+<script type="module" src="ticker.js"></script>
 </body>
 </html>
