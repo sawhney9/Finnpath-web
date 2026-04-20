@@ -276,7 +276,10 @@
 
   // 3. Login / Logout
   document.getElementById('btn-google').addEventListener('click', () => {
-    signInWithPopup(auth, provider).catch(e => console.error("Login failed:", e));
+    signInWithPopup(auth, provider).catch(e => {
+      console.error("Login failed:", e);
+      alert("Google Login Blocked: " + e.message);
+    });
   });
   document.getElementById('btn-out').addEventListener('click', () => {
     signOut(auth);
