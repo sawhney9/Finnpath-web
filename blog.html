@@ -400,7 +400,8 @@
     <li><a href="index.html">Home</a></li>
     <li><a href="learn.html">Learn</a></li>
     <li><a href="calculator.html">Calculator</a></li>
-    <li><a href="simulator.html">Simulator</a></li>
+    <li><a href="tools.html">Tools</a></li>
+    <li><a href="simulator.html">Tracker</a></li>
     <li><a href="blog.html" class="active">Money Moves</a></li>
     <li><a href="paths.html">Your Path</a></li>
   </ul>
@@ -506,8 +507,11 @@
         <div class="nl-sidebar">
           <h4>Weekly money lessons</h4>
           <p>One practical financial insight every week — in your inbox, in plain English. No spam, no upsells.</p>
-          <input class="nl-input" type="email" placeholder="you@email.com"/>
-          <button class="nl-btn">Subscribe Free</button>
+          <form data-newsletter-form>
+            <input class="nl-input" type="email" name="email" autocomplete="email" required placeholder="you@email.com"/>
+            <button class="nl-btn" type="submit">Subscribe Free</button>
+          </form>
+          <p class="nl-note" data-newsletter-feedback style="font-size:.68rem;color:rgba(250,249,247,.45);margin-top:10px"></p>
         </div>
       </div>
     </div>
@@ -1373,5 +1377,6 @@ document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
   });
 })();
 </script>
+<script src="newsletter.js"></script>
 </body>
 </html>

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Financial Tools — Finnpath</title>
+  <meta name="description" content="Free interactive tools to pay down debt, save from every paycheck, and understand index fund investing."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="shared.css?v=5"/>
+  <style>
+    .page-hero {
+      padding: calc(var(--nav-h) + 72px) 56px 80px;
+      background: var(--navy-mid); border-bottom: 1px solid var(--border);
+      position: relative; z-index: 1; overflow: hidden; text-align: center;
+    }
+    .page-hero::before {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 60% 80% at 90% 50%, rgba(61,186,126,.06) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 60% at 10% 50%, rgba(74,144,217,.07) 0%, transparent 65%);
+    }
+    .hero-inner { max-width: 680px; margin-inline: auto; position: relative; z-index: 1; }
+    .page-hero h1 {
+      font-family: 'Playfair Display', serif; font-weight: 900;
+      font-size: clamp(2.2rem, 4.5vw, 3.6rem); letter-spacing: -.03em; line-height: 1.07;
+      animation: fadeUp .5s ease both;
+    }
+    .page-hero h1 em { font-style: italic; color: var(--green); }
+    .page-hero p { font-size: .97rem; color: var(--white-dim); font-weight: 300; line-height: 1.82; margin-top: 16px; animation: fadeUp .5s .08s ease both; }
+
+    /* ── TOOLS GRID ── */
+    .tools-section { padding: 72px 56px; position: relative; z-index: 1; }
+    .tools-inner { max-width: 1160px; margin-inline: auto; }
+    .tools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
+    .tool-card {
+      background: var(--navy-mid); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 32px; display: flex; flex-direction: column; gap: 14px;
+      transition: border-color .2s, transform .2s;
+    }
+    .tool-card:hover { border-color: rgba(250,249,247,.18); transform: translateY(-2px); }
+    .tool-icon { font-size: 2rem; line-height: 1; }
+    .tool-tag { font-size: .65rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--coral); }
+    .tool-name { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.25rem; line-height: 1.2; }
+    .tool-name em { font-style: italic; color: var(--green); }
+    .tool-desc { font-size: .85rem; color: var(--white-dim); line-height: 1.7; flex: 1; }
+    .tool-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--navy-card); border: 1px solid var(--border); border-radius: 8px;
+      padding: 10px 18px; font-size: .82rem; font-weight: 700;
+      color: var(--white); text-decoration: none; transition: all .2s; margin-top: 4px;
+    }
+    .tool-link:hover { background: var(--green); color: var(--navy); border-color: var(--green); }
+    .tool-link.primary { background: var(--green); color: var(--navy); border-color: var(--green); }
+    .tool-link.primary:hover { background: #34a36e; }
+
+    /* ── NEWSLETTER ── */
+    .nl-section {
+      padding: 80px 56px; background: var(--navy-mid); border-top: 1px solid var(--border);
+      position: relative; z-index: 1; overflow: hidden;
+    }
+    .nl-section::before {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background: radial-gradient(ellipse 60% 100% at 50% 100%, rgba(61,186,126,.05) 0%, transparent 60%);
+    }
+    .nl-inner { max-width: 600px; margin-inline: auto; text-align: center; position: relative; z-index: 1; }
+    .nl-inner h2 { font-family: 'Playfair Display', serif; font-weight: 900; font-size: clamp(1.8rem, 3vw, 2.6rem); letter-spacing: -.02em; }
+    .nl-inner h2 em { font-style: italic; color: var(--green); }
+    .nl-inner p { font-size: .92rem; color: var(--white-dim); line-height: 1.78; margin: 16px 0 28px; }
+    .nl-form { display: flex; gap: 10px; max-width: 480px; margin-inline: auto; }
+    .nl-form input[type="email"] {
+      flex: 1; background: var(--navy-card); border: 1px solid var(--border);
+      color: var(--white); padding: 14px 18px; border-radius: 10px;
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: .92rem; outline: none;
+    }
+    .nl-form input:focus { border-color: var(--green); }
+    .nl-form button {
+      background: var(--green); color: var(--navy); border: none; border-radius: 10px;
+      padding: 14px 24px; font-weight: 800; font-size: .88rem; cursor: pointer;
+      white-space: nowrap; transition: background .2s;
+    }
+    .nl-form button:hover { background: #34a36e; }
+    .nl-feedback { font-size: .78rem; margin-top: 12px; min-height: 1.2em; }
+    .nl-note { font-size: .72rem; color: rgba(250,249,247,.25); margin-top: 12px; }
+
+    @media(max-width:800px) {
+      .page-hero { padding: calc(var(--nav-h) + 48px) 24px 56px; }
+      .tools-section { padding: 48px 24px; }
+      .nl-section { padding: 56px 24px; }
+      .nl-form { flex-direction: column; }
+    }
+  </style>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">Finnpath<span class="logo-dot">.</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="learn.html">Learn</a></li>
+    <li><a href="calculator.html">Calculator</a></li>
+    <li><a href="tools.html" class="active">Tools</a></li>
+    <li><a href="simulator.html">Tracker</a></li>
+    <li><a href="paths.html">Your Path</a></li>
+    <li><a href="blog.html">Money Moves</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<div class="page-hero">
+  <div class="hero-inner">
+    <div class="s-eyebrow">Free Financial Tools</div>
+    <h1>Build better habits with <em>the right tools</em></h1>
+    <p>Interactive calculators and guides that turn financial concepts into action. No jargon, no upsells — just the tools you need to get started.</p>
+  </div>
+</div>
+
+<!-- TOOLS GRID -->
+<section class="tools-section">
+  <div class="tools-inner">
+    <div class="tools-grid">
+
+      <!-- Pay Yourself First -->
+      <div class="tool-card">
+        <div class="tool-icon">💰</div>
+        <div class="tool-tag">Savings</div>
+        <div class="tool-name">Pay <em>Yourself</em> First</div>
+        <p class="tool-desc">Enter your paycheck and instantly see your 50/30/20 split. Then watch how your savings compound into real wealth over 10, 20, and 30 years.</p>
+        <a href="tool-save.html" class="tool-link primary">Open Calculator →</a>
+      </div>
+
+      <!-- Debt Paydown -->
+      <div class="tool-card">
+        <div class="tool-icon">⚡</div>
+        <div class="tool-tag">Debt</div>
+        <div class="tool-name">Debt <em>Paydown</em> Planner</div>
+        <p class="tool-desc">Add all your debts and compare the Avalanche vs. Snowball method side by side. See exactly how much interest you save and when you'll be debt-free.</p>
+        <a href="tool-debt.html" class="tool-link primary">Open Calculator →</a>
+      </div>
+
+      <!-- Index Funds -->
+      <div class="tool-card">
+        <div class="tool-icon">📈</div>
+        <div class="tool-tag">Investing</div>
+        <div class="tool-name">Why <em>Index Funds</em> Win</div>
+        <p class="tool-desc">A plain-English explainer on why index funds beat most active funds — plus an expense ratio calculator that shows how fees quietly steal your returns.</p>
+        <a href="tool-index.html" class="tool-link primary">Read + Calculate →</a>
+      </div>
+
+      <!-- Compound Interest (existing) -->
+      <div class="tool-card">
+        <div class="tool-icon">🔢</div>
+        <div class="tool-tag">Calculator</div>
+        <div class="tool-name"><em>Compound</em> Interest</div>
+        <p class="tool-desc">Our flagship calculator. See how any investment grows over time with the power of compounding — the most important concept in all of personal finance.</p>
+        <a href="calculator.html" class="tool-link">Open Calculator →</a>
+      </div>
+
+      <!-- Stock Tracker -->
+      <div class="tool-card">
+        <div class="tool-icon">📊</div>
+        <div class="tool-tag">Simulator</div>
+        <div class="tool-name">Stock & Crypto <em>Tracker</em></div>
+        <p class="tool-desc">Paper-trade real stocks and crypto, join classroom groups to compare portfolios, and place positions in live prediction markets — without risking real money.</p>
+        <a href="simulator.html" class="tool-link">Open Tracker →</a>
+      </div>
+
+      <!-- Auto-Invest DCA -->
+      <div class="tool-card">
+        <div class="tool-icon">🔄</div>
+        <div class="tool-tag">Dollar Cost Averaging</div>
+        <div class="tool-name">Auto-Invest <em>Simulator</em></div>
+        <p class="tool-desc">Set a recurring investment in any asset — index funds, Bitcoin, ETH, bonds — and see exactly how it compounds year by year including fractional shares.</p>
+        <a href="tool-dca.html" class="tool-link primary">Open Simulator →</a>
+      </div>
+
+      <!-- Scenarios (coming soon) -->
+      <div class="tool-card" style="opacity:.6">
+        <div class="tool-icon">🎯</div>
+        <div class="tool-tag" style="color:var(--gold)">Coming Soon</div>
+        <div class="tool-name">What Would <em>You Do?</em></div>
+        <p class="tool-desc">Short decision-tree scenarios: you get a $1,000 bonus — pay off debt, invest it, or build your emergency fund? See the long-term consequences of each choice.</p>
+        <span class="tool-link" style="opacity:.5;cursor:default;pointer-events:none">Coming Soon</span>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- NEWSLETTER -->
+<section class="nl-section">
+  <div class="nl-inner">
+    <div class="s-eyebrow" style="justify-content:center">Weekly Newsletter</div>
+    <h2>Money moves, <em>explained.</em></h2>
+    <p>Short lessons on investing, saving, and building real wealth — delivered every week. Free forever. No spam.</p>
+    <form data-newsletter-form class="nl-form">
+      <input type="email" placeholder="your@email.com" required autocomplete="email"/>
+      <button type="submit">Subscribe Free</button>
+    </form>
+    <p data-newsletter-feedback class="nl-feedback"></p>
+    <p class="nl-note">Join thousands learning to build wealth from scratch. Unsubscribe any time.</p>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div>
+      <div class="f-logo">Finnpath<span>.</span></div>
+      <div class="f-tagline">Your path to financial freedom, one step at a time.</div>
+    </div>
+    <nav class="footer-nav">
+      <a href="index.html">Home</a>
+      <a href="learn.html">Learn</a>
+      <a href="tools.html">Tools</a>
+      <a href="simulator.html">Tracker</a>
+      <a href="paths.html">Your Path</a>
+      <a href="blog.html">Money Moves</a>
+    </nav>
+  </div>
+  <div class="footer-bottom">
+    <span class="footer-copy">© 2025 Finnpath. All rights reserved.</span>
+    <span class="disclaimer">For educational purposes only. Not financial advice. Always consult a licensed financial advisor before making investment decisions.</span>
+  </div>
+</footer>
+
+<script src="newsletter.js" defer></script>
+</body>
+</html>

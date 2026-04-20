@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Why Index Funds Win — Finnpath</title>
+  <meta name="description" content="A plain-English guide to index fund investing, plus an expense ratio calculator that shows how fees quietly steal your returns."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="shared.css?v=5"/>
+  <style>
+    .page-hero { padding: calc(var(--nav-h) + 56px) 56px 56px; background: var(--navy-mid); border-bottom: 1px solid var(--border); position: relative; z-index: 1; }
+    .page-hero-inner { max-width: 1160px; margin-inline: auto; }
+    .page-hero h1 { font-family: 'Playfair Display', serif; font-weight: 900; font-size: clamp(2rem, 4vw, 3rem); letter-spacing: -.02em; line-height: 1.1; animation: fadeUp .5s ease both; }
+    .page-hero h1 em { font-style: italic; color: var(--green); }
+    .page-hero p { font-size: .97rem; color: var(--white-dim); font-weight: 300; line-height: 1.75; max-width: 560px; margin-top: 12px; }
+    .breadcrumb { font-size: .75rem; color: var(--white-dim); margin-bottom: 16px; }
+    .breadcrumb a { color: var(--white-dim); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--white); }
+
+    .content-page { padding: 56px 56px 80px; position: relative; z-index: 1; }
+    .content-inner { max-width: 1160px; margin-inline: auto; display: grid; grid-template-columns: 1fr 380px; gap: 48px; align-items: start; }
+    .content-main { display: flex; flex-direction: column; gap: 48px; }
+
+    /* Prose sections */
+    .prose-section h2 { font-family: 'Playfair Display', serif; font-weight: 900; font-size: clamp(1.5rem, 2.5vw, 2rem); letter-spacing: -.02em; margin-bottom: 16px; }
+    .prose-section h2 em { font-style: italic; color: var(--green); }
+    .prose-section p { font-size: .93rem; color: var(--white-dim); line-height: 1.85; margin-bottom: 14px; }
+    .prose-section p strong { color: var(--white); font-weight: 700; }
+
+    /* Stat callouts */
+    .stat-row { display: flex; gap: 16px; margin: 20px 0; flex-wrap: wrap; }
+    .stat-box { background: var(--navy-mid); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; flex: 1; min-width: 160px; }
+    .stat-box .val { font-family: 'Playfair Display', serif; font-weight: 900; font-size: 2rem; color: var(--green); line-height: 1; }
+    .stat-box .lbl { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--white-dim); margin-top: 6px; }
+
+    /* Fee comparison table */
+    .fee-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+    .fee-table th { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--white-dim); padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+    .fee-table td { padding: 12px 14px; font-size: .88rem; border-bottom: 1px solid rgba(250,249,247,.04); }
+    .fee-table tr:last-child td { border-bottom: none; }
+    .fee-table .good { color: var(--green); font-weight: 700; }
+    .fee-table .bad { color: var(--coral); font-weight: 700; }
+
+    /* ETF cards */
+    .etf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+    .etf-card { background: var(--navy-mid); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+    .etf-ticker { font-family: 'Playfair Display', serif; font-weight: 900; font-size: 1.4rem; color: var(--green); }
+    .etf-name { font-size: .75rem; color: var(--white-dim); margin: 4px 0 8px; }
+    .etf-detail { font-size: .75rem; display: flex; flex-direction: column; gap: 3px; }
+    .etf-detail span { color: var(--white-dim); }
+    .etf-detail strong { color: var(--white); }
+
+    /* Steps */
+    .steps { display: flex; flex-direction: column; gap: 16px; }
+    .step { display: flex; gap: 16px; align-items: flex-start; }
+    .step-num { width: 32px; height: 32px; background: var(--green); color: var(--navy); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: .85rem; flex-shrink: 0; margin-top: 2px; }
+    .step-body { font-size: .88rem; line-height: 1.7; color: var(--white-dim); }
+    .step-body strong { color: var(--white); font-weight: 700; }
+
+    /* Sidebar: calculator */
+    .calc-sidebar { position: sticky; top: calc(var(--nav-h) + 20px); display: flex; flex-direction: column; gap: 20px; }
+    .calc-card { background: var(--navy-mid); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .calc-head { padding: 18px 22px; background: var(--navy-card); border-bottom: 1px solid var(--border); }
+    .calc-head-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: .95rem; }
+    .calc-head p { font-size: .7rem; color: var(--white-dim); margin-top: 3px; }
+    .calc-fields { padding: 20px 22px; display: flex; flex-direction: column; gap: 16px; }
+    .cf { display: flex; flex-direction: column; gap: 6px; }
+    .cf label { font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--white-dim); display: flex; justify-content: space-between; }
+    .cf input { background: var(--navy-card); border: 1px solid var(--border); color: var(--white); padding: 10px 12px; border-radius: 8px; font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; outline: none; width: 100%; box-sizing: border-box; -moz-appearance: textfield; }
+    .cf input::-webkit-outer-spin-button, .cf input::-webkit-inner-spin-button { -webkit-appearance: none; }
+    .cf input:focus { border-color: var(--green); }
+    .cf .range-slider { width: 100%; accent-color: var(--green); cursor: pointer; }
+
+    .fee-results { padding: 0 22px 22px; display: flex; flex-direction: column; gap: 12px; }
+    .fee-result-row { background: var(--navy-card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+    .fee-result-label { font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--white-dim); margin-bottom: 6px; }
+    .fee-result-val { font-family: 'Playfair Display', serif; font-weight: 900; font-size: 1.4rem; }
+    .fee-result-sub { font-size: .72rem; margin-top: 4px; }
+    .fee-stolen { background: linear-gradient(135deg, rgba(232,96,76,.08), rgba(232,96,76,.04)); border-color: rgba(232,96,76,.2); }
+    .fee-stolen .fee-result-val { color: var(--coral); }
+    .fee-saved { background: linear-gradient(135deg, rgba(61,186,126,.08), rgba(61,186,126,.04)); border-color: rgba(61,186,126,.2); }
+    .fee-saved .fee-result-val { color: var(--green); }
+
+    @media(max-width:960px) {
+      .content-page { padding: 36px 24px 60px; }
+      .content-inner { grid-template-columns: 1fr; }
+      .calc-sidebar { position: static; }
+      .etf-grid { grid-template-columns: 1fr; }
+      .page-hero { padding: calc(var(--nav-h) + 36px) 24px 40px; }
+    }
+  </style>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">Finnpath<span class="logo-dot">.</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="learn.html">Learn</a></li>
+    <li><a href="calculator.html">Calculator</a></li>
+    <li><a href="tools.html" class="active">Tools</a></li>
+    <li><a href="simulator.html">Tracker</a></li>
+    <li><a href="paths.html">Your Path</a></li>
+    <li><a href="blog.html">Money Moves</a></li>
+  </ul>
+</nav>
+
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <div class="breadcrumb"><a href="tools.html">Tools</a> / Why Index Funds Win</div>
+    <div class="s-eyebrow">Investing 101</div>
+    <h1>Why <em>index funds</em> beat almost everyone</h1>
+    <p>Most professional fund managers can't beat the market. You don't need to pick winners. You just need to own the whole thing — cheaply.</p>
+  </div>
+</div>
+
+<div class="content-page">
+  <div class="content-inner">
+
+    <!-- MAIN CONTENT -->
+    <div class="content-main">
+
+      <!-- What is an index -->
+      <div class="prose-section">
+        <h2>What <em>is</em> an index fund?</h2>
+        <p>An index fund is a fund that simply <strong>owns everything in a market index</strong>. The S&P 500 index tracks the 500 largest US companies. An S&P 500 index fund buys a tiny slice of all 500 of them, in proportion to their size.</p>
+        <p>When Apple grows, you grow. When the market rises, you rise. When a company falls out of the top 500, it's automatically removed and replaced. You own the whole US economy in one simple investment.</p>
+        <div class="stat-row">
+          <div class="stat-box"><div class="val">~10%</div><div class="lbl">S&P 500 avg annual return since 1957</div></div>
+          <div class="stat-box"><div class="val">0.03%</div><div class="lbl">Annual fee for VTI (Vanguard Total Market)</div></div>
+          <div class="stat-box"><div class="val">92%</div><div class="lbl">Active fund managers who underperform over 15 years</div></div>
+        </div>
+      </div>
+
+      <!-- Why active funds lose -->
+      <div class="prose-section">
+        <h2>Why most <em>active managers</em> lose</h2>
+        <p>Every year, Wall Street's best analysts spend billions on research, trying to find undervalued companies before everyone else. Here's the problem: <strong>the market already knows everything they know.</strong></p>
+        <p>Prices reflect all publicly available information almost instantly. To beat the market, you'd need to consistently know something everyone else doesn't — and do it after paying fees. That's why <strong>over a 15-year period, 92% of active fund managers underperform a simple index fund</strong> (SPIVA Report, 2023).</p>
+        <p>It's not that fund managers are bad at their jobs. It's that the game is nearly impossible to win after costs — and index funds have almost no costs.</p>
+      </div>
+
+      <!-- The fee problem -->
+      <div class="prose-section">
+        <h2>The <em>fee problem</em> nobody talks about</h2>
+        <p>A 1% annual fee sounds tiny. It isn't. On $100,000 over 30 years at 10% annual growth, <strong>a 1% fee costs you over $160,000 in lost returns</strong> compared to a 0.03% index fund. Use the calculator on the right to run your own numbers.</p>
+        <table class="fee-table">
+          <thead>
+            <tr><th>Fund Type</th><th>Typical Fee</th><th>$10k over 30 yrs at 10%</th><th>Difference</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Actively managed mutual fund</td>
+              <td class="bad">1.0% – 1.5%</td>
+              <td class="bad">~$130,000</td>
+              <td class="bad">−$44,000</td>
+            </tr>
+            <tr>
+              <td>Robo-advisor (e.g. Betterment)</td>
+              <td>0.25%</td>
+              <td>$166,000</td>
+              <td>−$8,000</td>
+            </tr>
+            <tr>
+              <td>Vanguard / Fidelity index ETF</td>
+              <td class="good">0.03% – 0.04%</td>
+              <td class="good">$174,000</td>
+              <td class="good">Baseline</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Best index funds -->
+      <div class="prose-section">
+        <h2>The <em>funds</em> worth knowing</h2>
+        <p>These four cover virtually everything most investors need. You don't need all of them — VTI or FZROX alone gives you the entire US market.</p>
+        <div class="etf-grid">
+          <div class="etf-card">
+            <div class="etf-ticker">VTI</div>
+            <div class="etf-name">Vanguard Total Stock Market ETF</div>
+            <div class="etf-detail">
+              <span>Expense ratio: <strong>0.03%</strong></span>
+              <span>Covers: <strong>~4,000 US stocks</strong></span>
+              <span>Best for: <strong>Vanguard / any broker</strong></span>
+            </div>
+          </div>
+          <div class="etf-card">
+            <div class="etf-ticker">FZROX</div>
+            <div class="etf-name">Fidelity ZERO Total Market Index</div>
+            <div class="etf-detail">
+              <span>Expense ratio: <strong>0.00%</strong></span>
+              <span>Covers: <strong>~2,700 US stocks</strong></span>
+              <span>Best for: <strong>Fidelity accounts</strong></span>
+            </div>
+          </div>
+          <div class="etf-card">
+            <div class="etf-ticker">VOO</div>
+            <div class="etf-name">Vanguard S&P 500 ETF</div>
+            <div class="etf-detail">
+              <span>Expense ratio: <strong>0.03%</strong></span>
+              <span>Covers: <strong>500 largest US companies</strong></span>
+              <span>Best for: <strong>Simplicity, widely held</strong></span>
+            </div>
+          </div>
+          <div class="etf-card">
+            <div class="etf-ticker">VXUS</div>
+            <div class="etf-name">Vanguard Total International Stock</div>
+            <div class="etf-detail">
+              <span>Expense ratio: <strong>0.07%</strong></span>
+              <span>Covers: <strong>~8,000 non-US stocks</strong></span>
+              <span>Best for: <strong>Global diversification</strong></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- How to start -->
+      <div class="prose-section">
+        <h2>How to <em>actually start</em> in 4 steps</h2>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-body"><strong>Open a Roth IRA.</strong> If you have earned income, a Roth IRA is the single best account for most beginners. You invest after-tax money and it grows completely tax-free forever. Fidelity and Vanguard both have no minimums to open.</div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-body"><strong>Contribute what you can.</strong> The 2025 limit is $7,000/year ($583/month). Even $50/month is a real start. The most important thing is to begin — time in the market beats timing the market.</div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-body"><strong>Buy one index fund.</strong> Search for VTI, VOO, or FZROX in your account. Buy as many shares as your contribution allows. That's it. You now own thousands of companies.</div>
+          </div>
+          <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-body"><strong>Automate and ignore.</strong> Set up automatic monthly contributions. Don't watch the market daily. Don't sell when it drops. The only way to lose is to stop. Boring works.</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content-main -->
+
+    <!-- SIDEBAR CALCULATOR -->
+    <div class="calc-sidebar">
+      <div class="calc-card">
+        <div class="calc-head">
+          <div class="calc-head-title">Expense Ratio Calculator</div>
+          <p>See how fees eat your returns over time</p>
+        </div>
+        <div class="calc-fields">
+          <div class="cf">
+            <label><span>Initial Investment</span></label>
+            <input type="number" id="c-initial" value="10000" min="100" step="500"/>
+          </div>
+          <div class="cf">
+            <label><span>Monthly Contribution</span></label>
+            <input type="number" id="c-monthly" value="200" min="0" step="25"/>
+          </div>
+          <div class="cf">
+            <label><span>Time Horizon</span><span id="c-years-lbl">30 years</span></label>
+            <input type="range" id="c-years" class="range-slider" min="5" max="40" step="1" value="30"/>
+          </div>
+          <div class="cf">
+            <label><span>Annual Return (before fees)</span><span id="c-return-lbl">10%</span></label>
+            <input type="range" id="c-return" class="range-slider" min="5" max="14" step="0.5" value="10"/>
+          </div>
+          <div class="cf">
+            <label><span>Low-Cost Fund Fee (e.g. VTI)</span><span id="c-low-lbl">0.03%</span></label>
+            <input type="range" id="c-low" class="range-slider" min="0" max="0.5" step="0.01" value="0.03"/>
+          </div>
+          <div class="cf">
+            <label><span>High-Cost Fund Fee</span><span id="c-high-lbl">1.00%</span></label>
+            <input type="range" id="c-high" class="range-slider" min="0.1" max="2.5" step="0.05" value="1.00"/>
+          </div>
+        </div>
+        <div class="fee-results">
+          <div class="fee-result-row fee-saved">
+            <div class="fee-result-label">Low-Cost Fund Final Value</div>
+            <div class="fee-result-val" id="low-val">—</div>
+            <div class="fee-result-sub" style="color:var(--green)" id="low-sub"></div>
+          </div>
+          <div class="fee-result-row fee-stolen">
+            <div class="fee-result-label">High-Cost Fund Final Value</div>
+            <div class="fee-result-val" id="high-val">—</div>
+            <div class="fee-result-sub" style="color:var(--coral)" id="high-sub"></div>
+          </div>
+          <div class="fee-result-row" style="background:rgba(232,96,76,.06);border-color:rgba(232,96,76,.15)">
+            <div class="fee-result-label">Fees Stole From You</div>
+            <div class="fee-result-val" id="fee-stolen-val" style="color:var(--coral)">—</div>
+            <div class="fee-result-sub" style="color:var(--white-dim)" id="fee-stolen-sub"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick tip card -->
+      <div style="background:var(--navy-mid);border:1px solid var(--border);border-radius:var(--radius);padding:22px">
+        <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--green);margin-bottom:10px">Remember</div>
+        <p style="font-size:.83rem;color:var(--white-dim);line-height:1.7">You don't need to be smart, lucky, or rich to invest in index funds. You just need to start, automate, and wait. The math does the rest.</p>
+        <a href="calculator.html" style="display:inline-block;margin-top:14px;font-size:.8rem;font-weight:700;color:var(--sky);text-decoration:none">Try the compound interest calculator →</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const fmt$ = n => '$' + Math.round(n).toLocaleString();
+
+  function fv(initial, monthly, years, annualRate) {
+    const r = annualRate / 100 / 12;
+    const n = years * 12;
+    const lumpSum = initial * Math.pow(1 + r, n);
+    const contributions = r > 0
+      ? monthly * ((Math.pow(1 + r, n) - 1) / r) * (1 + r)
+      : monthly * n;
+    return lumpSum + contributions;
+  }
+
+  function updateCalc() {
+    const initial = parseFloat(document.getElementById('c-initial').value) || 0;
+    const monthly = parseFloat(document.getElementById('c-monthly').value) || 0;
+    const years = parseFloat(document.getElementById('c-years').value);
+    const ret = parseFloat(document.getElementById('c-return').value);
+    const lowFee = parseFloat(document.getElementById('c-low').value);
+    const highFee = parseFloat(document.getElementById('c-high').value);
+
+    document.getElementById('c-years-lbl').textContent = years + ' years';
+    document.getElementById('c-return-lbl').textContent = ret + '%';
+    document.getElementById('c-low-lbl').textContent = lowFee.toFixed(2) + '%';
+    document.getElementById('c-high-lbl').textContent = highFee.toFixed(2) + '%';
+
+    const totalInvested = initial + monthly * years * 12;
+    const lowValue = fv(initial, monthly, years, ret - lowFee);
+    const highValue = fv(initial, monthly, years, ret - highFee);
+    const stolen = lowValue - highValue;
+
+    document.getElementById('low-val').textContent = fmt$(lowValue);
+    document.getElementById('low-sub').textContent = '+' + fmt$(lowValue - totalInvested) + ' in gains';
+    document.getElementById('high-val').textContent = fmt$(highValue);
+    document.getElementById('high-sub').textContent = '+' + fmt$(highValue - totalInvested) + ' in gains';
+    document.getElementById('fee-stolen-val').textContent = fmt$(stolen);
+    document.getElementById('fee-stolen-sub').textContent = Math.round(stolen / lowValue * 100) + '% of potential wealth lost to fees';
+  }
+
+  ['c-initial','c-monthly','c-years','c-return','c-low','c-high'].forEach(id => {
+    document.getElementById(id).addEventListener('input', updateCalc);
+  });
+
+  updateCalc();
+</script>
+</body>
+</html>

@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Auto-Invest Simulator — Finnpath</title>
+  <meta name="description" content="See how automatic recurring investments grow over time — from index funds to Bitcoin. Fractional shares included."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="shared.css?v=5"/>
+  <style>
+    .page-hero { padding: calc(var(--nav-h) + 56px) 56px 56px; background: var(--navy-mid); border-bottom: 1px solid var(--border); position: relative; z-index: 1; }
+    .page-hero-inner { max-width: 1160px; margin-inline: auto; }
+    .page-hero h1 { font-family: 'Playfair Display', serif; font-weight: 900; font-size: clamp(2rem, 4vw, 3rem); letter-spacing: -.02em; line-height: 1.1; animation: fadeUp .5s ease both; }
+    .page-hero h1 em { font-style: italic; color: var(--green); }
+    .page-hero p { font-size: .97rem; color: var(--white-dim); font-weight: 300; line-height: 1.75; max-width: 560px; margin-top: 12px; }
+    .breadcrumb { font-size: .75rem; color: var(--white-dim); margin-bottom: 16px; }
+    .breadcrumb a { color: var(--white-dim); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--white); }
+
+    .tool-page { padding: 48px 56px 80px; position: relative; z-index: 1; }
+    .tool-inner { max-width: 1160px; margin-inline: auto; display: grid; grid-template-columns: 360px 1fr; gap: 32px; align-items: start; }
+
+    /* Input Panel */
+    .input-panel { background: var(--navy-mid); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; position: sticky; top: calc(var(--nav-h) + 20px); }
+    .panel-head { padding: 20px 24px; border-bottom: 1px solid var(--border); background: var(--navy-card); }
+    .panel-head-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1rem; }
+    .panel-head p { font-size: .72rem; color: var(--white-dim); margin-top: 2px; }
+    .fields-wrap { padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+
+    .field { display: flex; flex-direction: column; gap: 7px; }
+    .field-label { font-size: .68rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--white-dim); display: flex; justify-content: space-between; }
+    .field-input {
+      background: var(--navy-card); border: 1px solid var(--border); border-radius: 8px;
+      padding: 11px 14px; font-family: 'Playfair Display', serif; font-weight: 700;
+      font-size: 1.1rem; color: var(--white); outline: none; width: 100%; box-sizing: border-box;
+      -moz-appearance: textfield; transition: border-color .2s;
+    }
+    .field-input::-webkit-outer-spin-button, .field-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+    .field-input:focus { border-color: var(--green); }
+    .field-select {
+      background: var(--navy-card); border: 1px solid var(--border); border-radius: 8px;
+      padding: 11px 14px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: .9rem;
+      color: var(--white); outline: none; width: 100%; cursor: pointer;
+    }
+    .range-slider { width: 100%; accent-color: var(--green); cursor: pointer; margin-top: 2px; }
+    .divider { height: 1px; background: var(--border); }
+
+    /* Preset pills */
+    .preset-row { display: flex; gap: 6px; flex-wrap: wrap; }
+    .preset-btn {
+      background: var(--navy-card); border: 1px solid var(--border); border-radius: 100px;
+      padding: 5px 14px; font-size: .75rem; font-weight: 700; cursor: pointer;
+      color: var(--white-dim); transition: all .15s;
+    }
+    .preset-btn:hover { border-color: rgba(250,249,247,.2); color: var(--white); }
+    .preset-btn.active { background: rgba(61,186,126,.12); border-color: rgba(61,186,126,.3); color: var(--green); }
+
+    /* Asset selector */
+    .asset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .asset-btn {
+      background: var(--navy-card); border: 1px solid var(--border); border-radius: 8px;
+      padding: 10px 12px; cursor: pointer; transition: all .15s; text-align: left;
+    }
+    .asset-btn:hover { border-color: rgba(250,249,247,.2); }
+    .asset-btn.active { border-color: rgba(61,186,126,.35); background: rgba(61,186,126,.08); }
+    .asset-ticker { font-weight: 800; font-size: .85rem; }
+    .asset-name { font-size: .65rem; color: var(--white-dim); margin-top: 2px; }
+    .asset-ret { font-size: .65rem; font-weight: 700; margin-top: 3px; }
+
+    /* Results */
+    .results-col { display: flex; flex-direction: column; gap: 24px; }
+
+    /* Summary cards */
+    .summary-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .sum-card { background: var(--navy-mid); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+    .sum-card.highlight { background: linear-gradient(135deg, rgba(61,186,126,.1), rgba(74,144,217,.06)); border-color: rgba(61,186,126,.25); }
+    .sum-label { font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--white-dim); margin-bottom: 8px; }
+    .sum-val { font-family: 'Playfair Display', serif; font-weight: 900; font-size: 1.5rem; line-height: 1; }
+    .sum-sub { font-size: .72rem; margin-top: 5px; }
+
+    /* Chart */
+    .chart-card { background: var(--navy-mid); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .chart-head { padding: 16px 24px; background: var(--navy-card); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .chart-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1rem; }
+    .chart-body { padding: 28px 24px; }
+    .chart-wrap { position: relative; height: 240px; }
+    canvas#growth-chart { width: 100% !important; height: 240px !important; }
+
+    /* Milestone table */
+    .milestone-table { width: 100%; border-collapse: collapse; }
+    .milestone-table th { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--white-dim); padding: 10px 16px; text-align: left; border-bottom: 1px solid var(--border); background: var(--navy-card); }
+    .milestone-table td { padding: 13px 16px; font-size: .88rem; border-bottom: 1px solid rgba(250,249,247,.04); }
+    .milestone-table tr:last-child td { border-bottom: none; }
+    .milestone-table .up { color: var(--green); font-weight: 700; }
+    .milestone-table .shares-col { font-family: 'Playfair Display', serif; font-weight: 700; }
+
+    /* Frequency note */
+    .note-card { background: var(--navy-mid); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; display: flex; gap: 16px; }
+    .note-icon { font-size: 1.8rem; flex-shrink: 0; }
+    .note-body h3 { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1rem; margin-bottom: 6px; }
+    .note-body p { font-size: .84rem; color: var(--white-dim); line-height: 1.7; }
+    .note-body p strong { color: var(--white); }
+
+    @media(max-width:900px) {
+      .tool-page { padding: 32px 24px 60px; }
+      .tool-inner { grid-template-columns: 1fr; }
+      .input-panel { position: static; }
+      .summary-row { grid-template-columns: 1fr 1fr; }
+      .page-hero { padding: calc(var(--nav-h) + 36px) 24px 40px; }
+    }
+  </style>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">Finnpath<span class="logo-dot">.</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="learn.html">Learn</a></li>
+    <li><a href="calculator.html">Calculator</a></li>
+    <li><a href="tools.html" class="active">Tools</a></li>
+    <li><a href="simulator.html">Tracker</a></li>
+    <li><a href="paths.html">Your Path</a></li>
+    <li><a href="blog.html">Money Moves</a></li>
+  </ul>
+</nav>
+
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <div class="breadcrumb"><a href="tools.html">Tools</a> / Auto-Invest Simulator</div>
+    <div class="s-eyebrow">Dollar Cost Averaging</div>
+    <h1>Set it, forget it, <em>watch it grow</em></h1>
+    <p>Pick any asset, set a recurring amount, and see how consistent automatic investing — even fractional shares — compounds into serious wealth over time.</p>
+  </div>
+</div>
+
+<div class="tool-page">
+  <div class="tool-inner">
+
+    <!-- INPUT PANEL -->
+    <div class="input-panel">
+      <div class="panel-head">
+        <div class="panel-head-title">Configure Your Plan</div>
+        <p>Adjust any value to update instantly</p>
+      </div>
+      <div class="fields-wrap">
+
+        <!-- Asset picker -->
+        <div class="field">
+          <div class="field-label">Choose Your Investment</div>
+          <div class="asset-grid" id="asset-grid">
+            <button class="asset-btn active" data-ticker="SP500" data-ret="10" data-name="S&amp;P 500 Index">
+              <div class="asset-ticker">VOO / VTI</div>
+              <div class="asset-name">S&P 500 Index</div>
+              <div class="asset-ret" style="color:var(--green)">~10% avg/yr</div>
+            </button>
+            <button class="asset-btn" data-ticker="BTC" data-ret="40" data-name="Bitcoin">
+              <div class="asset-ticker">BTC</div>
+              <div class="asset-name">Bitcoin</div>
+              <div class="asset-ret" style="color:var(--sky)">~40% avg/yr (volatile)</div>
+            </button>
+            <button class="asset-btn" data-ticker="ETH" data-ret="30" data-name="Ethereum">
+              <div class="asset-ticker">ETH</div>
+              <div class="asset-name">Ethereum</div>
+              <div class="asset-ret" style="color:var(--sky)">~30% avg/yr (volatile)</div>
+            </button>
+            <button class="asset-btn" data-ticker="BONDS" data-ret="4.5" data-name="US Bonds">
+              <div class="asset-ticker">BND</div>
+              <div class="asset-name">US Bonds (BND)</div>
+              <div class="asset-ret" style="color:var(--gold)">~4.5% avg/yr</div>
+            </button>
+            <button class="asset-btn" data-ticker="NASDAQ" data-ret="13" data-name="Nasdaq-100">
+              <div class="asset-ticker">QQQ</div>
+              <div class="asset-name">Nasdaq-100</div>
+              <div class="asset-ret" style="color:var(--green)">~13% avg/yr</div>
+            </button>
+            <button class="asset-btn" data-ticker="CUSTOM" data-ret="10" data-name="Custom">
+              <div class="asset-ticker">Custom</div>
+              <div class="asset-name">Set your own rate</div>
+              <div class="asset-ret" style="color:var(--white-dim)">Any asset</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Custom return (hidden by default) -->
+        <div class="field" id="custom-ret-field" style="display:none">
+          <div class="field-label"><span>Expected Annual Return</span><span id="custom-ret-lbl">10%</span></div>
+          <input type="range" id="custom-ret" class="range-slider" min="1" max="100" step="0.5" value="10"/>
+          <div style="font-size:.7rem;color:var(--white-dim);margin-top:2px">Past returns don't predict future results.</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Contribution -->
+        <div class="field">
+          <div class="field-label">Recurring Amount</div>
+          <div class="preset-row" id="amount-presets">
+            <button class="preset-btn" data-val="25">$25</button>
+            <button class="preset-btn" data-val="50">$50</button>
+            <button class="preset-btn active" data-val="100">$100</button>
+            <button class="preset-btn" data-val="250">$250</button>
+            <button class="preset-btn" data-val="500">$500</button>
+          </div>
+          <input class="field-input" type="number" id="contrib-amount" value="100" min="1" step="1" style="margin-top:6px"/>
+        </div>
+
+        <!-- Frequency -->
+        <div class="field">
+          <div class="field-label">Frequency</div>
+          <select class="field-select" id="frequency">
+            <option value="52">Weekly</option>
+            <option value="26">Bi-weekly (every 2 weeks)</option>
+            <option value="12" selected>Monthly</option>
+            <option value="4">Quarterly</option>
+            <option value="1">Annually</option>
+          </select>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Time horizon -->
+        <div class="field">
+          <div class="field-label"><span>Time Horizon</span><span id="years-lbl">20 years</span></div>
+          <input type="range" id="years-range" class="range-slider" min="1" max="40" step="1" value="20"/>
+        </div>
+
+        <!-- Starting amount -->
+        <div class="field">
+          <div class="field-label">Starting Amount (optional)</div>
+          <input class="field-input" type="number" id="starting" value="0" min="0" step="100"/>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="results-col">
+
+      <!-- Summary cards -->
+      <div class="summary-row">
+        <div class="sum-card highlight">
+          <div class="sum-label">Final Value</div>
+          <div class="sum-val" id="r-final" style="color:var(--green)">—</div>
+          <div class="sum-sub" id="r-final-sub" style="color:var(--green)"></div>
+        </div>
+        <div class="sum-card">
+          <div class="sum-label">Total Contributed</div>
+          <div class="sum-val" id="r-contributed">—</div>
+          <div class="sum-sub" style="color:var(--white-dim)" id="r-periods"></div>
+        </div>
+        <div class="sum-card">
+          <div class="sum-label">Investment Gains</div>
+          <div class="sum-val" id="r-gains" style="color:var(--green)">—</div>
+          <div class="sum-sub" id="r-gain-pct" style="color:var(--green)"></div>
+        </div>
+        <div class="sum-card">
+          <div class="sum-label">Total Shares Owned</div>
+          <div class="sum-val" id="r-shares">—</div>
+          <div class="sum-sub" style="color:var(--white-dim)" id="r-price-note">Fractional shares included</div>
+        </div>
+      </div>
+
+      <!-- Growth chart -->
+      <div class="chart-card">
+        <div class="chart-head">
+          <span class="chart-title">Portfolio Growth Over Time</span>
+          <span id="chart-label" style="font-size:.75rem;color:var(--white-dim)"></span>
+        </div>
+        <div class="chart-body">
+          <div class="chart-wrap">
+            <canvas id="growth-chart"></canvas>
+          </div>
+          <div style="display:flex;gap:20px;margin-top:14px;font-size:.72rem;font-weight:700">
+            <span style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:3px;background:var(--green);display:inline-block;border-radius:2px"></span>Total Value</span>
+            <span style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:3px;background:rgba(74,144,217,.5);display:inline-block;border-radius:2px;border-top:2px dashed var(--sky)"></span>Amount Invested</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Milestone table -->
+      <div class="chart-card">
+        <div class="chart-head">
+          <span class="chart-title">Year-by-Year Milestones</span>
+        </div>
+        <table class="milestone-table">
+          <thead>
+            <tr>
+              <th>Year</th>
+              <th>Total Contributed</th>
+              <th>Portfolio Value</th>
+              <th>Total Gains</th>
+              <th>Shares Accumulated</th>
+            </tr>
+          </thead>
+          <tbody id="milestone-body"></tbody>
+        </table>
+      </div>
+
+      <!-- DCA explanation -->
+      <div class="note-card">
+        <div class="note-icon">🔄</div>
+        <div class="note-body">
+          <h3>Why automatic investing works</h3>
+          <p>This strategy is called <strong>Dollar Cost Averaging (DCA)</strong>. When prices are high, your fixed amount buys fewer shares. When prices drop, it buys more. Over time, this averages out your cost per share and <strong>removes the impossible question of "when is the right time to buy."</strong></p>
+          <p style="margin-top:10px">Most brokerages (Fidelity, Vanguard, Schwab, Robinhood, Coinbase) let you set up automatic recurring investments in seconds. You can buy fractional shares of any stock, ETF, or crypto — even $5 buys you a piece of Amazon or Bitcoin.</p>
+        </div>
+      </div>
+
+    </div><!-- /results -->
+  </div>
+</div>
+
+<script>
+  // ── State ──
+  let state = {
+    ticker: 'SP500', annualRet: 10, assetName: 'S&P 500 Index',
+    amount: 100, freqPerYear: 12, years: 20, starting: 0
+  };
+
+  // Approximate current prices for share count display
+  const APPROX_PRICES = {
+    SP500: 540, BTC: 65000, ETH: 3500, BONDS: 75, NASDAQ: 450, CUSTOM: 100
+  };
+
+  const fmt$ = n => '$' + Math.round(n).toLocaleString();
+  const fmtFull = n => '$' + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmtShares = n => n >= 1000 ? Math.round(n).toLocaleString() : n.toFixed(4).replace(/\.?0+$/, '');
+
+  // ── Chart ──
+  let chartInstance = null;
+
+  function drawChart(labels, values, invested) {
+    const canvas = document.getElementById('growth-chart');
+    const ctx = canvas.getContext('2d');
+
+    if (chartInstance) { chartInstance.destroy(); }
+
+    chartInstance = {
+      destroy() {
+        canvas.width = canvas.width; // clear
+      }
+    };
+
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.parentElement.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = 240 * dpr;
+    ctx.scale(dpr, dpr);
+
+    const W = rect.width;
+    const H = 240;
+    const PAD = { top: 16, right: 20, bottom: 32, left: 68 };
+    const cW = W - PAD.left - PAD.right;
+    const cH = H - PAD.top - PAD.bottom;
+
+    const maxV = Math.max(...values) * 1.05;
+
+    function xOf(i) { return PAD.left + (i / (values.length - 1)) * cW; }
+    function yOf(v) { return PAD.top + cH - (v / maxV) * cH; }
+
+    // Grid lines
+    ctx.strokeStyle = 'rgba(250,249,247,.06)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+      const y = PAD.top + (cH / 4) * i;
+      ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(W - PAD.right, y); ctx.stroke();
+      const val = maxV * (1 - i / 4);
+      ctx.fillStyle = 'rgba(250,249,247,.3)';
+      ctx.font = '10px Plus Jakarta Sans';
+      ctx.textAlign = 'right';
+      ctx.fillText(val >= 1000000 ? '$' + (val/1000000).toFixed(1) + 'M' : val >= 1000 ? '$' + Math.round(val/1000) + 'k' : '$' + Math.round(val), PAD.left - 6, y + 3);
+    }
+
+    // Invested area (dashed line)
+    ctx.beginPath();
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = 'rgba(74,144,217,.5)';
+    ctx.lineWidth = 1.5;
+    invested.forEach((v, i) => {
+      i === 0 ? ctx.moveTo(xOf(i), yOf(v)) : ctx.lineTo(xOf(i), yOf(v));
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Value fill
+    ctx.beginPath();
+    values.forEach((v, i) => {
+      i === 0 ? ctx.moveTo(xOf(i), yOf(v)) : ctx.lineTo(xOf(i), yOf(v));
+    });
+    ctx.lineTo(xOf(values.length - 1), PAD.top + cH);
+    ctx.lineTo(PAD.left, PAD.top + cH);
+    ctx.closePath();
+    const grad = ctx.createLinearGradient(0, PAD.top, 0, PAD.top + cH);
+    grad.addColorStop(0, 'rgba(61,186,126,.25)');
+    grad.addColorStop(1, 'rgba(61,186,126,.02)');
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Value line
+    ctx.beginPath();
+    ctx.strokeStyle = '#3dba7e';
+    ctx.lineWidth = 2.5;
+    values.forEach((v, i) => {
+      i === 0 ? ctx.moveTo(xOf(i), yOf(v)) : ctx.lineTo(xOf(i), yOf(v));
+    });
+    ctx.stroke();
+
+    // X axis labels
+    ctx.fillStyle = 'rgba(250,249,247,.35)';
+    ctx.font = '10px Plus Jakarta Sans';
+    ctx.textAlign = 'center';
+    const step = Math.ceil(labels.length / 8);
+    labels.forEach((l, i) => {
+      if (i % step === 0 || i === labels.length - 1) {
+        ctx.fillText(l, xOf(i), H - 6);
+      }
+    });
+  }
+
+  // ── Calculation ──
+  function calculate() {
+    const { annualRet, amount, freqPerYear, years, starting } = state;
+    const rPerPeriod = annualRet / 100 / freqPerYear;
+    const totalPeriods = freqPerYear * years;
+    const price = APPROX_PRICES[state.ticker] || 100;
+
+    const labels = [];
+    const valuesSeries = [];
+    const investedSeries = [];
+    const milestones = [];
+
+    let value = starting;
+    let totalInvested = starting;
+
+    // Build per-period data but only record annual snapshots
+    for (let p = 0; p <= totalPeriods; p++) {
+      if (p > 0) {
+        value = (value + amount) * (1 + rPerPeriod);
+        totalInvested += amount;
+      } else {
+        value = starting;
+      }
+
+      // Record at each year boundary
+      if (p % freqPerYear === 0) {
+        const yr = p / freqPerYear;
+        labels.push(yr === 0 ? 'Now' : `Yr ${yr}`);
+        valuesSeries.push(value);
+        investedSeries.push(totalInvested);
+
+        if (yr > 0) {
+          milestones.push({
+            year: yr,
+            invested: totalInvested,
+            value,
+            gains: value - totalInvested,
+            shares: totalInvested / price + (value - totalInvested) / price
+          });
+        }
+      }
+    }
+
+    const finalValue = valuesSeries[valuesSeries.length - 1];
+    const finalInvested = investedSeries[investedSeries.length - 1];
+    const finalGains = finalValue - finalInvested;
+    const gainPct = finalInvested > 0 ? (finalGains / finalInvested) * 100 : 0;
+    const totalShares = finalValue / price;
+
+    // Summary
+    document.getElementById('r-final').textContent = fmt$(finalValue);
+    document.getElementById('r-final-sub').textContent = `In ${years} year${years !== 1 ? 's' : ''}`;
+    document.getElementById('r-contributed').textContent = fmt$(finalInvested);
+    document.getElementById('r-periods').textContent = (totalPeriods + (starting > 0 ? 1 : 0)) + ' contributions';
+    document.getElementById('r-gains').textContent = fmt$(finalGains);
+    document.getElementById('r-gain-pct').textContent = '+' + Math.round(gainPct) + '% return';
+    document.getElementById('r-shares').textContent = fmtShares(totalShares);
+    document.getElementById('r-price-note').textContent = `At ~${fmt$(price)}/share (${state.ticker})`;
+    document.getElementById('chart-label').textContent = `${state.assetName} · ${annualRet}% avg/yr`;
+
+    drawChart(labels, valuesSeries, investedSeries);
+
+    // Milestones
+    const milestone5yr = [1, 2, 3, 5, 10, 15, 20, 25, 30, 40].filter(y => y <= years);
+    document.getElementById('milestone-body').innerHTML = milestones
+      .filter(m => milestone5yr.includes(m.year) || m.year === years)
+      .map(m => `<tr>
+        <td style="font-weight:700">Year ${m.year}</td>
+        <td>${fmt$(m.invested)}</td>
+        <td style="font-weight:700;color:var(--green)">${fmt$(m.value)}</td>
+        <td class="up">+${fmt$(m.gains)}</td>
+        <td class="shares-col">${fmtShares(m.shares)} shares</td>
+      </tr>`).join('');
+  }
+
+  // ── Event Wiring ──
+  document.getElementById('asset-grid').addEventListener('click', e => {
+    const btn = e.target.closest('[data-ticker]');
+    if (!btn) return;
+    document.querySelectorAll('.asset-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.ticker = btn.dataset.ticker;
+    state.annualRet = parseFloat(btn.dataset.ret);
+    state.assetName = btn.dataset.name;
+    const isCustom = state.ticker === 'CUSTOM';
+    document.getElementById('custom-ret-field').style.display = isCustom ? 'flex' : 'none';
+    if (!isCustom) calculate();
+  });
+
+  document.getElementById('custom-ret').addEventListener('input', e => {
+    state.annualRet = parseFloat(e.target.value);
+    document.getElementById('custom-ret-lbl').textContent = state.annualRet + '%';
+    calculate();
+  });
+
+  document.getElementById('amount-presets').addEventListener('click', e => {
+    const btn = e.target.closest('[data-val]');
+    if (!btn) return;
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('contrib-amount').value = btn.dataset.val;
+    state.amount = parseFloat(btn.dataset.val);
+    calculate();
+  });
+
+  document.getElementById('contrib-amount').addEventListener('input', e => {
+    state.amount = parseFloat(e.target.value) || 0;
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    const match = document.querySelector(`.preset-btn[data-val="${state.amount}"]`);
+    if (match) match.classList.add('active');
+    calculate();
+  });
+
+  document.getElementById('frequency').addEventListener('change', e => {
+    state.freqPerYear = parseInt(e.target.value);
+    calculate();
+  });
+
+  document.getElementById('years-range').addEventListener('input', e => {
+    state.years = parseInt(e.target.value);
+    document.getElementById('years-lbl').textContent = state.years + ' year' + (state.years !== 1 ? 's' : '');
+    calculate();
+  });
+
+  document.getElementById('starting').addEventListener('input', e => {
+    state.starting = parseFloat(e.target.value) || 0;
+    calculate();
+  });
+
+  window.addEventListener('resize', () => {
+    if (typeof calculate === 'function') calculate();
+  });
+
+  calculate();
+</script>
+</body>
+</html>

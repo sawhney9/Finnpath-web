@@ -383,7 +383,8 @@
     <li><a href="index.html">Home</a></li>
     <li><a href="learn.html">Learn</a></li>
     <li><a href="calculator.html">Calculator</a></li>
-    <li><a href="simulator.html">Simulator</a></li>
+    <li><a href="tools.html">Tools</a></li>
+    <li><a href="simulator.html">Tracker</a></li>
     <li><a href="paths.html" class="active">Your Path</a></li>
     <li><a href="blog.html">Money Moves</a></li>
   </ul>
@@ -904,10 +905,11 @@
       <div class="s-eyebrow" style="justify-content:center">Stay sharp</div>
       <h2>One money lesson.<br/>Every week.</h2>
       <p class="nl-sub">Short, practical financial education delivered to your inbox — written for real people at every stage of their journey. Newsletter subscribers get early access to the 401k decoder when it launches.</p>
-      <div class="email-form">
-        <input class="email-input" type="email" placeholder="you@email.com"/>
-        <button class="btn-sub">Join Free</button>
-      </div>
+      <form class="email-form" data-newsletter-form>
+        <input class="email-input" type="email" name="email" autocomplete="email" required placeholder="you@email.com"/>
+        <button class="btn-sub" type="submit">Join Free</button>
+      </form>
+      <p class="nl-note" data-newsletter-feedback></p>
       <p class="nl-note">No spam. Unsubscribe anytime. Early access to new features.</p>
     </div>
   </div>
@@ -1017,5 +1019,6 @@ document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
   });
 })();
 </script>
+<script src="newsletter.js"></script>
 </body>
 </html>
