@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>401k Plan Decoder — Finnpath</title>
+  <meta name="description" content="Upload your 401k plan documents and get a plain-English breakdown of your options, employer match, vesting schedule, and hypothetical investing scenarios."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="shared.css?v=5"/>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+  <style>
+    /* ── PAGE HERO ── */
+    .page-hero {
+      padding: calc(var(--nav-h) + 56px) 56px 56px;
+      background: var(--navy-mid); border-bottom: 1px solid var(--border);
+      position: relative; overflow: hidden; text-align: center;
+    }
+    .page-hero::before {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 60% 80% at 15% 50%, rgba(74,144,217,.07) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 60% at 85% 50%, rgba(232,96,76,.06) 0%, transparent 65%);
+    }
+    .hero-inner { max-width: 700px; margin-inline: auto; position: relative; z-index: 1; }
+    .page-hero h1 {
+      font-family: 'Playfair Display', serif; font-weight: 900;
+      font-size: clamp(2rem, 4vw, 3rem); letter-spacing: -.03em; line-height: 1.08; margin-top: 16px;
+    }
+    .page-hero h1 em { font-style: italic; color: var(--sky); }
+    .page-hero p { font-size: .95rem; color: var(--white-dim); font-weight: 300; line-height: 1.8; margin-top: 14px; }
+
+    /* ── MAIN CONTENT ── */
+    .tool-wrap { max-width: 860px; margin-inline: auto; padding: 48px 56px 80px; }
+
+    /* ── UPLOAD ZONE ── */
+    .upload-zone {
+      border: 2px dashed rgba(74,144,217,.35); border-radius: 16px;
+      background: rgba(74,144,217,.04); padding: 52px 32px;
+      text-align: center; cursor: pointer; transition: all .25s;
+      position: relative;
+    }
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: var(--sky); background: rgba(74,144,217,.09);
+      transform: translateY(-2px);
+    }
+    .upload-zone.has-file {
+      border-color: var(--green); background: rgba(61,186,126,.06);
+      border-style: solid;
+    }
+    .upload-icon { font-size: 2.8rem; margin-bottom: 14px; }
+    .upload-zone h3 { font-family: 'Playfair Display', serif; font-size: 1.3rem; margin-bottom: 8px; }
+    .upload-zone p { font-size: .85rem; color: var(--white-dim); }
+    .upload-zone input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .file-name {
+      margin-top: 14px; font-size: .82rem; color: var(--green); font-weight: 600;
+      display: none; align-items: center; justify-content: center; gap: 8px;
+    }
+    .file-name.visible { display: flex; }
+
+    /* ── ANALYZE BUTTON ── */
+    .btn-analyze {
+      width: 100%; margin-top: 20px; padding: 15px;
+      background: linear-gradient(135deg, var(--sky), #3070b8);
+      color: #fff; font-weight: 800; font-size: 1rem; font-family: 'Plus Jakarta Sans', sans-serif;
+      border: none; border-radius: 10px; cursor: pointer;
+      transition: all .2s; display: none;
+      box-shadow: 0 4px 20px rgba(74,144,217,.3);
+    }
+    .btn-analyze:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(74,144,217,.4); }
+    .btn-analyze:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+    .btn-analyze.visible { display: block; }
+
+    /* ── LOADING ── */
+    .loading-state {
+      display: none; text-align: center; padding: 48px 20px;
+    }
+    .loading-state.visible { display: block; }
+    .spinner {
+      width: 48px; height: 48px; border: 3px solid var(--border);
+      border-top-color: var(--sky); border-radius: 50%;
+      animation: spin .9s linear infinite; margin: 0 auto 20px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-steps { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; max-width: 320px; margin-inline: auto; }
+    .step { font-size: .82rem; color: var(--white-dim); display: flex; align-items: center; gap: 10px; }
+    .step.done { color: var(--green); }
+    .step.active { color: var(--white); font-weight: 600; }
+    .step-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--border); flex-shrink: 0;
+      transition: background .3s;
+    }
+    .step.done .step-dot { background: var(--green); }
+    .step.active .step-dot { background: var(--sky); animation: pulse 1s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    /* ── RESULTS ── */
+    .results { display: none; }
+    .results.visible { display: block; }
+
+    .result-section {
+      background: var(--navy-mid); border: 1px solid var(--border);
+      border-radius: 16px; padding: 28px 32px; margin-bottom: 20px;
+    }
+    .result-section h3 {
+      font-family: 'Playfair Display', serif; font-size: 1.2rem;
+      margin-bottom: 16px; display: flex; align-items: center; gap: 10px;
+    }
+    .section-icon {
+      width: 36px; height: 36px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;
+    }
+    .icon-blue  { background: rgba(74,144,217,.15); }
+    .icon-green { background: rgba(61,186,126,.15); }
+    .icon-gold  { background: rgba(201,168,76,.15); }
+    .icon-coral { background: rgba(232,96,76,.15); }
+
+    /* fact grid */
+    .facts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+    .fact-card {
+      background: var(--navy-card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px 18px;
+    }
+    .fact-label { font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--white-dim); margin-bottom: 6px; }
+    .fact-val { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 700; }
+    .fact-val.sky   { color: var(--sky); }
+    .fact-val.green { color: var(--green); }
+    .fact-val.gold  { color: var(--gold); }
+    .fact-note { font-size: .73rem; color: var(--white-dim); margin-top: 4px; line-height: 1.5; }
+
+    /* allow/restrict lists */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .list-group { background: var(--navy-card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; }
+    .list-group-title { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 12px; }
+    .list-group-title.green { color: var(--green); }
+    .list-group-title.coral { color: var(--coral); }
+    .check-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .check-list li { font-size: .84rem; display: flex; align-items: flex-start; gap: 8px; line-height: 1.5; }
+    .check-list li::before { content: '✓'; color: var(--green); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+    .cross-list li::before { content: '✗'; color: var(--coral); }
+
+    /* scenarios */
+    .scenario-card {
+      background: var(--navy-card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 20px 24px; margin-bottom: 12px; position: relative; overflow: hidden;
+    }
+    .scenario-card::before {
+      content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+      background: var(--sky);
+    }
+    .scenario-card.best::before { background: var(--green); }
+    .scenario-card.moderate::before { background: var(--gold); }
+    .scenario-card.conservative::before { background: var(--white-dim); }
+    .scenario-label {
+      font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em;
+      color: var(--sky); margin-bottom: 6px;
+    }
+    .scenario-card.best    .scenario-label { color: var(--green); }
+    .scenario-card.moderate .scenario-label { color: var(--gold); }
+    .scenario-card.conservative .scenario-label { color: var(--white-dim); }
+    .scenario-title { font-family: 'Playfair Display', serif; font-size: 1.05rem; margin-bottom: 8px; }
+    .scenario-body { font-size: .84rem; color: var(--white-dim); line-height: 1.7; }
+    .scenario-body strong { color: var(--white); }
+
+    /* disclaimer */
+    .disclaimer-box {
+      background: rgba(232,96,76,.06); border: 1px solid rgba(232,96,76,.2);
+      border-radius: 12px; padding: 20px 24px; margin-top: 28px;
+      display: flex; gap: 14px; align-items: flex-start;
+    }
+    .disclaimer-icon { font-size: 1.4rem; flex-shrink: 0; margin-top: 2px; }
+    .disclaimer-box p { font-size: .8rem; color: rgba(250,249,247,.55); line-height: 1.75; }
+    .disclaimer-box strong { color: rgba(250,249,247,.8); }
+
+    /* ── NEW ANALYSIS BUTTON ── */
+    .btn-reset {
+      background: transparent; border: 1px solid var(--border); color: var(--white-dim);
+      padding: 10px 22px; border-radius: 8px; font-size: .85rem; font-family: 'Plus Jakarta Sans', sans-serif;
+      cursor: pointer; margin-top: 24px; transition: all .2s;
+    }
+    .btn-reset:hover { border-color: rgba(250,249,247,.25); color: var(--white); }
+
+    @media(max-width: 720px) {
+      .tool-wrap { padding: 32px 20px 60px; }
+      .two-col { grid-template-columns: 1fr; }
+      .facts-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="logo">Finnpath<span class="logo-dot">.</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="learn.html">Learn</a></li>
+    <li><a href="calculator.html">Calculator</a></li>
+    <li><a href="simulator.html">Tracker</a></li>
+    <li><a href="401k.html" class="active">401k Decoder</a></li>
+    <li><a href="blog.html">Money Moves</a></li>
+  </ul>
+  <a href="simulator.html" class="nav-cta">Track Portfolio →</a>
+</nav>
+
+<!-- HERO -->
+<div class="page-hero">
+  <div class="hero-inner">
+    <div class="s-eyebrow" style="justify-content:center">New Tool</div>
+    <h1>Decode your <em>401k plan</em><br/>in plain English</h1>
+    <p>Upload your employer's 401k plan document and get a clear breakdown of what's allowed, your match details, and hypothetical scenarios to maximize your benefits.</p>
+  </div>
+</div>
+
+<!-- TOOL -->
+<div class="tool-wrap">
+
+  <!-- UPLOAD -->
+  <div id="upload-section">
+    <div class="upload-zone" id="upload-zone">
+      <input type="file" id="pdf-input" accept=".pdf,.txt" aria-label="Upload your 401k plan PDF"/>
+      <div class="upload-icon">📄</div>
+      <h3>Drop your 401k plan document here</h3>
+      <p>Accepts PDF or plain text files — your document never leaves your browser</p>
+    </div>
+    <div class="file-name" id="file-name-display">
+      <span>✓</span><span id="file-name-text"></span>
+    </div>
+    <button class="btn-analyze" id="btn-analyze" onclick="analyzeDocument()">
+      Analyze My 401k Plan →
+    </button>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading-state" id="loading-state">
+    <div class="spinner"></div>
+    <p style="color:var(--white-dim);font-size:.9rem">Reading your plan document…</p>
+    <div class="loading-steps">
+      <div class="step" id="step-1"><div class="step-dot"></div>Extracting plan details</div>
+      <div class="step" id="step-2"><div class="step-dot"></div>Identifying contribution rules</div>
+      <div class="step" id="step-3"><div class="step-dot"></div>Analyzing investment options</div>
+      <div class="step" id="step-4"><div class="step-dot"></div>Building hypothetical scenarios</div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="results" id="results"></div>
+
+</div>
+
+<script type="module">
+  // ── PDF.js for reading the PDF in-browser ──
+  const PDFJS_CDN = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+  const PDFJS_WORKER = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+  const GEMINI_API_KEY = "AIzaSyCBPd8YbW3uiZTtF92oW-1QuGi027faxKU";
+  const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+  let extractedText = "";
+
+  // ── File input handling ──
+  const input   = document.getElementById('pdf-input');
+  const zone    = document.getElementById('upload-zone');
+  const fileTag = document.getElementById('file-name-display');
+  const fileNameText = document.getElementById('file-name-text');
+  const btnAnalyze = document.getElementById('btn-analyze');
+
+  input.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) setFile(file);
+  });
+
+  zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) setFile(file);
+  });
+
+  function setFile(file) {
+    zone.classList.add('has-file');
+    fileNameText.textContent = file.name;
+    fileTag.classList.add('visible');
+    btnAnalyze.classList.add('visible');
+    window._pendingFile = file;
+  }
+
+  // ── Load PDF.js dynamically ──
+  async function loadPdfJs() {
+    return new Promise((resolve) => {
+      if (window.pdfjsLib) return resolve();
+      const s = document.createElement('script');
+      s.src = PDFJS_CDN;
+      s.onload = () => {
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
+        resolve();
+      };
+      document.head.appendChild(s);
+    });
+  }
+
+  // ── Extract text from PDF ──
+  async function extractPdfText(file) {
+    await loadPdfJs();
+    const bytes = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: bytes }).promise;
+    let text = "";
+    for (let i = 1; i <= Math.min(pdf.numPages, 30); i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      text += content.items.map(item => item.str).join(' ') + "\n";
+    }
+    return text.trim().slice(0, 15000); // cap for API limits
+  }
+
+  // ── Step animation ──
+  function setStep(n) {
+    [1,2,3,4].forEach(i => {
+      const el = document.getElementById(`step-${i}`);
+      el.className = 'step' + (i < n ? ' done' : i === n ? ' active' : '');
+    });
+  }
+
+  // ── Main analysis function (exposed globally) ──
+  window.analyzeDocument = async function() {
+    const file = window._pendingFile;
+    if (!file) return;
+
+    // Show loading
+    document.getElementById('upload-section').style.display = 'none';
+    const loading = document.getElementById('loading-state');
+    loading.classList.add('visible');
+
+    try {
+      // Step 1 — Extract text
+      setStep(1);
+      let docText;
+      if (file.type === 'application/pdf') {
+        docText = await extractPdfText(file);
+      } else {
+        docText = await file.text();
+        docText = docText.slice(0, 15000);
+      }
+
+      setStep(2);
+      await delay(600);
+      setStep(3);
+      await delay(500);
+
+      // Step 4 — Call Gemini
+      setStep(4);
+      const result = await callGemini(docText);
+
+      loading.classList.remove('visible');
+      renderResults(result);
+
+    } catch (err) {
+      loading.classList.remove('visible');
+      document.getElementById('upload-section').style.display = 'block';
+      alert("Something went wrong: " + err.message);
+      console.error(err);
+    }
+  };
+
+  // ── Gemini API call ──
+  async function callGemini(docText) {
+    const prompt = `You are a financial education assistant for Finnpath, a platform that helps young adults (18-30) understand their workplace benefits.
+
+A user has uploaded their 401k plan document. Analyze it and return ONLY valid JSON (no markdown, no code fences) with this EXACT structure:
+
+{
+  "planName": "Name of the 401k plan if found, or 'Your 401k Plan'",
+  "summary": "2-3 sentence plain-English overview of the plan for a first-time employee",
+  "keyFacts": [
+    {"label": "Employer Match", "value": "e.g. 50% up to 6%", "note": "short plain-English note", "color": "green"},
+    {"label": "Employee Contribution Limit", "value": "e.g. $23,500/yr (2025)", "note": "short note", "color": "sky"},
+    {"label": "Vesting Schedule", "value": "e.g. 3-year graded", "note": "short note", "color": "gold"},
+    {"label": "Eligible After", "value": "e.g. 90 days", "note": "short note", "color": "sky"}
+  ],
+  "allowed": [
+    "plain-English list of things this plan allows (e.g. Roth after-tax contributions, loans, hardship withdrawals)",
+    "add 3-6 items"
+  ],
+  "notAllowed": [
+    "plain-English list of restrictions or things the plan does not allow",
+    "add 3-5 items"
+  ],
+  "scenarios": [
+    {
+      "type": "best",
+      "label": "Maximize Every Dollar",
+      "title": "Contribute enough to capture the full employer match",
+      "body": "Detailed hypothetical scenario (2-3 sentences) explaining exactly how much to contribute, how much the employer adds, and a rough estimate of long-term value. Use specific numbers from the plan if possible."
+    },
+    {
+      "type": "moderate",
+      "label": "Balance Growth & Cash Flow",
+      "title": "Contribute comfortably while keeping take-home pay livable",
+      "body": "Hypothetical scenario for someone contributing slightly less than max, still getting meaningful match. Focus on balance."
+    },
+    {
+      "type": "conservative",
+      "label": "Start Small, Build Up",
+      "title": "Start with the minimum and increase contributions annually",
+      "body": "Scenario for someone just starting out who increases contribution 1-2% per year. Motivating and realistic."
+    }
+  ],
+  "watchOuts": [
+    "1-2 sentence warning about something people commonly miss (e.g. forgetting to invest contributions, leaving before full vesting)"
+  ]
+}
+
+If you cannot find specific values in the document for required fields, use reasonable 2025 defaults and note them as "Standard Plan Default". Keep all explanations under a 7th-grade reading level.
+
+Here is the 401k plan document text:
+---
+${docText}
+---`;
+
+    const res = await fetch(GEMINI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.3, maxOutputTokens: 2048 }
+      })
+    });
+
+    if (!res.ok) throw new Error(`API error ${res.status}: ${await res.text()}`);
+    const data = await res.json();
+    let text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+    // Strip fences if any
+    text = text.replace(/^```(?:json)?\s*/m, '').replace(/\s*```$/m, '').trim();
+    return JSON.parse(text);
+  }
+
+  // ── Render results ──
+  function renderResults(d) {
+    const el = document.getElementById('results');
+    el.classList.add('visible');
+
+    el.innerHTML = `
+      <!-- PLAN OVERVIEW -->
+      <div class="result-section">
+        <h3>
+          <div class="section-icon icon-blue">📋</div>
+          ${d.planName || 'Your 401k Plan'}
+        </h3>
+        <p style="color:var(--white-dim);font-size:.9rem;line-height:1.8;margin-bottom:20px">${d.summary}</p>
+
+        <div class="facts-grid">
+          ${(d.keyFacts || []).map(f => `
+            <div class="fact-card">
+              <div class="fact-label">${f.label}</div>
+              <div class="fact-val ${f.color || 'sky'}">${f.value}</div>
+              <div class="fact-note">${f.note}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <!-- ALLOWED / NOT ALLOWED -->
+      <div class="result-section">
+        <h3>
+          <div class="section-icon icon-green">📜</div>
+          What Your Plan Allows &amp; Doesn't
+        </h3>
+        <div class="two-col">
+          <div class="list-group">
+            <div class="list-group-title green">✓ What's Allowed</div>
+            <ul class="check-list">
+              ${(d.allowed || []).map(i => `<li>${i}</li>`).join('')}
+            </ul>
+          </div>
+          <div class="list-group">
+            <div class="list-group-title coral">✗ What's Not Allowed</div>
+            <ul class="check-list cross-list">
+              ${(d.notAllowed || []).map(i => `<li>${i}</li>`).join('')}
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCENARIOS -->
+      <div class="result-section">
+        <h3>
+          <div class="section-icon icon-gold">💡</div>
+          Hypothetical Investing Scenarios
+        </h3>
+        ${(d.scenarios || []).map(s => `
+          <div class="scenario-card ${s.type}">
+            <div class="scenario-label">${s.label}</div>
+            <div class="scenario-title">${s.title}</div>
+            <div class="scenario-body">${s.body}</div>
+          </div>
+        `).join('')}
+      </div>
+
+      ${d.watchOuts && d.watchOuts.length ? `
+      <!-- WATCH OUTS -->
+      <div class="result-section" style="border-color:rgba(201,168,76,.2); background:rgba(201,168,76,.04);">
+        <h3 style="color:var(--gold)">
+          <div class="section-icon icon-gold">⚠️</div>
+          Things People Often Miss
+        </h3>
+        ${d.watchOuts.map(w => `<p style="font-size:.88rem;color:var(--white-dim);line-height:1.75;margin-bottom:8px">• ${w}</p>`).join('')}
+      </div>` : ''}
+
+      <!-- DISCLAIMER -->
+      <div class="disclaimer-box">
+        <div class="disclaimer-icon">⚖️</div>
+        <p>
+          <strong>This is for educational purposes only.</strong> The analysis above is generated from your plan document using AI and is intended to help you understand your options — not to provide financial, legal, or tax advice. Contribution limits, vesting schedules, and plan rules can change. Every person's financial situation is unique. <strong>Please consult a licensed financial advisor or your HR/benefits team before making any investment decisions.</strong> Finnpath is not responsible for any decisions made based on this tool.
+        </p>
+      </div>
+
+      <button class="btn-reset" onclick="resetTool()">← Analyze Another Document</button>
+    `;
+  }
+
+  window.resetTool = function() {
+    document.getElementById('results').classList.remove('visible');
+    document.getElementById('results').innerHTML = '';
+    document.getElementById('upload-section').style.display = 'block';
+    document.getElementById('upload-zone').classList.remove('has-file');
+    document.getElementById('file-name-display').classList.remove('visible');
+    document.getElementById('btn-analyze').classList.remove('visible');
+    document.getElementById('pdf-input').value = '';
+    window._pendingFile = null;
+    extractedText = '';
+  };
+
+  function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+</script>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div>
+      <div class="f-logo">Finnpath<span>.</span></div>
+      <p class="f-tagline">Financial education for every stage of life.</p>
+    </div>
+    <nav class="footer-nav">
+      <a href="index.html">Home</a>
+      <a href="learn.html">Learn</a>
+      <a href="calculator.html">Calculator</a>
+      <a href="simulator.html">Tracker</a>
+      <a href="401k.html">401k Decoder</a>
+      <a href="blog.html">Money Moves</a>
+    </nav>
+  </div>
+  <div class="footer-bottom">
+    <p class="footer-copy">© 2025 Finnpath. All rights reserved.</p>
+    <p class="disclaimer">This tool is for educational and informational purposes only and does not constitute financial, legal, or tax advice. Always consult a qualified financial professional before making investment decisions.</p>
+  </div>
+</footer>
+
+</body>
+</html>
