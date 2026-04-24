@@ -161,25 +161,42 @@
     .path-cta:hover { letter-spacing:.02em; }
 
     /* ── TOOLS DROPDOWN ── */
-    .nav-dropdown { position:relative; }
-    .nav-dropdown-toggle { display:flex; align-items:center; gap:5px; cursor:pointer; }
-    .nav-caret { font-size:.65rem; opacity:.6; transition:transform .2s; }
-    .nav-dropdown:hover .nav-caret { transform:rotate(180deg); }
+    .nav-dropdown {
+      position: relative; align-self: stretch;
+      display: flex; align-items: center;
+    }
+    .nav-dropdown-toggle {
+      height: 100%; display: flex; align-items: center; gap: 5px; cursor: pointer;
+      font-size: .85rem; font-weight: 500; color: var(--white-dim); transition: color .2s;
+      letter-spacing: .01em;
+    }
+    .nav-dropdown:hover .nav-dropdown-toggle { color: var(--white); }
+    .nav-caret { font-size: .58rem; opacity: .5; display: inline-block; transition: transform .22s ease; }
+    .nav-dropdown:hover .nav-caret { transform: rotate(180deg); }
     .nav-dropdown-menu {
-      display:none; position:absolute; top:calc(100% + 12px); left:50%;
-      transform:translateX(-50%);
-      background:rgba(15,32,64,.97); backdrop-filter:blur(20px);
-      border:1px solid var(--border); border-radius:12px;
-      padding:8px; min-width:190px;
-      box-shadow:0 12px 40px rgba(0,0,0,.4);
+      position: absolute; top: 100%; left: 50%;
+      transform: translateX(-50%) translateY(8px);
+      opacity: 0; pointer-events: none;
+      transition: opacity .18s ease, transform .18s ease;
+      background: rgba(10,22,40,.97);
+      backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(250,249,247,.09); border-radius: 14px;
+      padding: 6px; min-width: 200px;
+      box-shadow: 0 20px 52px rgba(0,0,0,.5);
     }
-    .nav-dropdown:hover .nav-dropdown-menu { display:block; }
+    .nav-dropdown:hover .nav-dropdown-menu {
+      opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0);
+    }
     .nav-dropdown-menu a {
-      display:block; padding:10px 14px; border-radius:8px;
-      font-size:.82rem; font-weight:500; color:var(--white-dim);
-      text-decoration:none; transition:background .15s, color .15s; white-space:nowrap;
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border-radius: 9px;
+      font-size: .82rem; font-weight: 500; letter-spacing: .01em;
+      color: rgba(250,249,247,.62); text-decoration: none;
+      transition: background .14s, color .14s; white-space: nowrap;
     }
-    .nav-dropdown-menu a:hover { background:var(--white-faint); color:var(--white); }
+    .nav-dropdown-menu a + a { border-top: 1px solid rgba(250,249,247,.05); }
+    .nav-dropdown-menu a:hover { background: rgba(250,249,247,.07); color: var(--white); }
+
 
     /* ── WHO IS THIS FOR ── */
     .who-grid {
