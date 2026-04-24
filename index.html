@@ -160,6 +160,51 @@
     .path-cta { font-size:.78rem; font-weight:700; color:var(--coral); text-decoration:none; margin-top:auto; transition:letter-spacing .2s; }
     .path-cta:hover { letter-spacing:.02em; }
 
+    /* ── TOOLS DROPDOWN ── */
+    .nav-dropdown { position:relative; }
+    .nav-dropdown-toggle { display:flex; align-items:center; gap:5px; cursor:pointer; }
+    .nav-caret { font-size:.65rem; opacity:.6; transition:transform .2s; }
+    .nav-dropdown:hover .nav-caret { transform:rotate(180deg); }
+    .nav-dropdown-menu {
+      display:none; position:absolute; top:calc(100% + 12px); left:50%;
+      transform:translateX(-50%);
+      background:rgba(15,32,64,.97); backdrop-filter:blur(20px);
+      border:1px solid var(--border); border-radius:12px;
+      padding:8px; min-width:190px;
+      box-shadow:0 12px 40px rgba(0,0,0,.4);
+    }
+    .nav-dropdown:hover .nav-dropdown-menu { display:block; }
+    .nav-dropdown-menu a {
+      display:block; padding:10px 14px; border-radius:8px;
+      font-size:.82rem; font-weight:500; color:var(--white-dim);
+      text-decoration:none; transition:background .15s, color .15s; white-space:nowrap;
+    }
+    .nav-dropdown-menu a:hover { background:var(--white-faint); color:var(--white); }
+
+    /* ── WHO IS THIS FOR ── */
+    .who-grid {
+      display:grid; grid-template-columns:repeat(3,1fr); gap:20px;
+    }
+    .who-card {
+      background:var(--navy-mid); border:1px solid var(--border); border-radius:16px;
+      padding:32px 28px; text-decoration:none; color:var(--white);
+      display:flex; flex-direction:column; gap:10px;
+      transition:transform .25s, border-color .25s, box-shadow .25s;
+    }
+    .who-card:hover { transform:translateY(-5px); border-color:rgba(250,249,247,.15); box-shadow:0 16px 40px rgba(0,0,0,.25); }
+    .who-card-featured {
+      background:linear-gradient(135deg, rgba(74,144,217,.12), rgba(61,186,126,.08));
+      border-color:rgba(74,144,217,.25);
+    }
+    .who-card-featured:hover { border-color:rgba(74,144,217,.5); box-shadow:0 16px 40px rgba(74,144,217,.15); }
+    .who-icon { font-size:2.2rem; }
+    .who-tag { font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--white-dim); }
+    .who-card-featured .who-tag { color:var(--sky); }
+    .who-title { font-family:'Playfair Display',serif; font-size:1.2rem; font-weight:700; line-height:1.2; }
+    .who-desc { font-size:.84rem; color:var(--white-dim); line-height:1.75; flex:1; }
+    .who-cta { font-size:.78rem; font-weight:700; color:var(--coral); margin-top:6px; }
+    .who-card-featured .who-cta { color:var(--sky); }
+
     /* ── NEWSLETTER ── */
     #newsletter { background:var(--navy-mid); }
     .nl-wrap { max-width:620px; margin-inline:auto; text-align:center; }
@@ -186,6 +231,7 @@
       .why-grid { grid-template-columns:1fr; gap:40px; }
       .concepts-grid { grid-template-columns:1fr; }
       .paths-grid { grid-template-columns:1fr; }
+      .who-grid { grid-template-columns:1fr; gap:14px; }
     }
     @media(max-width:480px){
       .pages-grid { grid-template-columns:1fr; }
@@ -212,9 +258,14 @@
   <ul class="nav-links">
     <li><a href="index.html" class="active">Home</a></li>
     <li><a href="learn.html">Learn</a></li>
-    <li><a href="calculator.html">Calculator</a></li>
-    <li><a href="tools.html">Tools</a></li>
-    <li><a href="simulator.html">Tracker</a></li>
+    <li class="nav-dropdown">
+      <a href="#" class="nav-dropdown-toggle">Tools <span class="nav-caret">▾</span></a>
+      <div class="nav-dropdown-menu">
+        <a href="calculator.html">🧮 Calculator</a>
+        <a href="simulator.html">📈 Portfolio Tracker</a>
+        <a href="401k.html">📄 401k Decoder</a>
+      </div>
+    </li>
     <li><a href="paths.html">Your Path</a></li>
     <li><a href="blog.html">Money Moves</a></li>
   </ul>
@@ -256,7 +307,7 @@
     <div class="hero-cards">
       <div class="hcard featured">
         <div class="hcard-label">Start at 22, retire at 65</div>
-        <div class="hcard-val">$1,147,000</div>
+        <div class="hcard-val" id="hero-counter">$0</div>
         <div class="hcard-sub">$300/month at 7% avg return — compounding does the heavy lifting</div>
       </div>
       <div class="hcard">
@@ -288,6 +339,40 @@
     <span>Emergency Fund</span><span>·</span><span>Net Worth</span><span>·</span>
   </div>
 </div>
+
+<!-- WHO IS THIS FOR -->
+<section id="who-for" style="padding:72px 56px;background:var(--navy)">
+  <div class="container">
+    <div class="reveal" style="text-align:center;margin-bottom:48px">
+      <div class="s-eyebrow" style="justify-content:center">Find your starting point</div>
+      <h2>Where are you on <em>your journey?</em></h2>
+      <p style="color:var(--white-dim);font-size:.95rem;font-weight:300;margin-top:14px;max-width:520px;margin-inline:auto;line-height:1.8">Finnpath meets you where you are. Pick what fits.</p>
+    </div>
+    <div class="who-grid">
+      <a href="learn.html" class="who-card reveal d1">
+        <div class="who-icon">🎓</div>
+        <div class="who-tag">Student or Teen</div>
+        <h3 class="who-title">I'm just starting out</h3>
+        <p class="who-desc">Learn how money actually works — compound interest, stock basics, and why starting early is your biggest advantage.</p>
+        <div class="who-cta">Start learning →</div>
+      </a>
+      <a href="simulator.html" class="who-card who-card-featured reveal d2">
+        <div class="who-icon">💼</div>
+        <div class="who-tag">Ages 22–30 · First Job</div>
+        <h3 class="who-title">I just got my first real job</h3>
+        <p class="who-desc">Decode your 401k, track your first investments, and figure out how to actually use that signing bonus.</p>
+        <div class="who-cta">Explore tools →</div>
+      </a>
+      <a href="paths.html" class="who-card reveal d3">
+        <div class="who-icon">👨‍👩‍👧</div>
+        <div class="who-tag">Parent or Teacher</div>
+        <h3 class="who-title">I want to teach my kids</h3>
+        <p class="who-desc">Use Finnpath's tools and lessons together. The portfolio tracker is perfect for a real-world learning exercise.</p>
+        <div class="who-cta">See paths →</div>
+      </a>
+    </div>
+  </div>
+</section>
 
 <!-- EXPLORE PAGES -->
 <section id="pages">
@@ -512,5 +597,37 @@ document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
 </script>
 <script src="newsletter.js"></script>
 <script type="module" src="ticker.js"></script>
+<script>
+  // ── Animated hero counter ──
+  (function() {
+    const el = document.getElementById('hero-counter');
+    if (!el) return;
+    const target = 1147000;
+    const duration = 1800;
+    let started = false;
+
+    function animateCount() {
+      if (started) return;
+      started = true;
+      const start = performance.now();
+      function step(now) {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        // ease out cubic
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const current = Math.round(eased * target);
+        el.textContent = '$' + current.toLocaleString();
+        if (progress < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    // Trigger when the hero card scrolls into view
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) { animateCount(); obs.unobserve(e.target); } });
+    }, { threshold: 0.3 });
+    obs.observe(el);
+  })();
+</script>
 </body>
 </html>
