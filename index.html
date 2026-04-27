@@ -6,7 +6,7 @@
   <title>Finnpath — Your Path to Financial Freedom</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="shared.css?v=5"/>
+  <link rel="stylesheet" href="shared.css?v=7"/>
   <style>
     /* ── HERO ── */
     .hero {
@@ -160,68 +160,6 @@
     .path-cta { font-size:.78rem; font-weight:700; color:var(--coral); text-decoration:none; margin-top:auto; transition:letter-spacing .2s; }
     .path-cta:hover { letter-spacing:.02em; }
 
-    /* ── TOOLS DROPDOWN ── */
-    .nav-dropdown {
-      position: relative; align-self: stretch;
-      display: flex; align-items: center;
-    }
-    .nav-dropdown-toggle {
-      height: 100%; display: flex; align-items: center; gap: 5px; cursor: pointer;
-      font-size: .85rem; font-weight: 500; color: var(--white-dim); transition: color .2s;
-      letter-spacing: .01em;
-    }
-    .nav-dropdown:hover .nav-dropdown-toggle { color: var(--white); }
-    .nav-caret { font-size: .58rem; opacity: .5; display: inline-block; transition: transform .22s ease; }
-    .nav-dropdown:hover .nav-caret { transform: rotate(180deg); }
-    .nav-dropdown-menu {
-      position: absolute; top: 100%; left: 50%;
-      transform: translateX(-50%) translateY(8px);
-      opacity: 0; pointer-events: none;
-      transition: opacity .18s ease, transform .18s ease;
-      background: rgba(10,22,40,.97);
-      backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-      border: 1px solid rgba(250,249,247,.09); border-radius: 14px;
-      padding: 6px; min-width: 200px;
-      box-shadow: 0 20px 52px rgba(0,0,0,.5);
-    }
-    .nav-dropdown:hover .nav-dropdown-menu {
-      opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0);
-    }
-    .nav-dropdown-menu a {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 14px; border-radius: 9px;
-      font-size: .82rem; font-weight: 500; letter-spacing: .01em;
-      color: rgba(250,249,247,.62); text-decoration: none;
-      transition: background .14s, color .14s; white-space: nowrap;
-    }
-    .nav-dropdown-menu a + a { border-top: 1px solid rgba(250,249,247,.05); }
-    .nav-dropdown-menu a:hover { background: rgba(250,249,247,.07); color: var(--white); }
-
-
-    /* ── WHO IS THIS FOR ── */
-    .who-grid {
-      display:grid; grid-template-columns:repeat(3,1fr); gap:20px;
-    }
-    .who-card {
-      background:var(--navy-mid); border:1px solid var(--border); border-radius:16px;
-      padding:32px 28px; text-decoration:none; color:var(--white);
-      display:flex; flex-direction:column; gap:10px;
-      transition:transform .25s, border-color .25s, box-shadow .25s;
-    }
-    .who-card:hover { transform:translateY(-5px); border-color:rgba(250,249,247,.15); box-shadow:0 16px 40px rgba(0,0,0,.25); }
-    .who-card-featured {
-      background:linear-gradient(135deg, rgba(74,144,217,.12), rgba(61,186,126,.08));
-      border-color:rgba(74,144,217,.25);
-    }
-    .who-card-featured:hover { border-color:rgba(74,144,217,.5); box-shadow:0 16px 40px rgba(74,144,217,.15); }
-    .who-icon { font-size:2.2rem; }
-    .who-tag { font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--white-dim); }
-    .who-card-featured .who-tag { color:var(--sky); }
-    .who-title { font-family:'Playfair Display',serif; font-size:1.2rem; font-weight:700; line-height:1.2; }
-    .who-desc { font-size:.84rem; color:var(--white-dim); line-height:1.75; flex:1; }
-    .who-cta { font-size:.78rem; font-weight:700; color:var(--coral); margin-top:6px; }
-    .who-card-featured .who-cta { color:var(--sky); }
-
     /* ── NEWSLETTER ── */
     #newsletter { background:var(--navy-mid); }
     .nl-wrap { max-width:620px; margin-inline:auto; text-align:center; }
@@ -253,6 +191,7 @@
     @media(max-width:480px){
       .pages-grid { grid-template-columns:1fr; }
       .hero { padding:calc(var(--nav-h) + 40px) 20px 72px; }
+      .nav-auth .btn-dash-nav { display: none; } /* Hide text button on mobile, just show avatar */
     }
   </style>
   <!-- Favicon -->
@@ -286,8 +225,15 @@
     <li><a href="paths.html">Your Path</a></li>
     <li><a href="blog.html">Money Moves</a></li>
   </ul>
+  <div class="nav-auth">
+    <a href="login.html" id="btn-login-nav" class="btn-login-nav">Log In</a>
+    <div id="user-menu-nav" class="user-nav">
+      <a href="simulator.html" class="btn-dash-nav">Dashboard</a>
+      <img src="" id="avatar-nav" class="user-avatar-nav" alt="Avatar"/>
+      <button id="btn-out-nav" class="btn-out-nav">Sign out</button>
+    </div>
+  </div>
   <button class="nav-burger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
-  <a href="calculator.html" class="nav-cta">Try Calculator</a>
 </nav>
 <div class="nav-backdrop"></div>
 
@@ -645,6 +591,42 @@ document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
     }, { threshold: 0.3 });
     obs.observe(el);
   })();
+</script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+  import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCBPd8YbW3uiZTtF92oW-1QuGi027faxKU",
+    authDomain: "finnpath-b82f3.firebaseapp.com",
+    projectId: "finnpath-b82f3",
+    appId: "1:1058942599170:web:9aef88c5417e18b157e71b"
+  };
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+
+  const btnLogin = document.getElementById('btn-login-nav');
+  const userMenu = document.getElementById('user-menu-nav');
+  const avatar = document.getElementById('avatar-nav');
+  const btnOut = document.getElementById('btn-out-nav');
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      btnLogin.style.display = 'none';
+      userMenu.style.display = 'flex';
+      avatar.src = user.photoURL || '';
+    } else {
+      btnLogin.style.display = 'inline-flex';
+      userMenu.style.display = 'none';
+      avatar.src = '';
+    }
+  });
+
+  btnOut.addEventListener('click', () => {
+    signOut(auth);
+  });
 </script>
 </body>
 </html>

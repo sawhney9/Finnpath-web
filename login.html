@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Log In — Finnpath</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="shared.css?v=7"/>
+  <style>
+    body {
+      background: var(--navy);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    .login-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+    .login-box {
+      background: var(--navy-mid);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px;
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+      animation: fadeUp 0.4s ease both;
+    }
+    .login-box h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      margin-bottom: 8px;
+    }
+    .login-box p {
+      color: var(--white-dim);
+      font-size: .9rem;
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+    .btn-auth {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      padding: 14px;
+      border-radius: 8px;
+      font-size: .95rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      transition: all .2s;
+      margin-bottom: 12px;
+    }
+    .btn-auth-google {
+      background: #ffffff;
+      color: #3c4043;
+      border: 1px solid #dadce0;
+      text-decoration: none;
+    }
+    .btn-auth-google:hover {
+      background: #f8f9fa;
+      box-shadow: 0 1px 3px rgba(60,64,67,0.3);
+    }
+    .btn-auth-google img {
+      width: 20px;
+      height: 20px;
+    }
+    .btn-auth-email {
+      background: transparent;
+      color: rgba(250,249,247,0.4);
+      border: 1px solid rgba(250,249,247,0.1);
+      cursor: not-allowed;
+    }
+    .btn-auth-email:hover {
+      background: rgba(250,249,247,0.02);
+    }
+    .divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 24px 0;
+      color: var(--white-dim);
+      font-size: .75rem;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid var(--border);
+    }
+    .divider:not(:empty)::before { margin-right: .5em; }
+    .divider:not(:empty)::after { margin-left: .5em; }
+    
+    .loading-overlay {
+      position: absolute; inset: 0; background: rgba(10,22,40,0.8);
+      backdrop-filter: blur(4px); display: none; align-items: center;
+      justify-content: center; border-radius: 16px; z-index: 10;
+      font-weight: 600; color: var(--sky);
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="logo">Finnpath<span class="logo-dot">.</span></a>
+</nav>
+
+<div class="login-wrap">
+  <div class="login-box" style="position:relative;">
+    <div id="loading" class="loading-overlay">Logging you in...</div>
+    <h1>Welcome back</h1>
+    <p>Sign in to access your portfolio, groups, and predictions.</p>
+
+    <button class="btn-auth btn-auth-google" id="btn-google">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google Logo"/>
+      Continue with Google
+    </button>
+    
+    <div class="divider">or</div>
+    
+    <button class="btn-auth btn-auth-email" disabled title="Coming soon">
+      ✉️ Continue with Email (Coming soon)
+    </button>
+    
+    <button class="btn-auth btn-auth-email" disabled title="Coming soon" style="margin-top:0;">
+      🍎 Continue with Apple (Coming soon)
+    </button>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+  import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCBPd8YbW3uiZTtF92oW-1QuGi027faxKU",
+    authDomain: "finnpath-b82f3.firebaseapp.com",
+    projectId: "finnpath-b82f3",
+    appId: "1:1058942599170:web:9aef88c5417e18b157e71b"
+  };
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+
+  // If already logged in, go straight to simulator
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      window.location.href = 'simulator.html';
+    }
+  });
+
+  document.getElementById('btn-google').addEventListener('click', () => {
+    document.getElementById('loading').style.display = 'flex';
+    signInWithPopup(auth, provider).then(() => {
+      // successful login will trigger onAuthStateChanged and redirect
+    }).catch(err => {
+      document.getElementById('loading').style.display = 'none';
+      alert("Sign in failed: " + err.message);
+    });
+  });
+</script>
+</body>
+</html>

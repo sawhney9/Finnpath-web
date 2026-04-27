@@ -29,7 +29,7 @@
     .btn-logout{background:transparent;border:1px solid var(--border);color:var(--white-dim);border-radius:6px;padding:6px 12px;font-size:.75rem;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
 
     /* DASHBOARD */
-    .dash-wrap{max-width:1200px;margin-inline:auto;padding:calc(var(--nav-h) + 28px) 48px 80px;display:none;}
+    .dash-wrap{max-width:1200px;margin-inline:auto;padding:28px 48px 80px;display:none;}
 
     /* TABS */
     .dash-tabs{display:flex;gap:0;margin-bottom:28px;border-bottom:1px solid var(--border);overflow-x:auto;}
@@ -84,10 +84,10 @@
     .b-call{background:rgba(61,186,126,.15);color:var(--green);border:1px solid rgba(61,186,126,.3);}
     .b-put{background:rgba(232,96,76,.15);color:var(--coral);border:1px solid rgba(232,96,76,.3);}
 
-    /* PORTFOLIO GRID: ticker type shares avgcost price value return actions */
+    /* PORTFOLIO GRID: ticker assettype shares avgcost price value return actions */
     .port-grid{grid-template-columns:90px 70px 1fr 1fr 1fr 1fr 1fr 70px;}
     /* JOURNAL GRID */
-    .jrn-grid{grid-template-columns:100px 70px 80px 1fr 1fr 1fr auto;}
+    .jrn-grid{grid-template-columns:80px 70px 80px 1fr 1fr 1fr auto;}
     /* OPTIONS GRID */
     .opt-grid{grid-template-columns:80px 60px 80px 100px 70px 1fr 1fr 1fr 60px;}
 
@@ -141,8 +141,8 @@
     .pos-no{background:rgba(232,96,76,.15);color:var(--coral);}
 
     /* MODAL */
-    .modal-bd{position:fixed;inset:0;background:rgba(10,20,38,.88);backdrop-filter:blur(6px);z-index:1000;display:none;padding:40px 20px;overflow-y:auto;align-items:flex-start;justify-content:center;}
-    .modal{background:var(--navy-mid);border:1px solid var(--border);border-radius:16px;padding:30px;width:100%;max-width:500px;margin:auto;}
+    .modal-bd{position:fixed;inset:0;background:rgba(10,20,38,.88);backdrop-filter:blur(6px);z-index:1000;display:none;place-items:center;}
+    .modal{background:var(--navy-mid);border:1px solid var(--border);border-radius:16px;padding:30px;width:100%;max-width:500px;max-height:92vh;overflow-y:auto;}
     .modal h2{font-family:'Playfair Display',serif;margin-bottom:18px;font-size:1.4rem;}
     .fg{margin-bottom:14px;}
     .fg label{display:block;font-size:.72rem;font-weight:700;color:var(--white-dim);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em;}
@@ -165,7 +165,7 @@
     .sec-title{font-family:'Playfair Display',serif;font-weight:700;font-size:1.3rem;}
 
     @media(max-width:900px){
-      .dash-wrap{padding:calc(var(--nav-h) + 16px) 16px 60px;}
+      .dash-wrap{padding:16px 16px 60px;}
       .metrics-row{gap:10px;}
       .port-grid,.jrn-grid,.opt-grid,.bot-grid,.pred-grid{grid-template-columns:1fr 1fr;gap:8px;}
       .tbl-head{display:none;}
@@ -183,15 +183,11 @@
   <ul class="nav-links">
     <li><a href="index.html">Home</a></li>
     <li><a href="learn.html">Learn</a></li>
-    <li class="nav-dropdown">
-      <a href="#" class="nav-dropdown-toggle">Tools <span class="nav-caret">▾</span></a>
-      <div class="nav-dropdown-menu">
-        <a href="calculator.html">🧮 Calculator</a>
-        <a href="simulator.html" class="active">📈 Portfolio Tracker</a>
-        <a href="401k.html">📄 401k Decoder</a>
-      </div>
-    </li>
+    <li><a href="calculator.html">Calculator</a></li>
+    <li><a href="tools.html">Tools</a></li>
+    <li><a href="simulator.html" class="active">Tracker</a></li>
     <li><a href="paths.html">Your Path</a></li>
+    <li><a href="401k.html">401k Decoder</a></li>
     <li><a href="blog.html">Money Moves</a></li>
   </ul>
   <div id="user-menu">
@@ -217,9 +213,10 @@
       <div class="hbadge">Bot Portfolio</div>
       <div class="hbadge">Trade Journal</div>
     </div>
-    <a href="login.html" class="btn-primary" style="display:inline-block; text-decoration:none; text-align:center;">
-      Log In to Start
-    </a>
+    <button class="btn-google" id="btn-google">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="G"/>
+      Sign in with Google to Start
+    </button>
   </div>
 </div>
 
@@ -285,13 +282,13 @@
   <div class="tab-panel" id="tab-journal">
     <div class="sec-hdr">
       <div><div class="sec-title">Trade Journal</div><p style="font-size:.82rem;color:var(--white-dim);margin-top:3px">Full history of every logged trade with notes.</p></div>
-      <button class="btn-add" onclick="document.getElementById('modal-tx').style.display='grid'">+ Log Trade</button>
+      <button class="btn-add" id="btn-add-tx-j">+ Log Trade</button>
     </div>
     <div class="panel">
       <div class="panel-hdr"><span>All Transactions</span></div>
       <div class="tbl-head jrn-grid">
         <div>Date</div><div>Type</div><div>Ticker</div>
-        <div>Qty / Contracts</div><div>Entry Price</div><div>Total Cost</div><div>Notes</div><div></div>
+        <div>Qty / Contracts</div><div>Entry Price</div><div>Total Cost</div><div>Notes</div>
       </div>
       <div id="journal-list">
         <div class="empty-st"><div class="icon">📋</div><h3>No trades logged yet.</h3><p>Every trade you log appears here.</p></div>
@@ -302,8 +299,8 @@
   <!-- ── OPTIONS TAB ── -->
   <div class="tab-panel" id="tab-options">
     <div class="sec-hdr">
-      <div><div class="sec-title">Options &amp; Puts</div><p style="font-size:.82rem;color:var(--white-dim);margin-top:3px">Track calls and puts with strike, expiry, and premium paid.</p></div>
-      <button class="btn-add" onclick="document.getElementById('modal-tx').style.display='grid'">+ Log Option</button>
+      <div><div class="sec-title">Options &amp; Puts</div><p style="font-size:.82rem;color:var(--white-dim);margin-top:3px">Track calls and puts with strike, expiry, and P&amp;L.</p></div>
+      <button class="btn-add" id="btn-add-option">+ Log Option</button>
     </div>
     <div class="panel">
       <div class="panel-hdr"><span>Option Positions</span></div>
@@ -372,6 +369,7 @@
       <div style="display:flex;gap:10px;align-items:center">
         <div class="bot-status"><div class="bot-dot" id="bot-dot"></div><span id="bot-status-txt">Idle</span></div>
         <button class="btn-out-green" id="btn-reset-bot">Reset Sim</button>
+        <button class="btn-add" id="btn-bot-manual">+ Manual Trade</button>
       </div>
     </div>
     <div class="sim-info">ℹ️ This portfolio is designed to be written to by a Python trading bot via the Firestore SDK. Each position is stored under <code>portfolios/{uid}/bot_positions</code>. Your bot can read/write this collection using the Firebase Admin SDK.</div>
@@ -394,7 +392,7 @@
       <div class="panel-hdr"><span>Bot Positions</span></div>
       <div class="tbl-head bot-grid">
         <div>Ticker</div><div>Direction</div><div>Shares</div>
-        <div>Entry Price</div><div>Current Price</div><div>P&amp;L</div><div>Close</div>
+        <div>Entry Price</div><div>Current</div><div>P&amp;L</div><div>Close</div>
       </div>
       <div id="bot-positions-list">
         <div class="empty-st"><div class="icon">🤖</div><h3>No bot positions yet.</h3><p>Connect your Python bot or add a manual trade to begin.</p></div>
@@ -435,10 +433,10 @@
     <div class="fg">
       <label>Asset Type</label>
       <div class="asset-toggle">
-        <button class="at-btn active" id="at-stock" data-type="stock">📊 Stock</button>
-        <button class="at-btn" id="at-crypto" data-type="crypto">₿ Crypto</button>
-        <button class="at-btn" id="at-call" data-type="call">📈 Call</button>
-        <button class="at-btn" id="at-put" data-type="put">📉 Put</button>
+        <button class="at-btn active" id="at-stock">📊 Stock</button>
+        <button class="at-btn" id="at-crypto">₿ Crypto</button>
+        <button class="at-btn" id="at-call">📈 Call</button>
+        <button class="at-btn" id="at-put">📉 Put</button>
       </div>
     </div>
     <div class="fg"><label>Ticker Symbol</label><input type="text" id="tx-ticker" placeholder="e.g. AAPL" style="text-transform:uppercase"/><div class="form-hint" id="tx-hint">Enter a stock ticker.</div></div>
@@ -493,445 +491,3 @@
     </div>
   </div>
 </div>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
-  import { getAuth, signInWithPopup, signInWithRedirect, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
-  import { getFirestore, collection, addDoc, query, onSnapshot, orderBy, doc, getDoc, setDoc, updateDoc, arrayUnion, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
-
-  // CONFIG
-  const firebaseConfig = {
-    apiKey: "AIzaSyCBPd8YbW3uiZTtF92oW-1QuGi027faxKU",
-    authDomain: "finnpath-b82f3.firebaseapp.com",
-    projectId: "finnpath-b82f3",
-    storageBucket: "finnpath-b82f3.firebasestorage.app",
-    messagingSenderId: "1058942599170",
-    appId: "1:1058942599170:web:9aef88c5417e18b157e71b"
-  };
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-  const provider = new GoogleAuthProvider();
-  const FINNHUB_KEY = "d7ilfrpr01qn2qaug760d7ilfrpr01qn2qaug76g";
-  const MANIFOLD = "https://api.manifold.markets/v0";
-
-  const CRYPTO_IDS = { BTC:'bitcoin', ETH:'ethereum', SOL:'solana', ADA:'cardano', DOGE:'dogecoin', XRP:'ripple', AVAX:'avalanche-2', MATIC:'matic-network', LINK:'chainlink' };
-
-  let currentUser = null;
-  let activeUnsubs = [];
-  let currentAssetType = 'stock';
-  let chartInstance = null;
-
-  // UTILS
-  function fmt$(n) { return '$' + Number(n).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}); }
-  function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-  function getBadge(type) {
-    if(type==='crypto') return `<span class="badge b-crypto">Crypto</span>`;
-    if(type==='call') return `<span class="badge b-call">Call</span>`;
-    if(type==='put') return `<span class="badge b-put">Put</span>`;
-    return `<span class="badge b-stock">Stock</span>`;
-  }
-
-  let isSigningOut = false;
-
-  // AUTH
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      currentUser = user;
-      document.getElementById('auth-hero').style.display = 'none';
-      document.getElementById('dashboard').style.display = 'block';
-      document.getElementById('user-menu').style.display = 'flex';
-      document.getElementById('avatar').src = user.photoURL || '';
-      await setDoc(doc(db, `portfolios/${user.uid}`), { ownerEmail: user.email }, { merge: true });
-      loadTransactions(user.uid);
-      loadBotPositions(user.uid);
-      loadUserGroups(user.uid);
-      loadPredictionMarkets();
-      loadMyPredictions(user.uid);
-    } else {
-      currentUser = null;
-      activeUnsubs.forEach(u => u()); activeUnsubs = [];
-      document.getElementById('auth-hero').style.display = 'block';
-      document.getElementById('dashboard').style.display = 'none';
-      document.getElementById('user-menu').style.display = 'none';
-    }
-  });
-
-  document.getElementById('btn-out').addEventListener('click', () => {
-    signOut(auth).then(() => { window.location.href = 'index.html'; });
-  });
-
-  // TABS
-  document.querySelectorAll('.dash-tab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
-    });
-  });
-
-  // MODAL TOGGLE
-  document.getElementById('btn-add-tx').addEventListener('click', () => openTxModal('stock'));
-  document.getElementById('btn-add-option').addEventListener('click', () => openTxModal('call'));
-
-  function openTxModal(type) {
-    document.getElementById('modal-tx').style.display = 'grid';
-    document.getElementById('tx-date').value = new Date().toISOString().split('T')[0];
-    setTxType(type);
-  }
-
-  document.querySelectorAll('.at-btn[data-type]').forEach(btn => {
-    btn.addEventListener('click', () => setTxType(btn.dataset.type));
-  });
-
-  function setTxType(type) {
-    currentAssetType = type;
-    document.querySelectorAll('.at-btn[data-type]').forEach(b => b.classList.toggle('active', b.dataset.type === type));
-    const isOpt = (type === 'call' || type === 'put');
-    document.getElementById('opt-fields').style.display = isOpt ? 'block' : 'none';
-    document.getElementById('qty-label').textContent = isOpt ? 'Number of Contracts' : 'Shares / Units';
-    document.getElementById('price-label').textContent = isOpt ? 'Premium per Contract ($)' : 'Purchase Price per Share ($)';
-  }
-
-  document.getElementById('tx-submit').addEventListener('click', async () => {
-    const ticker = document.getElementById('tx-ticker').value.toUpperCase().trim();
-    const shares = parseFloat(document.getElementById('tx-shares').value);
-    const costBasis = parseFloat(document.getElementById('tx-price').value);
-    const date = document.getElementById('tx-date').value;
-    const notes = document.getElementById('tx-notes').value.trim();
-    if (!ticker || !shares || !costBasis || !date) return alert('Fill required fields');
-
-    const data = { ticker, shares, costBasis, date, assetType: currentAssetType, notes, createdAt: new Date() };
-    if (currentAssetType === 'call' || currentAssetType === 'put') {
-      data.optionStrike = parseFloat(document.getElementById('tx-strike').value) || 0;
-      data.optionExpiry = document.getElementById('tx-expiry').value || '';
-    }
-
-    const btn = document.getElementById('tx-submit');
-    btn.disabled = true; btn.textContent = 'Saving...';
-    try {
-      await addDoc(collection(db, `portfolios/${currentUser.uid}/transactions`), data);
-      document.getElementById('modal-tx').style.display = 'none';
-      document.getElementById('tx-ticker').value = '';
-      document.getElementById('tx-shares').value = '';
-      document.getElementById('tx-price').value = '';
-    } catch(e) { alert(e.message); }
-    finally { btn.disabled = false; btn.textContent = 'Save Trade'; }
-  });
-
-  async function deleteTrade(id) {
-    if(confirm('Delete this trade?')) {
-      await deleteDoc(doc(db, `portfolios/${currentUser.uid}/transactions/${id}`));
-    }
-  }
-
-  // LOAD TRANSACTIONS (Portfolio, Journal, Options)
-  function loadTransactions(uid) {
-    const q = query(collection(db, `portfolios/${uid}/transactions`), orderBy('createdAt', 'desc'));
-    const unsub = onSnapshot(q, async (snap) => {
-      if (snap.empty) {
-        document.getElementById('holdings-list').innerHTML = `<div class="empty-st"><div class="icon">📈</div><h3>No investments yet.</h3></div>`;
-        document.getElementById('journal-list').innerHTML = `<div class="empty-st"><div class="icon">📋</div><h3>No trades logged yet.</h3></div>`;
-        document.getElementById('options-list').innerHTML = `<div class="empty-st"><div class="icon">📉</div><h3>No options tracked yet.</h3></div>`;
-        return;
-      }
-
-      let holdings = {}, options = [], journalHTML = '';
-      let totalInv = 0;
-
-      snap.forEach(d => {
-        const data = d.data();
-        const id = d.id;
-        const type = data.assetType || 'stock';
-        const isOpt = type === 'call' || type === 'put';
-
-        // Journal Row
-        journalHTML += `<div class="tbl-row jrn-grid">
-          <div>${esc(data.date)}</div>
-          <div>${getBadge(type)}</div>
-          <div class="t-ticker">${esc(data.ticker)}</div>
-          <div>${data.shares}</div>
-          <div>${fmt$(data.costBasis)}</div>
-          <div>${fmt$(data.shares * data.costBasis * (isOpt?100:1))}</div>
-          <div style="font-size:.75rem;color:var(--white-dim)">${esc(data.notes)}</div>
-          <button class="bsr" onclick="window.deleteTrade('${id}')">✕</button>
-        </div>`;
-
-        if (isOpt) {
-          options.push({...data, id});
-        } else {
-          if (!holdings[data.ticker]) holdings[data.ticker] = { shares:0, cost:0, type };
-          holdings[data.ticker].shares += data.shares;
-          holdings[data.ticker].cost += (data.shares * data.costBasis);
-        }
-        totalInv += data.shares * data.costBasis * (isOpt?100:1);
-      });
-
-      window.deleteTrade = deleteTrade;
-      document.getElementById('journal-list').innerHTML = journalHTML;
-
-      // Prices & Portfolio
-      const tickers = Object.keys(holdings);
-      const priceMap = {};
-      await Promise.all(tickers.map(async t => {
-        if(holdings[t].type==='stock') {
-          const r = await fetch(`https://finnhub.io/api/v1/quote?symbol=${t}&token=${FINNHUB_KEY}`).then(res=>res.json()).catch(()=>({}));
-          priceMap[t] = r.c || 0;
-        } else if(CRYPTO_IDS[t]) {
-          const id = CRYPTO_IDS[t];
-          const r = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd`).then(res=>res.json()).catch(()=>({}));
-          priceMap[t] = r[id]?.usd || 0;
-        }
-      }));
-
-      let portHTML = '', optHTML = '', totalVal = 0, openPos = 0;
-
-      for (const [t, h] of Object.entries(holdings)) {
-        if (h.shares <= 0) continue;
-        openPos++;
-        const avg = h.cost / h.shares;
-        const cp = priceMap[t] || avg;
-        const val = h.shares * cp;
-        totalVal += val;
-        const ret = ((cp - avg)/avg)*100;
-        const up = ret >= 0;
-        portHTML += `<div class="tbl-row port-grid">
-          <div class="t-ticker">${esc(t)}</div>
-          <div>${getBadge(h.type)}</div>
-          <div>${h.shares.toFixed(2)}</div>
-          <div>${fmt$(avg)}</div>
-          <div>${fmt$(cp)}</div>
-          <div>${fmt$(val)}</div>
-          <div class="${up?'up':'dn'} font-weight-700">${up?'+':''}${ret.toFixed(2)}%</div>
-          <div><button class="bso" onclick="document.getElementById('tx-ticker').value='${t}';document.getElementById('modal-tx').style.display='grid'">Trade</button></div>
-        </div>`;
-      }
-      document.getElementById('holdings-list').innerHTML = portHTML || `<div class="empty-st">No open stock/crypto positions.</div>`;
-
-      options.forEach(o => {
-        openPos++;
-        const cost = o.shares * o.costBasis * 100;
-        totalVal += cost; // Placeholder: keeping options at cost for total value until simulated
-        optHTML += `<div class="tbl-row opt-grid">
-          <div class="t-ticker">${esc(o.ticker)}</div>
-          <div>${getBadge(o.assetType)}</div>
-          <div>${fmt$(o.optionStrike)}</div>
-          <div>${esc(o.optionExpiry)}</div>
-          <div>${o.shares}</div>
-          <div>${fmt$(o.costBasis)}</div>
-          <div>${fmt$(cost)}</div>
-          <div style="color:var(--white-dim)">Manual P&L</div>
-          <button class="bso" onclick="window.deleteTrade('${o.id}')">Close</button>
-        </div>`;
-      });
-      document.getElementById('options-list').innerHTML = optHTML || `<div class="empty-st"><div class="icon">📉</div><h3>No options tracked yet.</h3></div>`;
-
-      // Metrics
-      document.getElementById('total-inv').innerText = fmt$(totalInv);
-      document.getElementById('total-val').innerText = fmt$(totalVal);
-      document.getElementById('total-positions').innerText = openPos;
-      const pnl = totalVal - totalInv;
-      const pnlPct = totalInv > 0 ? (pnl/totalInv)*100 : 0;
-      const pnlEl = document.getElementById('total-pnl');
-      pnlEl.innerText = `${pnl>=0?'+':''}${fmt$(pnl)}`;
-      pnlEl.className = `m-val ${pnl>=0?'up':'dn'}`;
-      document.getElementById('total-pnl-pct').innerText = `${pnlPct>=0?'+':''}${pnlPct.toFixed(2)}% Unrl.`;
-      document.getElementById('total-ret').innerText = `${pnlPct>=0?'+':''}${pnlPct.toFixed(2)}% All Time`;
-      document.getElementById('total-ret').className = `m-sub ${pnlPct>=0?'up':'dn'}`;
-    });
-    activeUnsubs.push(unsub);
-  }
-
-  // BOT SIMULATION
-  function loadBotPositions(uid) {
-    const unsub = onSnapshot(collection(db, `portfolios/${uid}/bot_positions`), (snap) => {
-      if(snap.empty) {
-        document.getElementById('bot-positions-list').innerHTML = `<div class="empty-st"><div class="icon">🤖</div><h3>No bot positions yet.</h3></div>`;
-        return;
-      }
-      let html = '', totalPnl = 0, count = 0;
-      snap.forEach(d => {
-        const data = d.data();
-        const pnl = (data.currentPrice - data.entryPrice) * data.shares * (data.direction==='short'?-1:1) || 0;
-        totalPnl += pnl; count++;
-        html += `<div class="tbl-row bot-grid">
-          <div class="t-ticker">${esc(data.ticker)}</div>
-          <div><span class="badge ${data.direction==='long'?'b-stock':'b-put'}">${data.direction}</span></div>
-          <div>${data.shares}</div>
-          <div>${fmt$(data.entryPrice)}</div>
-          <div>${fmt$(data.currentPrice||data.entryPrice)}</div>
-          <div class="${pnl>=0?'up':'dn'}">${fmt$(pnl)}</div>
-          <button class="bso" onclick="deleteBotPos('${d.id}')">Close</button>
-        </div>`;
-      });
-      window.deleteBotPos = async (id) => { await deleteDoc(doc(db, `portfolios/${uid}/bot_positions/${id}`)); };
-      document.getElementById('bot-positions-list').innerHTML = html;
-      document.getElementById('bot-count').innerText = count;
-      document.getElementById('bot-pnl').innerText = fmt$(totalPnl);
-      document.getElementById('bot-pnl').className = `m-val ${totalPnl>=0?'up':'dn'}`;
-      document.getElementById('bot-equity').innerText = fmt$(10000 + totalPnl);
-      if(count>0) document.getElementById('bot-dot').classList.add('live');
-      else document.getElementById('bot-dot').classList.remove('live');
-    });
-    activeUnsubs.push(unsub);
-  }
-
-  // COMPARE CHART
-  document.querySelectorAll('.tf-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
-      e.target.classList.add('active');
-      runCompare();
-    });
-  });
-  document.getElementById('btn-compare').addEventListener('click', runCompare);
-
-  async function runCompare() {
-    const t1 = document.getElementById('cmp-a').value.toUpperCase().trim();
-    const t2 = document.getElementById('cmp-b').value.toUpperCase().trim();
-    if(!t1 || !t2) return alert('Enter two tickers to compare');
-    const tf = document.querySelector('.tf-btn.active').dataset.tf;
-    
-    document.getElementById('cmp-placeholder').style.display = 'none';
-    const btn = document.getElementById('btn-compare');
-    btn.disabled = true; btn.innerText = 'Loading...';
-
-    // TF mapping for Yahoo Finance
-    const rangeMap = { '1mo':'1mo', '3mo':'3mo', '6mo':'6mo', '1y':'1y', '2y':'2y' };
-    const intervalMap = { '1mo':'1d', '3mo':'1d', '6mo':'1d', '1y':'1wk', '2y':'1wk' };
-    
-    try {
-      const fetchYF = async (t) => {
-        const url = `https://query1.finance.yahoo.com/v8/finance/chart/${t}?range=${rangeMap[tf]}&interval=${intervalMap[tf]}`;
-        const res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
-        if(!res.ok) throw new Error();
-        const data = await res.json();
-        return data.chart.result[0];
-      };
-
-      const [d1, d2] = await Promise.all([fetchYF(t1), fetchYF(t2)]);
-      
-      const timestamps = d1.timestamp;
-      const p1 = d1.indicators.quote[0].close;
-      const p2 = d2.indicators.quote[0].close;
-
-      // Normalize
-      const base1 = p1[0]; const base2 = p2[0];
-      const norm1 = p1.map(p => ((p - base1)/base1)*100);
-      const norm2 = p2.map(p => ((p - base2)/base2)*100);
-      const labels = timestamps.map(ts => new Date(ts*1000).toLocaleDateString());
-
-      if(chartInstance) chartInstance.destroy();
-      const ctx = document.getElementById('cmp-chart').getContext('2d');
-      chartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [
-            { label: t1, data: norm1, borderColor: '#4a90d9', tension: 0.1, borderWidth: 2, pointRadius: 0 },
-            { label: t2, data: norm2, borderColor: '#3dba7e', tension: 0.1, borderWidth: 2, pointRadius: 0 }
-          ]
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false, callbacks: { label: function(c) { return c.dataset.label + ': ' + c.raw.toFixed(2) + '%'; } } } },
-          scales: {
-            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888', callback: v => v+'%' } },
-            x: { grid: { display: false }, ticks: { color: '#888', maxTicksLimit: 8 } }
-          }
-        }
-      });
-
-      document.getElementById('cmp-legend').style.display = 'flex';
-      document.getElementById('leg-a').innerText = t1;
-      document.getElementById('leg-b').innerText = t2;
-      document.getElementById('cmp-stats').style.display = 'grid';
-      
-      const updateStat = (id, t, start, end) => {
-        document.getElementById(`stat-${id}-name`).innerText = t;
-        const ret = ((end-start)/start)*100;
-        document.getElementById(`stat-${id}-ret`).innerText = `${ret>=0?'+':''}${ret.toFixed(2)}%`;
-        document.getElementById(`stat-${id}-ret`).className = `s-return ${ret>=0?'up':'dn'}`;
-        document.getElementById(`stat-${id}-start`).innerText = fmt$(start);
-        document.getElementById(`stat-${id}-end`).innerText = fmt$(end);
-      };
-      updateStat('a', t1, base1, p1[p1.length-1]);
-      updateStat('b', t2, base2, p2[p2.length-1]);
-
-    } catch(e) {
-      alert('Failed to fetch historical data. Check tickers.');
-    } finally {
-      btn.disabled = false; btn.innerText = 'Compare →';
-    }
-  }
-
-  // SHARED GROUPS & PREDICTIONS
-  document.getElementById('btn-create-group').addEventListener('click', () => { document.getElementById('modal-group').style.display='grid'; });
-  document.getElementById('group-create-submit').addEventListener('click', async () => {
-    const name = document.getElementById('group-name-input').value;
-    if(!name) return;
-    await addDoc(collection(db, 'groups'), { name, ownerUid: currentUser.uid, ownerEmail: currentUser.email, memberUids: [currentUser.uid], memberEmails: [currentUser.email.toLowerCase()], createdAt: new Date() });
-    document.getElementById('modal-group').style.display='none';
-    loadUserGroups(currentUser.uid);
-  });
-  async function loadUserGroups(uid) {
-    const q = query(collection(db, 'groups'), where('memberUids', 'array-contains', uid));
-    const snap = await getDocs(q);
-    if(snap.empty) return;
-    let html = '<div class="groups-grid">';
-    snap.forEach(d => {
-      const g = d.data(); const count = g.memberUids.length;
-      html += `<div class="gcard"><div class="gcard-top"><div><div class="g-name">${esc(g.name)}</div><div class="g-owner">By ${esc(g.ownerEmail)}</div></div><div class="mem-badge">${count} members</div></div><div class="g-actions"><button class="btn-sm bso">View Portfolios</button></div></div>`;
-    });
-    document.getElementById('groups-list').innerHTML = html + '</div>';
-  }
-
-  // PREDICTIONS
-  const marketCache = new Map();
-  async function loadPredictionMarkets() {
-    const res = await fetch(`${MANIFOLD}/markets?limit=12&sort=liquidity&filter=open`);
-    const markets = await res.json();
-    let html = '<div class="markets-grid">';
-    markets.forEach(m => {
-      marketCache.set(m.id, m);
-      const prob = Math.round((m.probability||0)*100);
-      html += `<div class="mkt-card"><div class="mkt-q">${esc(m.question)}</div><div class="prob-labels"><span style="color:var(--green)">YES ${prob}%</span><span style="color:var(--coral)">NO ${100-prob}%</span></div><div class="prob-bg"><div class="prob-fill" style="width:${prob}%"></div></div><div class="mkt-meta"><span>Vol: ${fmt$(m.volume||0)}</span></div><button class="btn-sm bsp" onclick="window.openPred('${m.id}')">Log Position</button></div>`;
-    });
-    document.getElementById('markets-browse').innerHTML = html + '</div>';
-    window.openPred = (id) => {
-      const m = marketCache.get(id);
-      document.getElementById('pred-modal-question').innerText = m.question;
-      document.getElementById('pred-modal-prob').innerText = `Market says ${Math.round((m.probability||0)*100)}% YES`;
-      window.currentPredId = id; window.currentPredProb = m.probability; window.currentPredQ = m.question;
-      document.getElementById('modal-pred').style.display='grid';
-    };
-  }
-  document.getElementById('btn-refresh-markets').addEventListener('click', loadPredictionMarkets);
-  
-  let predPos = 'YES';
-  document.getElementById('pred-pos-yes').addEventListener('click', () => { predPos='YES'; document.getElementById('pred-pos-yes').classList.add('active'); document.getElementById('pred-pos-no').classList.remove('active'); });
-  document.getElementById('pred-pos-no').addEventListener('click', () => { predPos='NO'; document.getElementById('pred-pos-no').classList.add('active'); document.getElementById('pred-pos-yes').classList.remove('active'); });
-  
-  document.getElementById('pred-submit').addEventListener('click', async () => {
-    const amt = parseFloat(document.getElementById('pred-amount').value)||100;
-    await addDoc(collection(db, `portfolios/${currentUser.uid}/predictions`), { marketId: window.currentPredId, question: window.currentPredQ, position: predPos, amount: amt, probAtEntry: window.currentPredProb||0, createdAt: new Date() });
-    document.getElementById('modal-pred').style.display='none';
-    loadMyPredictions(currentUser.uid);
-  });
-  
-  async function loadMyPredictions(uid) {
-    const snap = await getDocs(query(collection(db, `portfolios/${uid}/predictions`), orderBy('createdAt', 'desc')));
-    if(snap.empty) return;
-    let html = '';
-    snap.forEach(d => {
-      const p = d.data(); const ePct = Math.round(p.probAtEntry*100);
-      html += `<div class="tbl-row pred-grid"><div style="font-size:.8rem">${esc(p.question.slice(0,60))}...</div><div><span class="pos-badge ${p.position==='YES'?'pos-yes':'pos-no'}">${p.position}</span></div><div>${ePct}%</div><div>—</div><div>—</div></div>`;
-    });
-    document.getElementById('my-predictions-list').innerHTML = html;
-  }
-
-</script>
-<script type="module" src="ticker.js"></script>
-</body>
-</html>

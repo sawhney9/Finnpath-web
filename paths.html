@@ -7,7 +7,7 @@
   <meta name="description" content="Find your financial starting point. Teens learn with the stock simulator. Young adults open their first Roth IRA. First jobbers decode their 401k plan documents."/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="shared.css?v=5"/>
+  <link rel="stylesheet" href="shared.css?v=7"/>
   <style>
 
     /* ── PAGE HERO ── */
@@ -382,9 +382,14 @@
   <ul class="nav-links">
     <li><a href="index.html">Home</a></li>
     <li><a href="learn.html">Learn</a></li>
-    <li><a href="calculator.html">Calculator</a></li>
-    <li><a href="tools.html">Tools</a></li>
-    <li><a href="simulator.html">Tracker</a></li>
+    <li class="nav-dropdown">
+      <a href="#" class="nav-dropdown-toggle">Tools <span class="nav-caret">▾</span></a>
+      <div class="nav-dropdown-menu">
+        <a href="calculator.html">🧮 Calculator</a>
+        <a href="simulator.html">📈 Portfolio Tracker</a>
+        <a href="401k.html">📄 401k Decoder</a>
+      </div>
+    </li>
     <li><a href="paths.html" class="active">Your Path</a></li>
     <li><a href="blog.html">Money Moves</a></li>
   </ul>
