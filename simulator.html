@@ -320,7 +320,7 @@
   <!-- ── COMPARE TAB ── -->
   <div class="tab-panel" id="tab-compare">
     <div class="sec-hdr">
-      <div><div class="sec-title">Compare Tickers</div><p style="font-size:.82rem;color:var(--white-dim);margin-top:3px">Overlay two tickers to see side-by-side % return — like Google Finance.</p></div>
+      <div><div class="sec-title">Compare Tickers</div><p style="font-size:.82rem;color:var(--white-dim);margin-top:3px">Overlay two tickers to see side-by-side % return.</p></div>
     </div>
     <div class="compare-controls">
       <input class="compare-input" id="cmp-a" placeholder="AAPL" maxlength="10"/>
@@ -572,8 +572,8 @@
   });
 
   // MODAL TOGGLE
-  document.getElementById('btn-add-tx').addEventListener('click', () => openTxModal('stock'));
-  document.getElementById('btn-add-option').addEventListener('click', () => openTxModal('call'));
+  document.getElementById('btn-add-tx')?.addEventListener('click', () => openTxModal('stock'));
+  document.getElementById('btn-add-option')?.addEventListener('click', () => openTxModal('call'));
 
   function openTxModal(type) {
     document.getElementById('modal-tx').style.display = 'grid';
@@ -600,7 +600,11 @@
     const costBasis = parseFloat(document.getElementById('tx-price').value);
     const date = document.getElementById('tx-date').value;
     const notes = document.getElementById('tx-notes').value.trim();
-    if (!ticker || !shares || !costBasis || !date) return alert('Fill required fields');
+    
+    if (!ticker) return alert('Please enter a ticker symbol.');
+    if (isNaN(shares) || shares === 0) return alert('Please enter a valid number of shares/units.');
+    if (isNaN(costBasis) || costBasis < 0) return alert('Please enter a valid price (can be 0 for gifts/airdrops).');
+    if (!date) return alert('Please select a date.');
 
     const data = { ticker, shares, costBasis, date, assetType: currentAssetType, notes, createdAt: new Date() };
     if (currentAssetType === 'call' || currentAssetType === 'put') {
@@ -611,12 +615,17 @@
     const btn = document.getElementById('tx-submit');
     btn.disabled = true; btn.textContent = 'Saving...';
     try {
+      console.log("Attempting to save trade with data:", data);
       await addDoc(collection(db, `portfolios/${currentUser.uid}/transactions`), data);
+      console.log("Trade successfully saved!");
       document.getElementById('modal-tx').style.display = 'none';
       document.getElementById('tx-ticker').value = '';
       document.getElementById('tx-shares').value = '';
       document.getElementById('tx-price').value = '';
-    } catch(e) { alert(e.message); }
+    } catch(e) {
+      console.error("Error saving trade:", e);
+      alert("Error saving trade: " + e.message);
+    }
     finally { btn.disabled = false; btn.textContent = 'Save Trade'; }
   });
 
@@ -797,24 +806,32 @@
     const btn = document.getElementById('btn-compare');
     btn.disabled = true; btn.innerText = 'Loading...';
 
-    // TF mapping for Yahoo Finance
-    const rangeMap = { '1mo':'1mo', '3mo':'3mo', '6mo':'6mo', '1y':'1y', '2y':'2y' };
-    const intervalMap = { '1mo':'1d', '3mo':'1d', '6mo':'1d', '1y':'1wk', '2y':'1wk' };
+    // TF mapping for Finnhub
+    const now = Math.floor(Date.now() / 1000);
+    const timeMap = {
+      '1mo': { res: 'D', from: now - 30*24*3600 },
+      '3mo': { res: 'D', from: now - 90*24*3600 },
+      '6mo': { res: 'D', from: now - 180*24*3600 },
+      '1y':  { res: 'W', from: now - 365*24*3600 },
+      '2y':  { res: 'W', from: now - 730*24*3600 }
+    };
     
     try {
-      const fetchYF = async (t) => {
-        const url = `https://query1.finance.yahoo.com/v8/finance/chart/${t}?range=${rangeMap[tf]}&interval=${intervalMap[tf]}`;
-        const res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
+      const fetchHistory = async (t) => {
+        const { res: resolution, from } = timeMap[tf];
+        const url = `https://finnhub.io/api/v1/stock/candle?symbol=${t}&resolution=${resolution}&from=${from}&to=${now}&token=${FINNHUB_KEY}`;
+        const res = await fetch(url);
         if(!res.ok) throw new Error();
         const data = await res.json();
-        return data.chart.result[0];
+        if(data.s !== 'ok') throw new Error(`No data for ${t}`);
+        return data;
       };
 
-      const [d1, d2] = await Promise.all([fetchYF(t1), fetchYF(t2)]);
+      const [d1, d2] = await Promise.all([fetchHistory(t1), fetchHistory(t2)]);
       
-      const timestamps = d1.timestamp;
-      const p1 = d1.indicators.quote[0].close;
-      const p2 = d2.indicators.quote[0].close;
+      const timestamps = d1.t;
+      const p1 = d1.c;
+      const p2 = d2.c;
 
       // Normalize
       const base1 = p1[0]; const base2 = p2[0];
