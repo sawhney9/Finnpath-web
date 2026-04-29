@@ -160,6 +160,30 @@
     .path-cta { font-size:.78rem; font-weight:700; color:var(--coral); text-decoration:none; margin-top:auto; transition:letter-spacing .2s; }
     .path-cta:hover { letter-spacing:.02em; }
 
+    /* ── WHO IS THIS FOR ── */
+    .who-grid {
+      display:grid; grid-template-columns:repeat(3,1fr); gap:20px;
+    }
+    .who-card {
+      background:var(--navy-mid); border:1px solid var(--border); border-radius:16px;
+      padding:32px 28px; text-decoration:none; color:var(--white);
+      display:flex; flex-direction:column; gap:10px;
+      transition:transform .25s, border-color .25s, box-shadow .25s;
+    }
+    .who-card:hover { transform:translateY(-5px); border-color:rgba(250,249,247,.15); box-shadow:0 16px 40px rgba(0,0,0,.25); }
+    .who-card-featured {
+      background:linear-gradient(135deg, rgba(74,144,217,.12), rgba(61,186,126,.08));
+      border-color:rgba(74,144,217,.25);
+    }
+    .who-card-featured:hover { border-color:rgba(74,144,217,.5); box-shadow:0 16px 40px rgba(74,144,217,.15); }
+    .who-icon { font-size:2.2rem; }
+    .who-tag { font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--white-dim); }
+    .who-card-featured .who-tag { color:var(--sky); }
+    .who-title { font-family:'Playfair Display',serif; font-size:1.2rem; font-weight:700; line-height:1.2; }
+    .who-desc { font-size:.84rem; color:var(--white-dim); line-height:1.75; flex:1; }
+    .who-cta { font-size:.78rem; font-weight:700; color:var(--coral); margin-top:6px; }
+    .who-card-featured .who-cta { color:var(--sky); }
+
     /* ── NEWSLETTER ── */
     #newsletter { background:var(--navy-mid); }
     .nl-wrap { max-width:620px; margin-inline:auto; text-align:center; }

@@ -379,7 +379,9 @@
       <div class="mcard primary">
         <div class="m-label">Simulated Equity</div>
         <div class="bot-equity" id="bot-equity">$10,000.00</div>
-        <div class="m-sub" id="bot-ret">Starting capital</div>
+        <div class="m-sub" style="display:flex;align-items:center;gap:6px">
+          Starting capital <button id="btn-edit-bot-cap" class="btn-sm bso" style="padding:2px 6px;font-size:0.65rem">Edit</button>
+        </div>
       </div>
       <div class="mcard">
         <div class="m-label">Open Positions</div>
@@ -543,6 +545,13 @@
       document.getElementById('user-menu').style.display = 'flex';
       document.getElementById('avatar').src = user.photoURL || '';
       await setDoc(doc(db, `portfolios/${user.uid}`), { ownerEmail: user.email }, { merge: true });
+      const userDoc = await getDoc(doc(db, `portfolios/${user.uid}`));
+      if (userDoc.exists() && userDoc.data().botStartingCapital !== undefined) {
+        window.botStartingCapital = userDoc.data().botStartingCapital;
+      } else {
+        window.botStartingCapital = 10000;
+      }
+
       loadTransactions(user.uid);
       loadBotPositions(user.uid);
       loadUserGroups(user.uid);
@@ -779,12 +788,30 @@
       document.getElementById('bot-count').innerText = count;
       document.getElementById('bot-pnl').innerText = fmt$(totalPnl);
       document.getElementById('bot-pnl').className = `m-val ${totalPnl>=0?'up':'dn'}`;
-      document.getElementById('bot-equity').innerText = fmt$(10000 + totalPnl);
+      
+      const startCap = window.botStartingCapital || 10000;
+      document.getElementById('bot-equity').innerText = fmt$(startCap + totalPnl);
+      
       if(count>0) document.getElementById('bot-dot').classList.add('live');
       else document.getElementById('bot-dot').classList.remove('live');
     });
     activeUnsubs.push(unsub);
   }
+
+  document.getElementById('btn-edit-bot-cap')?.addEventListener('click', async () => {
+    const newVal = prompt('Enter new starting capital (e.g. 50000):', window.botStartingCapital || 10000);
+    if (newVal === null) return;
+    const parsed = parseFloat(newVal);
+    if (isNaN(parsed) || parsed < 0) return alert('Invalid amount.');
+    
+    window.botStartingCapital = parsed;
+    await setDoc(doc(db, `portfolios/${currentUser.uid}`), { botStartingCapital: parsed }, { merge: true });
+    
+    // Re-trigger visual update
+    const currentPnlText = document.getElementById('bot-pnl').innerText.replace(/[^0-9.-]+/g,"");
+    const currentPnl = parseFloat(currentPnlText) || 0;
+    document.getElementById('bot-equity').innerText = fmt$(parsed + currentPnl);
+  });
 
   // COMPARE CHART
   document.querySelectorAll('.tf-btn').forEach(btn => {
