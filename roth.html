@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Roth IRA &amp; Backdoor Roth Guide — Finnpath</title>
+  <meta name="description" content="Understand Roth IRA contribution limits for 2026, who qualifies, and how high earners can use the Backdoor Roth IRA strategy — explained simply."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="shared.css?v=7"/>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+  <style>
+    /* ── HERO ── */
+    .page-hero{padding:calc(var(--nav-h) + 56px) 56px 56px;background:var(--navy-mid);border-bottom:1px solid var(--border);position:relative;overflow:hidden;text-align:center;}
+    .page-hero::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 60% 80% at 15% 50%,rgba(74,144,217,.07) 0%,transparent 65%),radial-gradient(ellipse 50% 60% at 85% 50%,rgba(61,186,126,.06) 0%,transparent 65%);}
+    .hero-inner{max-width:700px;margin-inline:auto;position:relative;z-index:1;}
+    .page-hero h1{font-family:'Playfair Display',serif;font-weight:900;font-size:clamp(2rem,4vw,3rem);letter-spacing:-.03em;line-height:1.08;margin-top:16px;}
+    .page-hero h1 em{font-style:italic;color:var(--green);}
+    .page-hero p{font-size:.95rem;color:var(--white-dim);font-weight:300;line-height:1.8;margin-top:14px;}
+
+    /* ── LAYOUT ── */
+    .guide-wrap{max-width:860px;margin-inline:auto;padding:48px 56px 80px;}
+    .guide-section{background:var(--navy-mid);border:1px solid var(--border);border-radius:16px;padding:28px 32px;margin-bottom:24px;}
+    .guide-section h2{font-family:'Playfair Display',serif;font-size:1.4rem;margin-bottom:16px;display:flex;align-items:center;gap:12px;}
+    .sec-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+    .icon-green{background:rgba(61,186,126,.15);}
+    .icon-blue{background:rgba(74,144,217,.15);}
+    .icon-gold{background:rgba(201,168,76,.15);}
+    .icon-coral{background:rgba(232,96,76,.15);}
+    .body-text{font-size:.9rem;color:var(--white-dim);line-height:1.8;}
+    .body-text strong{color:var(--white);}
+
+    /* ── LIMIT CARDS ── */
+    .limit-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0;}
+    .limit-card{background:var(--navy-card);border:1px solid var(--border);border-radius:12px;padding:20px 22px;}
+    .limit-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--white-dim);margin-bottom:6px;}
+    .limit-val{font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;color:var(--green);}
+    .limit-note{font-size:.78rem;color:var(--white-dim);margin-top:6px;line-height:1.5;}
+
+    /* ── INCOME TABLE ── */
+    .income-table{width:100%;border-collapse:collapse;margin-top:16px;font-size:.85rem;}
+    .income-table th{text-align:left;padding:10px 14px;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--white-dim);border-bottom:1px solid var(--border);}
+    .income-table td{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.04);}
+    .income-table tr:last-child td{border-bottom:none;}
+    .income-table td:first-child{font-weight:600;}
+    .tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:700;}
+    .tag-green{background:rgba(61,186,126,.15);color:#3dba7e;}
+    .tag-gold{background:rgba(201,168,76,.15);color:#c9a84c;}
+    .tag-coral{background:rgba(232,96,76,.15);color:#e8604c;}
+
+    /* ── STEPS ── */
+    .steps{display:flex;flex-direction:column;gap:0;margin-top:18px;}
+    .step-item{display:flex;gap:16px;padding-bottom:24px;position:relative;}
+    .step-item:not(:last-child)::after{content:'';position:absolute;left:17px;top:36px;width:2px;bottom:0;background:var(--border);}
+    .step-num{width:36px;height:36px;border-radius:50%;background:rgba(74,144,217,.15);border:1px solid rgba(74,144,217,.3);color:var(--sky);font-weight:800;font-size:.9rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .step-body{flex:1;padding-top:6px;}
+    .step-title{font-weight:700;font-size:.9rem;margin-bottom:4px;}
+    .step-desc{font-size:.82rem;color:var(--white-dim);line-height:1.6;}
+
+    /* ── SCENARIO CARDS ── */
+    .scenario-card{background:var(--navy-card);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:12px;position:relative;overflow:hidden;}
+    .scenario-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;}
+    .scenario-card.best::before{background:var(--green);}
+    .scenario-card.moderate::before{background:var(--gold);}
+    .scenario-card.notfit::before{background:var(--white-dim);}
+    .sc-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;}
+    .sc-label.green{color:var(--green);}
+    .sc-label.gold{color:var(--gold);}
+    .sc-label.dim{color:var(--white-dim);}
+    .sc-title{font-family:'Playfair Display',serif;font-size:1.05rem;margin-bottom:8px;}
+    .sc-body{font-size:.84rem;color:var(--white-dim);line-height:1.7;}
+    .sc-body strong{color:var(--white);}
+    .sc-profile{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+    .sc-avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
+    .sc-name{font-weight:700;font-size:.88rem;}
+    .sc-detail{font-size:.75rem;color:var(--white-dim);}
+
+    /* ── PRO RATA WARNING ── */
+    .warning-box{background:rgba(232,96,76,.06);border:1px solid rgba(232,96,76,.2);border-radius:12px;padding:22px 26px;margin:20px 0;display:flex;gap:14px;align-items:flex-start;}
+    .warning-icon{font-size:1.6rem;flex-shrink:0;}
+    .warning-text{font-size:.86rem;color:var(--white-dim);line-height:1.75;}
+    .warning-text strong{color:var(--white);}
+
+    /* ── EXAMPLE CALC BOX ── */
+    .calc-box{background:var(--navy-card);border:1px solid var(--border);border-radius:10px;padding:18px 22px;margin:14px 0;font-size:.84rem;line-height:1.8;}
+    .calc-box .calc-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+    .calc-box .calc-row:last-child{border-bottom:none;font-weight:700;color:var(--coral);}
+    .calc-box .calc-row.total-green{color:var(--green);}
+
+    /* ── CTA BANNER ── */
+    .cta-banner{background:linear-gradient(135deg,rgba(61,186,126,.12),rgba(74,144,217,.08));border:1px solid rgba(61,186,126,.2);border-radius:16px;padding:32px;text-align:center;margin-top:32px;}
+    .cta-banner h3{font-family:'Playfair Display',serif;font-size:1.4rem;margin-bottom:10px;}
+    .cta-banner p{font-size:.88rem;color:var(--white-dim);margin-bottom:20px;}
+    .btn-cta-green{background:linear-gradient(135deg,#3dba7e,#2da06a);color:#fff;font-weight:800;font-size:.95rem;font-family:'Plus Jakarta Sans',sans-serif;border:none;padding:14px 32px;border-radius:10px;cursor:pointer;text-decoration:none;display:inline-block;transition:all .2s;box-shadow:0 4px 20px rgba(61,186,126,.25);}
+    .btn-cta-green:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(61,186,126,.35);}
+
+    /* ── DISCLAIMER ── */
+    .disclaimer-box{background:rgba(232,96,76,.06);border:1px solid rgba(232,96,76,.2);border-radius:12px;padding:20px 24px;margin-top:24px;display:flex;gap:14px;align-items:flex-start;}
+    .disclaimer-box p{font-size:.8rem;color:rgba(250,249,247,.55);line-height:1.75;}
+    .disclaimer-box strong{color:rgba(250,249,247,.8);}
+
+    @media(max-width:720px){
+      .guide-wrap{padding:28px 20px 60px;}
+      .limit-row{grid-template-columns:1fr;}
+      .page-hero{padding:calc(var(--nav-h) + 32px) 20px 40px;}
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="logo">Finnpath<span class="logo-dot">.</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="learn.html">Learn</a></li>
+    <li class="nav-dropdown">
+      <a href="#" class="nav-dropdown-toggle">Tools <span class="nav-caret">▾</span></a>
+      <div class="nav-dropdown-menu">
+        <a href="calculator.html">🧮 Calculator</a>
+        <a href="simulator.html">📈 Portfolio Tracker</a>
+        <a href="401k.html">📄 401k Decoder</a>
+        <a href="roth.html" class="active">🏦 Roth IRA Guide</a>
+      </div>
+    </li>
+    <li><a href="paths.html">Your Path</a></li>
+    <li><a href="blog.html">Money Moves</a></li>
+  </ul>
+  <a href="simulator.html" class="nav-cta">Track Portfolio →</a>
+</nav>
+
+<!-- HERO -->
+<div class="page-hero">
+  <div class="hero-inner">
+    <div class="s-eyebrow" style="justify-content:center">2026 Updated Limits</div>
+    <h1>Roth IRA &amp; the <em>Backdoor Roth</em><br/>explained simply</h1>
+    <p>The most powerful tax-free retirement account available — and what to do when your income is too high to contribute directly.</p>
+  </div>
+</div>
+
+<div class="guide-wrap">
+
+  <!-- SECTION 1: What is a Roth IRA -->
+  <div class="guide-section">
+    <h2><div class="sec-icon icon-green">🏦</div>What is a Roth IRA?</h2>
+    <p class="body-text">A Roth IRA is a retirement account where you contribute <strong>after-tax money</strong> — meaning you pay taxes now — and then your investments grow completely tax-free. When you retire, every dollar you withdraw is <strong>100% yours, no taxes owed</strong>.</p>
+    <p class="body-text" style="margin-top:12px">This is the opposite of a Traditional IRA or 401k, where you get a tax break today but pay taxes when you withdraw in retirement. For most young adults who expect to be in a higher tax bracket later, the Roth wins almost every time.</p>
+
+    <div class="limit-row">
+      <div class="limit-card">
+        <div class="limit-label">2026 Contribution Limit — Under Age 50</div>
+        <div class="limit-val">$7,500</div>
+        <div class="limit-note">Per year. You can contribute any amount up to this limit to one or multiple IRAs combined.</div>
+      </div>
+      <div class="limit-card">
+        <div class="limit-label">2026 Contribution Limit — Age 50 or Older</div>
+        <div class="limit-val">$8,600</div>
+        <div class="limit-note">Includes a $1,100 catch-up contribution to help people closer to retirement save more.</div>
+      </div>
+    </div>
+
+    <p class="body-text" style="margin-top:4px">💡 <strong>Key rule:</strong> You can only contribute earned income — so if you made $4,000 this year, your max contribution is $4,000, not $7,500.</p>
+  </div>
+
+  <!-- SECTION 2: The Income Problem -->
+  <div class="guide-section">
+    <h2><div class="sec-icon icon-coral">🚧</div>The Income Problem — Why High Earners Get Locked Out</h2>
+    <p class="body-text">The IRS limits who can contribute directly to a Roth IRA based on income. If you earn above a certain amount, your contribution limit starts shrinking — and eventually hits zero. This is called the <strong>phase-out range</strong>.</p>
+
+    <table class="income-table">
+      <thead>
+        <tr>
+          <th>Filing Status</th>
+          <th>Phase-Out Starts</th>
+          <th>Fully Phased Out</th>
+          <th>Your Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Single / Head of Household</td>
+          <td>$165,000</td>
+          <td>$180,000</td>
+          <td><span class="tag tag-coral">Direct contribution limited</span></td>
+        </tr>
+        <tr>
+          <td>Married Filing Jointly</td>
+          <td>$246,000</td>
+          <td>$261,000</td>
+          <td><span class="tag tag-coral">Direct contribution limited</span></td>
+        </tr>
+        <tr>
+          <td>Married Filing Separately</td>
+          <td>$0</td>
+          <td>$10,000</td>
+          <td><span class="tag tag-coral">Almost always blocked</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="body-text" style="margin-top:14px">If your income falls <em>within</em> the phase-out range, you can contribute a partial amount. If you're <em>above</em> it, you technically cannot contribute to a Roth IRA at all — but there's a legal workaround.</p>
+  </div>
+
+  <!-- SECTION 3: Backdoor Roth -->
+  <div class="guide-section">
+    <h2><div class="sec-icon icon-blue">🚪</div>The Backdoor Roth IRA — The Legal Workaround</h2>
+    <p class="body-text">The Backdoor Roth is a two-step process that lets high earners get money into a Roth IRA even though they're over the income limit. <strong>It's 100% legal.</strong> The IRS has explicitly blessed this strategy since 2010, and it's widely used by high-income professionals.</p>
+
+    <div class="steps">
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Open a Traditional IRA and contribute $7,500</div>
+          <div class="step-desc">Make a <strong>non-deductible contribution</strong> — since your income is too high to deduct it anyway, there's no tax benefit here. Think of it as a holding account. You won't claim a deduction on your tax return.</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Wait a few days (don't invest the money yet)</div>
+          <div class="step-desc">Let the contribution settle. Keeping it in cash minimizes any gains, which simplifies your taxes slightly. Most people wait 1–7 days.</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">Convert the Traditional IRA to a Roth IRA</div>
+          <div class="step-desc">Log into your brokerage (Fidelity, Vanguard, Schwab, etc.) and select "Convert to Roth." Because you already paid tax on this money and there were no gains, <strong>you owe $0 in taxes on the conversion</strong>.</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-title">Invest the money in your Roth IRA</div>
+          <div class="step-desc">Now invest in whatever you want — index funds, ETFs, etc. Your $7,500 will now grow <strong>100% tax-free</strong> forever. Repeat each year.</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-title">File Form 8606 with your taxes</div>
+          <div class="step-desc">This IRS form documents your non-deductible contribution and prevents you from being double-taxed. Your accountant or tax software (TurboTax, H&amp;R Block) will walk you through it automatically.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 4: Who Benefits — Scenarios -->
+  <div class="guide-section">
+    <h2><div class="sec-icon icon-gold">👤</div>Who Should Use the Backdoor Roth?</h2>
+    <p class="body-text" style="margin-bottom:20px">Not everyone needs the Backdoor Roth. Here are three real-life scenarios to help you figure out where you stand.</p>
+
+    <div class="scenario-card best">
+      <div class="sc-profile">
+        <div class="sc-avatar" style="background:rgba(61,186,126,.15)">👩‍💻</div>
+        <div>
+          <div class="sc-name">Sofia, 31 — Software Engineer</div>
+          <div class="sc-detail">Single · $195,000 salary · San Francisco</div>
+        </div>
+      </div>
+      <div class="sc-label green">✓ Perfect Candidate</div>
+      <div class="sc-title">Over the income limit — Backdoor Roth is the only option</div>
+      <div class="sc-body">Sofia earns $195,000, which is above the $180,000 single phase-out limit. She cannot contribute directly to a Roth IRA. <strong>Every year she does the Backdoor Roth, she moves $7,500 into tax-free growth.</strong> Over 30 years at 7% returns, that's an extra ~$750,000 she'll never pay taxes on. For Sofia, skipping this is leaving serious money on the table.</div>
+    </div>
+
+    <div class="scenario-card moderate">
+      <div class="sc-profile">
+        <div class="sc-avatar" style="background:rgba(201,168,76,.15)">👨‍👩‍👧</div>
+        <div>
+          <div class="sc-name">Marcus &amp; Priya, 35 — Dual-Income Couple</div>
+          <div class="sc-detail">Married filing jointly · $270,000 combined · Chicago</div>
+        </div>
+      </div>
+      <div class="sc-label gold">✓ Great Fit for Tax Diversification</div>
+      <div class="sc-title">Above the MFJ limit — both spouses can each do a Backdoor Roth</div>
+      <div class="sc-body">Marcus and Priya earn $270,000 combined, above the $261,000 MFJ phase-out. <strong>Each spouse can independently do a Backdoor Roth</strong>, contributing $7,500 each ($15,000 total) per year into tax-free accounts. This gives them strong tax diversification in retirement alongside their 401ks — some money taxed now (Roth), some taxed later (401k).</div>
+    </div>
+
+    <div class="scenario-card notfit">
+      <div class="sc-profile">
+        <div class="sc-avatar" style="background:rgba(255,255,255,.07)">🎓</div>
+        <div>
+          <div class="sc-name">Jordan, 24 — Recent Graduate</div>
+          <div class="sc-detail">Single · $62,000 salary · Austin</div>
+        </div>
+      </div>
+      <div class="sc-label dim">→ Backdoor Not Needed (Yet)</div>
+      <div class="sc-title">Well under the income limit — just contribute directly</div>
+      <div class="sc-body">Jordan earns $62,000, far below the $165,000 single phase-out. <strong>Jordan should simply open a Roth IRA and contribute directly</strong> — no backdoor needed, no extra tax forms, no complexity. The priority here is just to start contributing consistently every year. Jordan can revisit the Backdoor strategy if income grows above $165,000 in the future.</div>
+    </div>
+  </div>
+
+  <!-- SECTION 5: Pro Rata Rule -->
+  <div class="guide-section">
+    <h2><div class="sec-icon icon-coral">⚠️</div>The Pro Rata Rule — The Biggest Gotcha</h2>
+    <p class="body-text">Before you do a Backdoor Roth, you need to understand the Pro Rata Rule. This is the #1 mistake people make, and it can result in an unexpected tax bill.</p>
+
+    <div class="warning-box">
+      <div class="warning-icon">⚠️</div>
+      <div class="warning-text">
+        <strong>If you have existing pre-tax money in any Traditional IRA, SEP IRA, or SIMPLE IRA, the IRS treats ALL your IRA money as one pool when calculating taxes on a conversion.</strong> You can't just convert the non-deductible portion tax-free.
+      </div>
+    </div>
+
+    <p class="body-text"><strong>Example — How the Pro Rata Rule bites you:</strong></p>
+    <div class="calc-box">
+      <div class="calc-row"><span>Existing Traditional IRA (pre-tax from old job rollover)</span><span>$67,500</span></div>
+      <div class="calc-row"><span>New non-deductible contribution (Backdoor attempt)</span><span>$7,500</span></div>
+      <div class="calc-row"><span>Total IRA pool</span><span>$75,000</span></div>
+      <div class="calc-row"><span>Non-deductible portion (tax-free ratio)</span><span>10%</span></div>
+      <div class="calc-row" style="color:var(--coral)"><span>Taxable portion of your $7,500 conversion</span><span>$6,750 ← taxed!</span></div>
+    </div>
+
+    <p class="body-text" style="margin-top:14px"><strong>The fix:</strong> Before doing the Backdoor Roth, roll your existing Traditional IRA balance into your current employer's <strong>401k plan</strong> (most plans accept rollovers). This zeros out your Traditional IRA, making the Backdoor Roth completely clean and tax-free. Check with your 401k plan administrator first.</p>
+  </div>
+
+  <!-- SECTION 6: Quick Comparison -->
+  <div class="guide-section">
+    <h2><div class="sec-icon icon-blue">📊</div>Direct Roth vs. Backdoor Roth — At a Glance</h2>
+    <table class="income-table">
+      <thead>
+        <tr><th>Factor</th><th>Direct Roth IRA</th><th>Backdoor Roth IRA</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Who it's for</td><td>Income under phase-out</td><td>Income over phase-out</td></tr>
+        <tr><td>Extra steps</td><td>None — just contribute</td><td>2 steps: contribute then convert</td></tr>
+        <tr><td>Tax forms</td><td>None extra</td><td>Form 8606 annually</td></tr>
+        <tr><td>2026 limit (under 50)</td><td>$7,500</td><td>$7,500</td></tr>
+        <tr><td>Tax on conversion</td><td>N/A</td><td>$0 if done correctly</td></tr>
+        <tr><td>Legality</td><td><span class="tag tag-green">✓ Legal</span></td><td><span class="tag tag-green">✓ Legal</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-banner">
+    <h3>Track Your Roth IRA Contributions</h3>
+    <p>Use the Roth IRA tracker in your Finnpath dashboard to monitor your 2026 contributions and see your progress toward the $7,500 limit.</p>
+    <a href="simulator.html" class="btn-cta-green">Open Portfolio Tracker →</a>
+  </div>
+
+  <!-- DISCLAIMER -->
+  <div class="disclaimer-box">
+    <div style="font-size:1.4rem;flex-shrink:0">⚖️</div>
+    <p><strong>This is for educational purposes only.</strong> IRA rules, income limits, and contribution limits are set by the IRS and can change annually. The Backdoor Roth strategy involves tax implications that vary by situation — particularly the Pro Rata Rule. <strong>Please consult a licensed CPA or financial advisor before executing any IRA conversion strategy.</strong> Finnpath is not responsible for decisions made based on this guide.</p>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div>
+      <div class="f-logo">Finnpath<span>.</span></div>
+      <p class="f-tagline">Financial education for every stage of life.</p>
+    </div>
+    <nav class="footer-nav">
+      <a href="index.html">Home</a>
+      <a href="learn.html">Learn</a>
+      <a href="calculator.html">Calculator</a>
+      <a href="simulator.html">Tracker</a>
+      <a href="401k.html">401k Decoder</a>
+      <a href="roth.html">Roth IRA Guide</a>
+      <a href="blog.html">Money Moves</a>
+    </nav>
+  </div>
+  <div class="footer-bottom">
+    <p class="footer-copy">© 2026 Finnpath. All rights reserved.</p>
+    <p class="disclaimer">This tool is for educational and informational purposes only and does not constitute financial, legal, or tax advice.</p>
+  </div>
+</footer>
+
+<script src="newsletter.js"></script>
+<script type="module" src="ticker.js"></script>
+</body>
+</html>

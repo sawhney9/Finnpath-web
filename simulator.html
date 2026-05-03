@@ -84,12 +84,20 @@
     .b-call{background:rgba(61,186,126,.15);color:var(--green);border:1px solid rgba(61,186,126,.3);}
     .b-put{background:rgba(232,96,76,.15);color:var(--coral);border:1px solid rgba(232,96,76,.3);}
 
-    /* PORTFOLIO GRID: ticker type shares avgcost price value return actions */
-    .port-grid{grid-template-columns:90px 70px 1fr 1fr 1fr 1fr 1fr 70px;}
+    /* PORTFOLIO GRID: ticker type shares avgcost mktprice today-chg mktval return actions */
+    .port-grid{grid-template-columns:80px 65px 80px 90px 90px 130px 90px 130px 70px;}
     /* JOURNAL GRID */
     .jrn-grid{grid-template-columns:100px 70px 80px 1fr 1fr 1fr auto;}
     /* OPTIONS GRID */
     .opt-grid{grid-template-columns:80px 60px 80px 100px 70px 1fr 1fr 1fr 60px;}
+
+    /* Alpaca-style two-line cells */
+    .two-line-cell{display:flex;flex-direction:column;gap:3px;justify-content:center;}
+    .fw7{font-weight:700;}
+    .pill{display:inline-block;padding:2px 7px;border-radius:20px;font-size:.7rem;font-weight:700;letter-spacing:.02em;}
+    .pill-up{background:rgba(61,186,126,.15);color:#3dba7e;}
+    .pill-dn{background:rgba(232,96,76,.15);color:#e8604c;}
+
 
     /* COMPARE TAB */
     .compare-controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:24px;}
@@ -235,6 +243,7 @@
     <button class="dash-tab" data-tab="bot">🤖 Simulated Bot</button>
     <button class="dash-tab" data-tab="groups">👥 Groups</button>
     <button class="dash-tab" data-tab="predictions">🎯 Predictions</button>
+    <button class="dash-tab" data-tab="roth">💰 Roth IRA</button>
   </div>
 
   <!-- ── PORTFOLIO TAB ── -->
@@ -245,6 +254,11 @@
           <div class="m-label">Total Portfolio Value</div>
           <div class="m-val" style="color:var(--green)" id="total-val">$0.00</div>
           <div class="m-sub" id="total-ret">0.00% All Time</div>
+        </div>
+        <div class="mcard">
+          <div class="m-label">Today's Gain</div>
+          <div class="m-val" id="total-day-gain">$0.00</div>
+          <div class="m-sub" id="total-day-gain-pct">0.00% today</div>
         </div>
         <div class="mcard">
           <div class="m-label">Total Invested</div>
@@ -270,9 +284,9 @@
     <div class="panel">
       <div class="panel-hdr"><span>My Holdings</span></div>
       <div class="tbl-head port-grid">
-        <div>Ticker</div><div>Type</div><div>Shares/Units</div>
-        <div>Avg Cost</div><div>Current Price</div><div>Total Value</div>
-        <div>Return</div><div>Actions</div>
+        <div>Ticker</div><div>Type</div><div>Shares</div>
+        <div>Avg Cost</div><div>Mkt Price</div><div>Today's Chg</div>
+        <div>Mkt Value</div><div>Total Return</div><div>Actions</div>
       </div>
       <div id="holdings-list">
         <div class="empty-st"><div class="icon">📈</div><h3>No investments yet.</h3><p>Log your first trade to get started.</p></div>
@@ -428,6 +442,124 @@
     <div style="margin-top:32px"><div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;margin-bottom:14px">Trending Markets</div><div id="markets-browse"><div style="color:var(--white-dim);font-size:.85rem;padding:16px 0">Loading markets...</div></div></div>
   </div>
 
+  <!-- ── ROTH IRA TAB ── -->
+  <div class="tab-panel" id="tab-roth">
+    <div class="dash-header">
+      <div style="flex:1">
+        <div style="font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:900;margin-bottom:4px">Roth IRA Tracker</div>
+        <p style="font-size:.85rem;color:var(--white-dim)">Monitor your 2026 contributions toward the annual limit.</p>
+      </div>
+      <a href="roth.html" class="btn-out-green" style="text-decoration:none">📖 Roth IRA Guide</a>
+    </div>
+
+    <!-- Year + Age selector -->
+    <div class="panel" style="margin-bottom:18px">
+      <div class="panel-hdr"><span>2026 Contribution Settings</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;padding:8px 0">
+        <div>
+          <label style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--white-dim);display:block;margin-bottom:8px">Tax Year</label>
+          <select id="roth-year" style="background:var(--navy-card);border:1px solid var(--border);color:#fff;padding:10px 14px;border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.88rem;width:100%;outline:none">
+            <option value="2026">2026</option>
+            <option value="2025">2025</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--white-dim);display:block;margin-bottom:8px">Your Age</label>
+          <select id="roth-age" style="background:var(--navy-card);border:1px solid var(--border);color:#fff;padding:10px 14px;border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.88rem;width:100%;outline:none">
+            <option value="under50">Under 50</option>
+            <option value="50plus">50 or Older (+$1,100 catch-up)</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--white-dim);display:block;margin-bottom:8px">Annual Income (for eligibility)</label>
+          <input type="number" id="roth-income" placeholder="e.g. 170000" style="background:var(--navy-card);border:1px solid var(--border);color:#fff;padding:10px 14px;border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.88rem;width:100%;outline:none;box-sizing:border-box"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main tracker + eligibility -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px">
+
+      <!-- Progress ring -->
+      <div class="panel" style="display:flex;flex-direction:column;align-items:center;padding:32px 24px">
+        <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--white-dim);margin-bottom:20px">2026 Contributions</div>
+        <div style="position:relative;width:160px;height:160px;margin-bottom:20px">
+          <svg width="160" height="160" style="transform:rotate(-90deg)">
+            <circle cx="80" cy="80" r="68" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="12"/>
+            <circle id="roth-ring" cx="80" cy="80" r="68" fill="none" stroke="var(--green)" stroke-width="12"
+              stroke-dasharray="427" stroke-dashoffset="427" stroke-linecap="round"
+              style="transition:stroke-dashoffset .6s ease, stroke .3s ease"/>
+          </svg>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+            <div id="roth-contributed-display" style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:900;color:var(--green)">$0</div>
+            <div id="roth-limit-display" style="font-size:.72rem;color:var(--white-dim);margin-top:2px">of $7,500</div>
+          </div>
+        </div>
+        <div style="width:100%">
+          <label style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--white-dim);display:block;margin-bottom:8px">Amount Contributed This Year ($)</label>
+          <div style="display:flex;gap:8px">
+            <input type="number" id="roth-amount" placeholder="0" min="0" step="100"
+              style="flex:1;background:var(--navy-card);border:1px solid var(--border);color:#fff;padding:10px 14px;border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.95rem;outline:none"/>
+            <button id="roth-save-btn" onclick="window.saveRothContribution()"
+              style="background:var(--green);color:#fff;border:none;padding:10px 18px;border-radius:8px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;font-size:.85rem;white-space:nowrap;transition:all .2s">Save</button>
+          </div>
+          <div id="roth-days-left" style="font-size:.75rem;color:var(--white-dim);margin-top:10px;text-align:center"></div>
+        </div>
+      </div>
+
+      <!-- Eligibility + info cards -->
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <!-- Eligibility status -->
+        <div id="roth-eligibility-card" class="panel" style="padding:20px 22px">
+          <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--white-dim);margin-bottom:10px">Your Contribution Type</div>
+          <div id="roth-eligibility-status" style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;margin-bottom:6px">Enter income above</div>
+          <div id="roth-eligibility-detail" style="font-size:.8rem;color:var(--white-dim);line-height:1.6"></div>
+        </div>
+        <!-- Limit card -->
+        <div class="panel" style="padding:20px 22px">
+          <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--white-dim);margin-bottom:6px">2026 Annual Limit</div>
+          <div id="roth-limit-card-val" style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:900;color:var(--sky)">$7,500</div>
+          <div style="font-size:.75rem;color:var(--white-dim);margin-top:4px">$8,600 if age 50+ (includes $1,100 catch-up)</div>
+        </div>
+        <!-- Remaining -->
+        <div class="panel" style="padding:20px 22px">
+          <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--white-dim);margin-bottom:6px">Remaining to Contribute</div>
+          <div id="roth-remaining" style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:900;color:var(--green)">$7,500</div>
+          <div id="roth-pct-done" style="font-size:.75rem;color:var(--white-dim);margin-top:4px">0% of limit used</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Backdoor Roth banner (shown when income > threshold) -->
+    <div id="backdoor-banner" style="display:none;background:linear-gradient(135deg,rgba(74,144,217,.12),rgba(61,186,126,.08));border:1px solid rgba(74,144,217,.25);border-radius:14px;padding:22px 26px;display:none;align-items:center;gap:20px;margin-bottom:18px">
+      <div style="font-size:2rem">🚪</div>
+      <div style="flex:1">
+        <div style="font-weight:700;font-size:.95rem;margin-bottom:4px">You may need the Backdoor Roth IRA</div>
+        <div style="font-size:.82rem;color:var(--white-dim);line-height:1.6">Your income is at or above the phase-out threshold. You can still get money into a Roth IRA using the legal Backdoor Roth strategy — contribute to a Traditional IRA first, then convert.</div>
+      </div>
+      <a href="roth.html#backdoor" style="background:var(--sky);color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:700;font-size:.82rem;white-space:nowrap">Learn How →</a>
+    </div>
+
+    <!-- Key facts strip -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+      <div class="panel" style="padding:16px 18px">
+        <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--white-dim);margin-bottom:6px">Single Phase-Out Starts</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:900;color:var(--coral)">$165,000</div>
+        <div style="font-size:.72rem;color:var(--white-dim);margin-top:3px">Fully phased out at $180,000</div>
+      </div>
+      <div class="panel" style="padding:16px 18px">
+        <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--white-dim);margin-bottom:6px">Married (MFJ) Phase-Out Starts</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:900;color:var(--coral)">$246,000</div>
+        <div style="font-size:.72rem;color:var(--white-dim);margin-top:3px">Fully phased out at $261,000</div>
+      </div>
+      <div class="panel" style="padding:16px 18px">
+        <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--white-dim);margin-bottom=6px">Tax Deadline to Contribute</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:900;color:var(--gold)">Apr 15, 2027</div>
+        <div style="font-size:.72rem;color:var(--white-dim);margin-top:3px">You can contribute until Tax Day for the prior year</div>
+      </div>
+    </div>
+  </div>
+
 </div><!-- /dashboard -->
 
 <!-- MODAL: Log Trade -->
@@ -554,6 +686,7 @@
 
       loadTransactions(user.uid);
       loadBotPositions(user.uid);
+      loadRothData(user.uid);
       loadUserGroups(user.uid);
       loadPredictionMarkets();
       loadMyPredictions(user.uid);
@@ -691,37 +824,58 @@
 
       // Prices & Portfolio
       const tickers = Object.keys(holdings);
-      const priceMap = {};
+      const priceMap = {};  // { ticker: { c: currentPrice, pc: prevClose } }
       await Promise.all(tickers.map(async t => {
         if(holdings[t].type==='stock') {
           const r = await fetch(`https://finnhub.io/api/v1/quote?symbol=${t}&token=${FINNHUB_KEY}`).then(res=>res.json()).catch(()=>({}));
-          priceMap[t] = r.c || 0;
+          priceMap[t] = { c: r.c || 0, pc: r.pc || r.c || 0 };
         } else if(CRYPTO_IDS[t]) {
           const id = CRYPTO_IDS[t];
-          const r = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd`).then(res=>res.json()).catch(()=>({}));
-          priceMap[t] = r[id]?.usd || 0;
+          const r = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd&include_24hr_change=true`).then(res=>res.json()).catch(()=>({}));
+          const price = r[id]?.usd || 0;
+          const chgPct = r[id]?.usd_24h_change || 0;
+          const prevClose = chgPct !== 0 ? price / (1 + chgPct / 100) : price;
+          priceMap[t] = { c: price, pc: prevClose };
         }
       }));
 
-      let portHTML = '', optHTML = '', totalVal = 0, openPos = 0;
+      let portHTML = '', optHTML = '', totalVal = 0, openPos = 0, totalDayGain = 0;
 
       for (const [t, h] of Object.entries(holdings)) {
         if (h.shares <= 0) continue;
         openPos++;
         const avg = h.cost / h.shares;
-        const cp = priceMap[t] || avg;
+        const cp  = priceMap[t]?.c || avg;
+        const pc  = priceMap[t]?.pc || cp;
         const val = h.shares * cp;
         totalVal += val;
-        const ret = ((cp - avg)/avg)*100;
-        const up = ret >= 0;
+
+        // All-time return
+        const retPct = ((cp - avg) / avg) * 100;
+        const retDol = (cp - avg) * h.shares;
+        const up     = retDol >= 0;
+
+        // Today's change
+        const dayChgPct = pc > 0 ? ((cp - pc) / pc) * 100 : 0;
+        const dayChgDol = (cp - pc) * h.shares;
+        totalDayGain   += dayChgDol;
+        const dayUp     = dayChgDol >= 0;
+
         portHTML += `<div class="tbl-row port-grid">
           <div class="t-ticker">${esc(t)}</div>
           <div>${getBadge(h.type)}</div>
-          <div>${h.shares.toFixed(2)}</div>
+          <div>${h.shares.toFixed(4).replace(/\.?0+$/,'')}</div>
           <div>${fmt$(avg)}</div>
           <div>${fmt$(cp)}</div>
+          <div class="two-line-cell">
+            <span class="${dayUp?'up':'dn'} fw7">${dayUp?'+':''}${fmt$(dayChgDol)}</span>
+            <span class="pill ${dayUp?'pill-up':'pill-dn'}">${dayUp?'+':''}${dayChgPct.toFixed(2)}%</span>
+          </div>
           <div>${fmt$(val)}</div>
-          <div class="${up?'up':'dn'} font-weight-700">${up?'+':''}${ret.toFixed(2)}%</div>
+          <div class="two-line-cell">
+            <span class="${up?'up':'dn'} fw7">${up?'+':''}${fmt$(retDol)}</span>
+            <span class="pill ${up?'pill-up':'pill-dn'}">${up?'+':''}${retPct.toFixed(2)}%</span>
+          </div>
           <div><button class="bso" onclick="document.getElementById('tx-ticker').value='${t}';document.getElementById('modal-tx').style.display='grid'">Trade</button></div>
         </div>`;
       }
@@ -745,18 +899,29 @@
       });
       document.getElementById('options-list').innerHTML = optHTML || `<div class="empty-st"><div class="icon">📉</div><h3>No options tracked yet.</h3></div>`;
 
-      // Metrics
+      // ── Metrics ──
       document.getElementById('total-inv').innerText = fmt$(totalInv);
       document.getElementById('total-val').innerText = fmt$(totalVal);
       document.getElementById('total-positions').innerText = openPos;
-      const pnl = totalVal - totalInv;
-      const pnlPct = totalInv > 0 ? (pnl/totalInv)*100 : 0;
-      const pnlEl = document.getElementById('total-pnl');
+
+      const pnl    = totalVal - totalInv;
+      const pnlPct = totalInv > 0 ? (pnl / totalInv) * 100 : 0;
+      const pnlEl  = document.getElementById('total-pnl');
       pnlEl.innerText = `${pnl>=0?'+':''}${fmt$(pnl)}`;
       pnlEl.className = `m-val ${pnl>=0?'up':'dn'}`;
-      document.getElementById('total-pnl-pct').innerText = `${pnlPct>=0?'+':''}${pnlPct.toFixed(2)}% Unrl.`;
-      document.getElementById('total-ret').innerText = `${pnlPct>=0?'+':''}${pnlPct.toFixed(2)}% All Time`;
-      document.getElementById('total-ret').className = `m-sub ${pnlPct>=0?'up':'dn'}`;
+      document.getElementById('total-pnl-pct').innerText  = `${pnlPct>=0?'+':''}${pnlPct.toFixed(2)}% Unrealized`;
+      document.getElementById('total-pnl-pct').className  = `m-sub ${pnlPct>=0?'up':'dn'}`;
+      document.getElementById('total-ret').innerText      = `${pnlPct>=0?'+':''}${pnlPct.toFixed(2)}% All Time`;
+      document.getElementById('total-ret').className      = `m-sub ${pnlPct>=0?'up':'dn'}`;
+
+      // Today's gain card
+      const dayBase = totalVal - totalDayGain;
+      const dayPct  = dayBase > 0 ? (totalDayGain / dayBase) * 100 : 0;
+      const dayEl   = document.getElementById('total-day-gain');
+      dayEl.innerText = `${totalDayGain>=0?'+':''}${fmt$(totalDayGain)}`;
+      dayEl.className = `m-val ${totalDayGain>=0?'up':'dn'}`;
+      document.getElementById('total-day-gain-pct').innerText  = `${dayPct>=0?'+':''}${dayPct.toFixed(2)}% today`;
+      document.getElementById('total-day-gain-pct').className  = `m-sub ${totalDayGain>=0?'up':'dn'}`;
     });
     activeUnsubs.push(unsub);
   }
@@ -797,6 +962,97 @@
     });
     activeUnsubs.push(unsub);
   }
+
+  // ── ROTH IRA TRACKER ─────────────────────────────────────────────────────
+  const ROTH_LIMITS = {
+    '2026': { under50: 7500, age50plus: 8600 },
+    '2025': { under50: 7000, age50plus: 8000 },
+  };
+  const ROTH_PHASEOUT_SINGLE  = { start: 165000, end: 180000 };
+
+  function getRothLimit() {
+    const year = document.getElementById('roth-year')?.value || '2026';
+    const age  = document.getElementById('roth-age')?.value  || 'under50';
+    return ROTH_LIMITS[year]?.[age === '50plus' ? 'age50plus' : 'under50'] || 7500;
+  }
+
+  function updateRothRing(contributed) {
+    const limit  = getRothLimit();
+    const pct    = Math.min(contributed / limit, 1);
+    const offset = 427 * (1 - pct);
+    const ring   = document.getElementById('roth-ring');
+    if (!ring) return;
+    ring.style.strokeDashoffset = offset;
+    ring.style.stroke = pct >= 1 ? 'var(--gold)' : 'var(--green)';
+    document.getElementById('roth-contributed-display').textContent = fmt$(contributed);
+    document.getElementById('roth-limit-display').textContent       = `of ${fmt$(limit)}`;
+    document.getElementById('roth-limit-card-val').textContent      = fmt$(limit);
+    const rem = Math.max(limit - contributed, 0);
+    document.getElementById('roth-remaining').textContent  = fmt$(rem);
+    document.getElementById('roth-remaining').style.color  = rem === 0 ? 'var(--gold)' : 'var(--green)';
+    document.getElementById('roth-pct-done').textContent   = `${(pct*100).toFixed(0)}% of limit used`;
+  }
+
+  function updateRothEligibility() {
+    const income   = parseFloat(document.getElementById('roth-income')?.value) || 0;
+    const statusEl = document.getElementById('roth-eligibility-status');
+    const detailEl = document.getElementById('roth-eligibility-detail');
+    const banner   = document.getElementById('backdoor-banner');
+    if (!statusEl || income === 0) return;
+    const { start, end } = ROTH_PHASEOUT_SINGLE;
+    if (income < start) {
+      statusEl.textContent = '✅ Direct Contribution';
+      statusEl.style.color = 'var(--green)';
+      detailEl.textContent = `Your income of ${fmt$(income)} is below the $${start.toLocaleString()} phase-out. Just open a Roth IRA and contribute directly — no extra steps.`;
+      if (banner) banner.style.display = 'none';
+    } else if (income <= end) {
+      statusEl.textContent = '⚠️ Partial Contribution';
+      statusEl.style.color = 'var(--gold)';
+      detailEl.textContent = `Your income falls in the phase-out range ($${start.toLocaleString()}–$${end.toLocaleString()}). You can contribute a reduced amount, or use the Backdoor Roth to avoid the limit.`;
+      if (banner) banner.style.display = 'flex';
+    } else {
+      statusEl.textContent = '🚪 Backdoor Roth Needed';
+      statusEl.style.color = 'var(--coral)';
+      detailEl.textContent = `At ${fmt$(income)}, you exceed the phase-out limit. You cannot contribute directly, but the legal Backdoor Roth strategy lets you work around this.`;
+      if (banner) banner.style.display = 'flex';
+    }
+  }
+
+  function updateRothDaysLeft() {
+    const el = document.getElementById('roth-days-left');
+    if (!el) return;
+    const deadline = new Date('2027-04-15');
+    const days     = Math.ceil((deadline - new Date()) / 86400000);
+    el.textContent = `${days} days left to contribute for tax year 2026 (deadline: Apr 15, 2027)`;
+  }
+
+  async function loadRothData(uid) {
+    const year = document.getElementById('roth-year')?.value || '2026';
+    try {
+      const snap = await getDoc(doc(db, `portfolios/${uid}/rothContributions/${year}`));
+      const amt  = snap.exists() ? (snap.data().amount || 0) : 0;
+      if (document.getElementById('roth-amount')) document.getElementById('roth-amount').value = amt || '';
+      updateRothRing(amt);
+    } catch(e) { console.warn('Roth load:', e); }
+  }
+
+  window.saveRothContribution = async function() {
+    if (!currentUser) return;
+    const year  = document.getElementById('roth-year')?.value || '2026';
+    const amt   = parseFloat(document.getElementById('roth-amount')?.value) || 0;
+    const limit = getRothLimit();
+    if (amt > limit) return alert(`Cannot exceed the ${year} limit of ${fmt$(limit)}.`);
+    await setDoc(doc(db, `portfolios/${currentUser.uid}/rothContributions/${year}`), { amount: amt, updatedAt: new Date() });
+    updateRothRing(amt);
+    const btn = document.getElementById('roth-save-btn');
+    if (btn) { btn.textContent='Saved ✓'; btn.style.background='var(--sky)'; setTimeout(()=>{ btn.textContent='Save'; btn.style.background='var(--green)'; },2000); }
+  };
+
+  document.getElementById('roth-year')?.addEventListener('change',  () => { if(currentUser) loadRothData(currentUser.uid); });
+  document.getElementById('roth-age')?.addEventListener('change',   () => updateRothRing(parseFloat(document.getElementById('roth-amount')?.value)||0));
+  document.getElementById('roth-income')?.addEventListener('input', () => updateRothEligibility());
+  document.getElementById('roth-amount')?.addEventListener('input', () => updateRothRing(parseFloat(document.getElementById('roth-amount')?.value)||0));
+  updateRothDaysLeft();
 
   document.getElementById('btn-edit-bot-cap')?.addEventListener('click', async () => {
     const newVal = prompt('Enter new starting capital (e.g. 50000):', window.botStartingCapital || 10000);
