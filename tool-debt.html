@@ -87,6 +87,56 @@
     .why-title { font-weight: 700; font-size: .95rem; margin-bottom: 8px; }
     .why-body { font-size: .83rem; color: var(--white-dim); line-height: 1.7; }
 
+    /* ── INTEREST ILLUSTRATION ── */
+    .illus-section { background: var(--navy-mid); border: 1px solid var(--border); border-radius: 16px; padding: 32px; margin-bottom: 36px; }
+    .illus-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; flex-wrap: wrap; margin-bottom: 28px; }
+    .illus-balance-row { display: flex; align-items: center; gap: 10px; background: var(--navy-card); border: 1px solid var(--border); border-radius: 10px; padding: 10px 16px; }
+    .illus-balance-row label { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--white-dim); white-space: nowrap; }
+    .illus-balance-row input { background: transparent; border: none; color: var(--white); font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.1rem; outline: none; width: 110px; }
+    .illus-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .illus-card { border-radius: 12px; padding: 22px 24px; position: relative; overflow: hidden; }
+    .illus-card.bad  { background: rgba(232,96,76,.07);  border: 1px solid rgba(232,96,76,.2); }
+    .illus-card.good { background: rgba(61,186,126,.07); border: 1px solid rgba(61,186,126,.2); }
+    .illus-card-label { font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .09em; margin-bottom: 8px; }
+    .illus-card.bad  .illus-card-label { color: var(--coral); }
+    .illus-card.good .illus-card-label { color: var(--green); }
+    .illus-card-val  { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 900; line-height: 1; margin-bottom: 4px; }
+    .illus-card.bad  .illus-card-val  { color: var(--coral); }
+    .illus-card.good .illus-card-val  { color: var(--green); }
+    .illus-card-desc { font-size: .78rem; color: var(--white-dim); line-height: 1.6; margin-top: 8px; }
+    .illus-verdict { margin-top: 16px; background: rgba(201,168,76,.07); border: 1px solid rgba(201,168,76,.2); border-radius: 10px; padding: 14px 18px; font-size: .84rem; line-height: 1.7; color: var(--white-dim); }
+    .illus-verdict strong { color: var(--gold); }
+
+    /* ── PAYMENT CASCADE ── */
+    .cascade-section { margin-top: 28px; }
+    .cascade-title { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--white-dim); margin-bottom: 14px; }
+    .cascade-track { display: flex; flex-direction: column; gap: 0; }
+    .cascade-item { display: flex; align-items: stretch; gap: 0; }
+    .cascade-left { display: flex; flex-direction: column; align-items: center; width: 36px; flex-shrink: 0; }
+    .cascade-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--coral); border: 2px solid rgba(232,96,76,.4); flex-shrink: 0; margin-top: 14px; }
+    .cascade-line { width: 2px; background: rgba(255,255,255,.08); flex: 1; margin: 2px 0; }
+    .cascade-item:last-child .cascade-line { display: none; }
+    .cascade-item.done .cascade-dot { background: var(--green); border-color: rgba(61,186,126,.4); }
+    .cascade-body { flex: 1; background: var(--navy-card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; margin: 6px 0 6px 10px; }
+    .cascade-name { font-weight: 700; font-size: .9rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .cascade-bar-wrap { background: rgba(255,255,255,.05); border-radius: 4px; height: 6px; margin-bottom: 8px; overflow: hidden; }
+    .cascade-bar { height: 100%; border-radius: 4px; background: var(--coral); transition: width .6s ease; }
+    .cascade-item.done .cascade-bar { background: var(--green); }
+    .cascade-detail { font-size: .75rem; color: var(--white-dim); line-height: 1.6; }
+    .cascade-arrow { font-size: .72rem; color: var(--green); font-weight: 700; margin-top: 4px; }
+    .cascade-badge { font-size: .65rem; font-weight: 700; padding: 2px 8px; border-radius: 20px; background: rgba(61,186,126,.15); color: var(--green); }
+
+    /* ── AFTER-DEBT INVESTING ── */
+    .invest-section { background: linear-gradient(135deg, rgba(61,186,126,.07), rgba(74,144,217,.05)); border: 1px solid rgba(61,186,126,.2); border-radius: 16px; padding: 28px 32px; margin-top: 28px; }
+    .invest-header { margin-bottom: 20px; }
+    .invest-header h3 { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 900; margin-bottom: 6px; }
+    .invest-header p { font-size: .83rem; color: var(--white-dim); line-height: 1.6; }
+    .invest-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .invest-card { background: var(--navy-card); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; text-align: center; }
+    .invest-yr { font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--white-dim); margin-bottom: 8px; }
+    .invest-val { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 900; color: var(--green); }
+    .invest-note { font-size: .72rem; color: var(--white-dim); margin-top: 4px; }
+
     #results-section { display: none; }
 
     @media(max-width:900px) {
@@ -95,6 +145,8 @@
       .debt-card > *:nth-child(5) { grid-column: span 2; }
       .results-grid { grid-template-columns: 1fr; }
       .page-hero { padding: calc(var(--nav-h) + 36px) 24px 40px; }
+      .illus-cards { grid-template-columns: 1fr; }
+      .invest-grid { grid-template-columns: 1fr; }
     }
   </style>
   <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
@@ -112,6 +164,8 @@
         <a href="calculator.html">🧮 Calculator</a>
         <a href="simulator.html">📈 Portfolio Tracker</a>
         <a href="401k.html">📄 401k Decoder</a>
+        <a href="roth.html">🏦 Roth IRA Guide</a>
+        <a href="tool-debt.html" class="active">💳 Debt Planner</a>
       </div>
     </li>
     <li><a href="paths.html">Your Path</a></li>
@@ -139,6 +193,38 @@
 
 <div class="tool-page">
   <div class="tool-inner">
+
+    <!-- INTEREST COST ILLUSTRATION -->
+    <div class="illus-section">
+      <div class="illus-header">
+        <div>
+          <div class="s-eyebrow" style="margin-bottom:8px">The Real Cost of High-Interest Debt</div>
+          <div style="font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:900;line-height:1.2">29.99% APR vs a 10% Index Fund</div>
+          <p style="font-size:.83rem;color:var(--white-dim);margin-top:8px;line-height:1.6;max-width:460px">Carrying a credit card balance doesn't just hurt — it actively competes with your investing potential. Here's the math.</p>
+        </div>
+        <div class="illus-balance-row">
+          <label>Balance $</label>
+          <input type="number" id="illus-balance" value="5000" min="100" step="100" oninput="updateIllustration()"/>
+        </div>
+      </div>
+      <div class="illus-cards">
+        <div class="illus-card bad">
+          <div class="illus-card-label">💸 Credit Card at 29.99% APR</div>
+          <div class="illus-card-val" id="illus-interest-cost">$1,500</div>
+          <div style="font-size:.75rem;color:var(--coral);margin-bottom:8px">lost to interest per year</div>
+          <div class="illus-card-desc" id="illus-interest-desc">On a $5,000 balance at 29.99% APR, you're paying <strong style="color:var(--white)">$1,500/year</strong> in interest — every year you carry it. That's $125/month just to stand still.</div>
+        </div>
+        <div class="illus-card good">
+          <div class="illus-card-label">📈 Same Money in an Index Fund (10% avg)</div>
+          <div class="illus-card-val" id="illus-gain">+$500</div>
+          <div style="font-size:.75rem;color:var(--green);margin-bottom:8px">average annual gain</div>
+          <div class="illus-card-desc" id="illus-gain-desc">That same $5,000 invested in a broad market index fund earning ~10%/year would grow by <strong style="color:var(--white)">$500 in year one</strong> — and compound from there.</div>
+        </div>
+      </div>
+      <div class="illus-verdict" id="illus-verdict">
+        ⚡ <strong>Total annual spread: $2,000</strong> — every year you carry this balance instead of paying it off, you're losing $1,500 in interest AND missing $500 in potential gains. <strong>Paying off this card first is a guaranteed ~30% return. No index fund can beat that.</strong>
+      </div>
+    </div>
 
     <!-- DEBTS INPUT -->
     <div class="debts-section">
@@ -212,6 +298,39 @@
       <div class="savings-highlight" id="savings-highlight">
         <div class="big" id="savings-diff">$0</div>
         <div class="label">Interest saved by choosing the better strategy</div>
+      </div>
+
+      <!-- Payment Cascade Visual -->
+      <div class="cascade-section">
+        <div style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:900;margin-bottom:6px">💥 The Payment Cascade (Avalanche Order)</div>
+        <p style="font-size:.82rem;color:var(--white-dim);line-height:1.6;margin-bottom:18px">When each debt is paid off, its minimum payment rolls forward to the next — like a snowball picking up speed. Here's exactly how your payments stack.</p>
+        <div class="cascade-track" id="cascade-track"></div>
+      </div>
+
+      <!-- After-debt investing projection -->
+      <div class="invest-section" id="invest-section">
+        <div class="invest-header">
+          <h3>🚀 What happens after you're debt-free?</h3>
+          <p>Once every debt is paid off, redirect those same monthly payments into a broad index fund. Here's what that money becomes at a conservative <strong style="color:var(--green)">7% average annual return</strong>.</p>
+        </div>
+        <div class="invest-grid">
+          <div class="invest-card">
+            <div class="invest-yr">After 10 Years</div>
+            <div class="invest-val" id="invest-10yr">—</div>
+            <div class="invest-note" id="invest-10yr-contrib"></div>
+          </div>
+          <div class="invest-card">
+            <div class="invest-yr">After 20 Years</div>
+            <div class="invest-val" id="invest-20yr">—</div>
+            <div class="invest-note" id="invest-20yr-contrib"></div>
+          </div>
+          <div class="invest-card">
+            <div class="invest-yr">After 30 Years</div>
+            <div class="invest-val" id="invest-30yr">—</div>
+            <div class="invest-note" id="invest-30yr-contrib"></div>
+          </div>
+        </div>
+        <p style="font-size:.72rem;color:var(--white-dim);margin-top:14px;line-height:1.6">* Projections assume your freed-up monthly payments (minimums + extra) invested monthly at 7% annually. For illustrative purposes only — not guaranteed returns.</p>
       </div>
     </div>
 
@@ -379,6 +498,86 @@
     return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   }
 
+  // ── INTEREST ILLUSTRATION ──────────────────────────────────────────────
+  function updateIllustration() {
+    const bal  = parseFloat(document.getElementById('illus-balance').value) || 5000;
+    const apr  = 0.2999;
+    const idx  = 0.10;
+    const intCost  = Math.round(bal * apr);
+    const idxGain  = Math.round(bal * idx);
+    const spread   = intCost + idxGain;
+    const monthly  = Math.round(intCost / 12);
+
+    document.getElementById('illus-interest-cost').textContent = fmt$(intCost);
+    document.getElementById('illus-gain').textContent = '+' + fmt$(idxGain);
+    document.getElementById('illus-interest-desc').innerHTML =
+      `On a ${fmt$(bal)} balance at 29.99% APR, you're paying <strong style="color:var(--white)">${fmt$(intCost)}/year</strong> in interest — every year you carry it. That's ${fmt$(monthly)}/month just to stand still.`;
+    document.getElementById('illus-gain-desc').innerHTML =
+      `That same ${fmt$(bal)} invested in a broad market index fund earning ~10%/year would grow by <strong style="color:var(--white)">${fmt$(idxGain)} in year one</strong> — and compound from there.`;
+    document.getElementById('illus-verdict').innerHTML =
+      `⚡ <strong>Total annual spread: ${fmt$(spread)}</strong> — every year you carry this balance instead of paying it off, you're losing ${fmt$(intCost)} in interest AND missing ${fmt$(idxGain)} in potential gains. <strong>Paying off this card first is a guaranteed ~30% return. No index fund can beat that.</strong>`;
+  }
+  updateIllustration();
+
+  // ── CASCADE VISUAL ────────────────────────────────────────────────────────
+  function buildCascade(avResult, debts, extra) {
+    const el = document.getElementById('cascade-track');
+    if (!el) return;
+    const totalMin = debts.reduce((s, d) => s + d.min, 0);
+    let rolledPayment = extra;
+    let html = '';
+    avResult.order.forEach((item, i) => {
+      const debt = debts.find(d => d.name === item.name) || {};
+      const payAtStep = debt.min + rolledPayment;
+      const pct = Math.min(100, (payAtStep / (debt.balance || 1)) * 100 * 12).toFixed(0);
+      const isLast = i === avResult.order.length - 1;
+      html += `
+        <div class="cascade-item done">
+          <div class="cascade-left">
+            <div class="cascade-dot"></div>
+            <div class="cascade-line"></div>
+          </div>
+          <div class="cascade-body">
+            <div class="cascade-name">
+              <span>${item.name}</span>
+              <span class="cascade-badge">Paid off ${item.paidMonth ? payoffDate(item.paidMonth) : '—'}</span>
+            </div>
+            <div class="cascade-bar-wrap"><div class="cascade-bar" style="width:${Math.min(100,pct)}%"></div></div>
+            <div class="cascade-detail">
+              Min ${fmt$(debt.min || 0)}/mo${rolledPayment > 0 ? ` + ${fmt$(rolledPayment)} rolled over` : ''} + ${fmt$(extra)} extra
+              = <strong style="color:var(--white)">${fmt$(payAtStep)}/mo total toward this debt</strong>
+              ${!isLast ? `<div class="cascade-arrow">↓ ${fmt$(debt.min || 0)} minimum now rolls to next debt</div>` : ''}
+            </div>
+          </div>
+        </div>`;
+      rolledPayment += (debt.min || 0);
+    });
+    // Final investing step
+    html += `
+      <div class="cascade-item" style="margin-top:8px">
+        <div class="cascade-left"><div class="cascade-dot" style="background:var(--sky);border-color:rgba(74,144,217,.4)"></div></div>
+        <div class="cascade-body" style="border-color:rgba(61,186,126,.25);background:rgba(61,186,126,.05)">
+          <div class="cascade-name"><span>🚀 Start Investing</span><span class="cascade-badge" style="background:rgba(74,144,217,.15);color:var(--sky)">Debt-Free!</span></div>
+          <div class="cascade-detail">All ${fmt$(totalMin + extra)}/mo that was going to debt payments is now free to invest in index funds.</div>
+        </div>
+      </div>`;
+    el.innerHTML = html;
+  }
+
+  // ── INVESTING PROJECTION ──────────────────────────────────────────────────
+  function buildInvestProjection(debts, extra) {
+    const monthly = debts.reduce((s, d) => s + d.min, 0) + extra;
+    const rate    = 0.07 / 12;
+    const contrib = fmt$(monthly);
+    [10, 20, 30].forEach(yrs => {
+      const n = yrs * 12;
+      const fv = monthly * ((Math.pow(1 + rate, n) - 1) / rate);
+      document.getElementById(`invest-${yrs}yr`).textContent = fmt$(fv);
+      document.getElementById(`invest-${yrs}yr-contrib`).textContent = `${contrib}/mo invested × ${yrs} yrs`;
+    });
+  }
+
+  // ── CALCULATE (updated) ────────────────────────────────────────────────────
   function calculate() {
     const debts = getDebts();
     if (!debts.length) { alert('Please add at least one debt.'); return; }
@@ -420,10 +619,12 @@
     document.getElementById('avalanche-winner').style.display = avWins ? 'inline-flex' : 'none';
     document.getElementById('snowball-winner').style.display = !avWins ? 'inline-flex' : 'none';
     document.getElementById('savings-diff').textContent = fmt$(diff);
-
-    // Highlight winner card
     document.getElementById('avalanche-card').style.borderColor = avWins ? 'rgba(61,186,126,.35)' : 'var(--border)';
     document.getElementById('snowball-card').style.borderColor = !avWins ? 'rgba(61,186,126,.35)' : 'var(--border)';
+
+    // New: cascade + projection
+    buildCascade(av, debts, extra);
+    buildInvestProjection(debts, extra);
   }
 
   // Init
