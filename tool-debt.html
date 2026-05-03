@@ -159,6 +159,21 @@
     .sc-callout-note { font-size: .72rem; color: var(--white-dim); margin-top: 4px; line-height: 1.5; }
     @media(max-width:600px){ .scenario-callout{grid-template-columns:1fr;} .chart-wrap{height:220px;} }
 
+    /* ── AUTH BAR ── */
+    .auth-bar { background: var(--navy-mid); border: 1px solid var(--border); border-radius: 12px; padding: 14px 20px; margin-bottom: 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .auth-bar-msg { font-size: .83rem; color: var(--white-dim); display: flex; align-items: center; gap: 10px; }
+    .auth-avatar { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
+    .auth-name { font-weight: 600; color: var(--white); }
+    .btn-google { display: inline-flex; align-items: center; gap: 9px; background: var(--navy-card); border: 1px solid var(--border); color: var(--white); padding: 9px 18px; border-radius: 9px; font-size: .83rem; font-weight: 700; font-family: 'Plus Jakarta Sans', sans-serif; cursor: pointer; transition: all .2s; white-space: nowrap; }
+    .btn-google:hover { border-color: rgba(255,255,255,.25); background: rgba(255,255,255,.05); }
+    .btn-google img { width: 16px; height: 16px; }
+    .btn-sign-out { background: transparent; border: 1px solid var(--border); color: var(--white-dim); padding: 7px 14px; border-radius: 8px; font-size: .77rem; font-family: 'Plus Jakarta Sans', sans-serif; cursor: pointer; transition: all .2s; }
+    .btn-sign-out:hover { border-color: var(--coral); color: var(--coral); }
+    .btn-save-plan { background: var(--green); color: #fff; border: none; padding: 9px 20px; border-radius: 9px; font-size: .83rem; font-weight: 700; font-family: 'Plus Jakarta Sans', sans-serif; cursor: pointer; transition: all .2s; white-space: nowrap; }
+    .btn-save-plan:hover { background: #2da06a; }
+    .save-toast { display: none; font-size: .75rem; color: var(--green); font-weight: 600; }
+    .save-toast.show { display: inline; }
+
     #results-section { display: none; }
 
     @media(max-width:900px) {
@@ -217,6 +232,20 @@
 <div class="tool-page">
   <div class="tool-inner">
 
+    <!-- AUTH BAR -->
+    <div class="auth-bar" id="auth-bar">
+      <div class="auth-bar-msg" id="auth-msg">
+        <span>🔒 Sign in to save your debt plan and track progress over time.</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="btn-google" id="btn-login" onclick="window.debtSignIn()">
+          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"/>
+          Sign in with Google
+        </button>
+        <button class="btn-sign-out" id="btn-signout" style="display:none" onclick="window.debtSignOut()">Sign Out</button>
+      </div>
+    </div>
+
     <!-- INTEREST COST ILLUSTRATION -->
     <div class="illus-section">
       <div class="illus-header">
@@ -264,6 +293,8 @@
           </div>
         </div>
         <button class="btn-calculate" id="btn-calculate">Calculate Payoff Plan →</button>
+        <button class="btn-save-plan" id="btn-save-plan" style="display:none" onclick="window.saveDebtPlan()">💾 Save Plan</button>
+        <span class="save-toast" id="save-toast">✓ Saved!</span>
       </div>
     </div>
 
@@ -852,9 +883,142 @@
   }
 
   // Init
+  window.addDebt = addDebt; // expose for Firebase module script
   document.getElementById('btn-add-debt').addEventListener('click', () => addDebt());
   document.getElementById('btn-calculate').addEventListener('click', calculate);
   defaultDebts.forEach(d => addDebt(d.name, d.balance, d.apr, d.min));
+</script>
+<script type="module">
+  import { initializeApp }          from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+  import { getAuth, signInWithPopup, signOut, GoogleAuthProvider, onAuthStateChanged }
+                                    from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+  import { getFirestore, doc, setDoc, getDoc }
+                                    from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCBPd8YbW3uiZTtF92oW-1QuGi027faxKU",
+    authDomain: "finnpath-b82f3.firebaseapp.com",
+    projectId: "finnpath-b82f3",
+    storageBucket: "finnpath-b82f3.firebasestorage.app",
+    messagingSenderId: "1058942599170",
+    appId: "1:1058942599170:web:9aef88c5417e18b157e71b"
+  };
+
+  const app      = initializeApp(firebaseConfig);
+  const auth     = getAuth(app);
+  const db       = getFirestore(app);
+  const provider = new GoogleAuthProvider();
+  let currentUser = null;
+
+  // ── AUTH STATE ──────────────────────────────────────────────────────────
+  onAuthStateChanged(auth, async user => {
+    currentUser = user;
+    const loginBtn   = document.getElementById('btn-login');
+    const signoutBtn = document.getElementById('btn-signout');
+    const msgEl      = document.getElementById('auth-msg');
+
+    if (user) {
+      loginBtn.style.display   = 'none';
+      signoutBtn.style.display = 'inline-block';
+      const avatar = user.photoURL ? `<img src="${user.photoURL}" class="auth-avatar" alt=""/>` : '👤';
+      msgEl.innerHTML = `${avatar} <span>Signed in as <span class="auth-name">${user.displayName || user.email}</span></span>`;
+
+      // Show save button
+      document.getElementById('btn-save-plan').style.display = 'inline-block';
+
+      // Auto-load saved plan
+      await loadDebtPlan(user.uid);
+    } else {
+      loginBtn.style.display   = 'inline-flex';
+      signoutBtn.style.display = 'none';
+      msgEl.innerHTML = '<span>🔒 Sign in to save your debt plan and track progress over time.</span>';
+      document.getElementById('btn-save-plan').style.display = 'none';
+    }
+  });
+
+  // ── SIGN IN / OUT ────────────────────────────────────────────────────────
+  window.debtSignIn = async () => {
+    try { await signInWithPopup(auth, provider); }
+    catch(e) { console.error('Sign-in error', e); }
+  };
+
+  window.debtSignOut = async () => {
+    await signOut(auth);
+  };
+
+  // ── SAVE PLAN ────────────────────────────────────────────────────────────
+  window.saveDebtPlan = async () => {
+    if (!currentUser) return;
+    const debts = [...document.querySelectorAll('.debt-card')].map(card => ({
+      name:    card.querySelector('[data-role="name"]').value    || 'Debt',
+      balance: parseFloat(card.querySelector('[data-role="balance"]').value) || 0,
+      apr:     parseFloat(card.querySelector('[data-role="apr"]').value)     || 0,
+      min:     parseFloat(card.querySelector('[data-role="min"]').value)     || 0,
+    })).filter(d => d.balance > 0);
+
+    const extra = parseFloat(document.getElementById('extra-payment').value) || 0;
+
+    try {
+      await setDoc(doc(db, `debtPlans/${currentUser.uid}`), {
+        debts,
+        extra,
+        savedAt: new Date().toISOString(),
+        email: currentUser.email,
+      });
+      const toast = document.getElementById('save-toast');
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2500);
+    } catch(e) {
+      alert('Error saving: ' + e.message);
+    }
+  };
+
+  // ── LOAD PLAN ────────────────────────────────────────────────────────────
+  async function loadDebtPlan(uid) {
+    try {
+      const snap = await getDoc(doc(db, `debtPlans/${uid}`));
+      if (!snap.exists()) return;
+      const data = snap.data();
+
+      // Clear existing cards
+      document.getElementById('debt-list').innerHTML = '';
+      window._debtCount = 0;
+
+      // Re-populate cards using the existing addDebt function
+      (data.debts || []).forEach(d => {
+        if (typeof window.addDebt === 'function') {
+          window.addDebt(d.name, d.balance, d.apr, d.min);
+        }
+      });
+
+      // Restore extra payment
+      if (data.extra !== undefined) {
+        document.getElementById('extra-payment').value = data.extra;
+      }
+
+      // Show a subtle banner
+      const savedDate = data.savedAt
+        ? new Date(data.savedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        : '';
+      showLoadedBanner(savedDate, data.debts?.length || 0);
+
+    } catch(e) { console.warn('Load plan error:', e); }
+  }
+
+  function showLoadedBanner(date, count) {
+    let banner = document.getElementById('loaded-banner');
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'loaded-banner';
+      banner.style.cssText = 'background:rgba(61,186,126,.07);border:1px solid rgba(61,186,126,.2);border-radius:10px;padding:12px 18px;font-size:.8rem;color:var(--white-dim);margin-bottom:16px;display:flex;align-items:center;gap:10px';
+      const debtsSection = document.querySelector('.debts-section');
+      debtsSection.insertBefore(banner, debtsSection.firstChild);
+    }
+    banner.innerHTML = `<span style="color:var(--green);font-size:1rem">✓</span> Loaded your saved plan (${count} debt${count !== 1 ? 's' : ''}, last saved ${date}). <button onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--white-dim);cursor:pointer;margin-left:auto;font-size:.85rem">✕</button>`;
+  }
+
+  // Expose addDebt to module scope so loadDebtPlan can call it
+  // (addDebt is defined in the classic script above — it's already on window)
 </script>
 <script type="module" src="ticker.js"></script>
 </body>
