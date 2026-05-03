@@ -98,6 +98,14 @@
     .pill-up{background:rgba(61,186,126,.15);color:#3dba7e;}
     .pill-dn{background:rgba(232,96,76,.15);color:#e8604c;}
 
+    /* Holdings filter toggle */
+    .holdings-filter{display:flex;gap:6px;}
+    .hf-btn{background:var(--navy-card);border:1px solid var(--border);color:var(--white-dim);padding:5px 14px;border-radius:20px;font-size:.75rem;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:all .18s;letter-spacing:.02em;}
+    .hf-btn:hover{border-color:rgba(255,255,255,.2);color:var(--white);}
+    .hf-btn.active{background:var(--sky);border-color:var(--sky);color:#fff;}
+    .hf-btn.active.crypto-btn{background:#f7931a;border-color:#f7931a;}
+    .hf-btn.active.stocks-btn{background:var(--green);border-color:var(--green);}
+
 
     /* COMPARE TAB */
     .compare-controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:24px;}
@@ -281,7 +289,14 @@
     </div>
 
     <div class="panel">
-      <div class="panel-hdr"><span>My Holdings</span></div>
+      <div class="panel-hdr">
+        <span>My Holdings</span>
+        <div class="holdings-filter">
+          <button class="hf-btn active"      id="hf-all"    onclick="window.filterHoldings('all')">All</button>
+          <button class="hf-btn stocks-btn"  id="hf-stock"  onclick="window.filterHoldings('stock')">📊 Stocks</button>
+          <button class="hf-btn crypto-btn"  id="hf-crypto" onclick="window.filterHoldings('crypto')">₿ Crypto</button>
+        </div>
+      </div>
       <div class="tbl-head port-grid">
         <div>Ticker</div><div>Type</div><div>Shares</div>
         <div>Avg Cost</div><div>Mkt Price</div><div>Today's Chg</div>
@@ -825,7 +840,7 @@
         totalDayGain   += dayChgDol;
         const dayUp     = dayChgDol >= 0;
 
-        portHTML += `<div class="tbl-row port-grid">
+        portHTML += `<div class="tbl-row port-grid" data-asset-type="${h.type}">
           <div class="t-ticker">${esc(t)}</div>
           <div>${getBadge(h.type)}</div>
           <div>${h.shares.toFixed(4).replace(/\.?0+$/,'')}</div>
@@ -844,6 +859,9 @@
         </div>`;
       }
       document.getElementById('holdings-list').innerHTML = portHTML || `<div class="empty-st">No open stock/crypto positions.</div>`;
+      // Re-apply whichever filter is currently active
+      const activeFilt = document.querySelector('.hf-btn.active')?.id?.replace('hf-','') || 'all';
+      window.filterHoldings(activeFilt);
 
       options.forEach(o => {
         openPos++;
@@ -1017,6 +1035,28 @@
   document.getElementById('roth-income')?.addEventListener('input', () => updateRothEligibility());
   document.getElementById('roth-amount')?.addEventListener('input', () => updateRothRing(parseFloat(document.getElementById('roth-amount')?.value)||0));
   updateRothDaysLeft();
+
+  // ── HOLDINGS FILTER ───────────────────────────────────────────────────────
+  window.filterHoldings = function(type) {
+    // Update button active states
+    ['all','stock','crypto'].forEach(t => {
+      const btn = document.getElementById('hf-' + t);
+      if (!btn) return;
+      btn.classList.toggle('active', t === type);
+    });
+    // Show/hide rows
+    document.querySelectorAll('#holdings-list .tbl-row.port-grid').forEach(row => {
+      const rowType = row.dataset.assetType || 'stock';
+      if (type === 'all') {
+        row.style.display = '';
+      } else if (type === 'crypto') {
+        row.style.display = rowType === 'crypto' ? '' : 'none';
+      } else {
+        // 'stock' filter shows stocks (anything that's not crypto)
+        row.style.display = rowType === 'crypto' ? 'none' : '';
+      }
+    });
+  };
 
   document.getElementById('btn-edit-bot-cap')?.addEventListener('click', async () => {
     const newVal = prompt('Enter new starting capital (e.g. 50000):', window.botStartingCapital || 10000);
