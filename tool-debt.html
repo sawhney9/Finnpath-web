@@ -137,6 +137,28 @@
     .invest-val { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 900; color: var(--green); }
     .invest-note { font-size: .72rem; color: var(--white-dim); margin-top: 4px; }
 
+    /* ── CHARTS ── */
+    .chart-section { margin-top: 28px; }
+    .chart-block { background: var(--navy-mid); border: 1px solid var(--border); border-radius: 14px; padding: 24px 28px; margin-bottom: 20px; }
+    .chart-block-title { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 900; margin-bottom: 4px; }
+    .chart-block-sub { font-size: .8rem; color: var(--white-dim); line-height: 1.6; margin-bottom: 20px; }
+    .chart-wrap { position: relative; height: 280px; }
+    .chart-legend { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 14px; }
+    .legend-item { display: flex; align-items: center; gap: 7px; font-size: .75rem; color: var(--white-dim); }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .scenario-callout { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+    .sc-callout-card { border-radius: 10px; padding: 14px 16px; }
+    .sc-callout-card.a { background: rgba(232,96,76,.07); border: 1px solid rgba(232,96,76,.2); }
+    .sc-callout-card.b { background: rgba(61,186,126,.07); border: 1px solid rgba(61,186,126,.2); }
+    .sc-callout-label { font-size: .62rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 5px; }
+    .sc-callout-card.a .sc-callout-label { color: var(--coral); }
+    .sc-callout-card.b .sc-callout-label { color: var(--green); }
+    .sc-callout-val { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 900; }
+    .sc-callout-card.a .sc-callout-val { color: var(--coral); }
+    .sc-callout-card.b .sc-callout-val { color: var(--green); }
+    .sc-callout-note { font-size: .72rem; color: var(--white-dim); margin-top: 4px; line-height: 1.5; }
+    @media(max-width:600px){ .scenario-callout{grid-template-columns:1fr;} .chart-wrap{height:220px;} }
+
     #results-section { display: none; }
 
     @media(max-width:900px) {
@@ -150,6 +172,7 @@
     }
   </style>
   <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -298,6 +321,47 @@
       <div class="savings-highlight" id="savings-highlight">
         <div class="big" id="savings-diff">$0</div>
         <div class="label">Interest saved by choosing the better strategy</div>
+      </div>
+
+
+      <!-- CHARTS -->
+      <div class="chart-section">
+
+        <!-- Chart 1: Balance over time -->
+        <div class="chart-block">
+          <div class="chart-block-title">📉 Balance Over Time</div>
+          <div class="chart-block-sub">See how quickly each strategy eliminates your debt vs. making only minimum payments. The gap between lines = interest you're saving.</div>
+          <div class="chart-wrap"><canvas id="chart-balance"></canvas></div>
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#e8604c"></div>Minimum Payments Only</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#4a90d9"></div>Avalanche (Highest APR First)</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#3dba7e"></div>Snowball (Lowest Balance First)</div>
+          </div>
+        </div>
+
+        <!-- Chart 2: Net wealth - invest while in debt vs pay off first -->
+        <div class="chart-block">
+          <div class="chart-block-title">⚡ The Hidden Cost: Investing While In Debt</div>
+          <div class="chart-block-sub">Many people invest and carry credit card debt at the same time. This chart shows the true net-wealth difference between <strong style="color:var(--coral)">Strategy A</strong> (pay minimums + invest the extra) vs <strong style="color:var(--green)">Strategy B</strong> (aggressively pay off debt first, then redirect all payments into index funds).</div>
+          <div class="chart-wrap"><canvas id="chart-wealth"></canvas></div>
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#e8604c"></div>Strategy A: Pay Minimums + Invest $X/mo</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#3dba7e"></div>Strategy B: Avalanche First, Then Invest Everything</div>
+          </div>
+          <div class="scenario-callout" id="scenario-callout" style="display:none">
+            <div class="sc-callout-card a">
+              <div class="sc-callout-label">Strategy A — Net Wealth at Year 10</div>
+              <div class="sc-callout-val" id="sc-a-val">—</div>
+              <div class="sc-callout-note">Investment gains minus remaining debt drag</div>
+            </div>
+            <div class="sc-callout-card b">
+              <div class="sc-callout-label">Strategy B — Net Wealth at Year 10</div>
+              <div class="sc-callout-val" id="sc-b-val">—</div>
+              <div class="sc-callout-note">Debt-free sooner → all payments invested</div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <!-- Payment Cascade Visual -->
@@ -622,9 +686,169 @@
     document.getElementById('avalanche-card').style.borderColor = avWins ? 'rgba(61,186,126,.35)' : 'var(--border)';
     document.getElementById('snowball-card').style.borderColor = !avWins ? 'rgba(61,186,126,.35)' : 'var(--border)';
 
-    // New: cascade + projection
+    // New: cascade + projection + charts
     buildCascade(av, debts, extra);
     buildInvestProjection(debts, extra);
+    buildCharts(debts, extra, av, sb);
+  }
+
+  // ── SIMULATE WITH HISTORY ─────────────────────────────────────────────────
+  // Returns per-month total balance array for a given strategy (or min-only)
+  function simulateHistory(debts, extraMonthly, method) {
+    if (!debts.length) return [];
+    const state = debts.map(d => ({
+      name: d.name, balance: d.balance,
+      rate: d.apr / 100 / 12, min: d.min, paid: false,
+    }));
+    const priority = method === 'min'
+      ? state.map(d => d.name)   // doesn't matter for min-only
+      : method === 'avalanche'
+        ? [...state].sort((a, b) => b.rate - a.rate).map(d => d.name)
+        : [...state].sort((a, b) => a.balance - b.balance).map(d => d.name);
+
+    const history = [];
+    let rolledOver = 0;
+    for (let m = 0; m < 600; m++) {
+      state.forEach(d => { if (d.balance > 0) d.balance += d.balance * d.rate; });
+      if (method === 'min') {
+        state.forEach(d => { if (!d.paid) { const p = Math.min(d.balance, d.min); d.balance = Math.max(0, d.balance - p); } });
+      } else {
+        state.forEach(d => { if (!d.paid) { const p = Math.min(d.balance, d.min); d.balance = Math.max(0, d.balance - p); } });
+        let extra = extraMonthly + rolledOver;
+        for (const name of priority) {
+          const debt = state.find(d => d.name === name && !d.paid);
+          if (!debt || debt.balance <= 0.01) continue;
+          const pay = Math.min(debt.balance, extra); debt.balance = Math.max(0, debt.balance - pay); extra -= pay; break;
+        }
+        state.forEach(d => { if (!d.paid && d.balance <= 0.01) { d.balance = 0; d.paid = true; rolledOver += d.min; } });
+      }
+      const total = state.reduce((s, d) => s + d.balance, 0);
+      history.push(Math.max(0, Math.round(total)));
+      if (total < 0.01) break;
+    }
+    return history;
+  }
+
+  // Net-wealth simulation: month-by-month portfolio value minus remaining debt
+  function simulateWealth(debts, extraMonthly, strategy) {
+    // Strategy A: pay minimums, invest extra monthly
+    // Strategy B: avalanche payoff, invest nothing until debt-free, then invest ALL minimums+extra
+    const INVEST_RATE = 0.07 / 12;
+    const totalMin = debts.reduce((s, d) => s + d.min, 0);
+    const totalMonthly = totalMin + extraMonthly;
+    const MAX_MONTHS = 240; // 20 years
+
+    let portfolio = 0;
+    const history = [];
+
+    if (strategy === 'A') {
+      // Pay minimums, invest extra
+      const state = debts.map(d => ({ balance: d.balance, rate: d.apr / 100 / 12, min: d.min, paid: false }));
+      for (let m = 0; m < MAX_MONTHS; m++) {
+        state.forEach(d => { if (d.balance > 0) d.balance += d.balance * d.rate; });
+        state.forEach(d => { if (!d.paid) { const p = Math.min(d.balance, d.min); d.balance = Math.max(0, d.balance - p); if (d.balance <= 0.01) { d.balance = 0; d.paid = true; } } });
+        portfolio = (portfolio + extraMonthly) * (1 + INVEST_RATE);
+        const totalDebt = state.reduce((s, d) => s + d.balance, 0);
+        history.push(Math.round(portfolio - totalDebt)); // net wealth = investments - debts
+      }
+    } else {
+      // Strategy B: avalanche payoff first (no investing), then invest everything
+      const avHist = simulateHistory(debts, extraMonthly, 'avalanche');
+      const payoffMonth = avHist.length;
+      for (let m = 0; m < MAX_MONTHS; m++) {
+        if (m < payoffMonth) {
+          // Still paying off debt — no investing yet
+          history.push(0);
+        } else {
+          // Debt-free — invest total monthly payments
+          portfolio = (portfolio + totalMonthly) * (1 + INVEST_RATE);
+          history.push(Math.round(portfolio));
+        }
+      }
+    }
+    return history;
+  }
+
+  // ── BUILD CHARTS ─────────────────────────────────────────────────────────
+  let chartBalance = null, chartWealth = null;
+
+  function buildCharts(debts, extra, av, sb) {
+    if (!window.Chart) return;
+
+    // Generate histories
+    const minHist = simulateHistory(debts, 0, 'min');
+    const avHist  = simulateHistory(debts, extra, 'avalanche');
+    const sbHist  = simulateHistory(debts, extra, 'snowball');
+    const maxLen  = Math.max(minHist.length, avHist.length, sbHist.length);
+
+    // Pad shorter arrays to maxLen with 0
+    const pad = (arr, len) => [...arr, ...Array(Math.max(0, len - arr.length)).fill(0)];
+    const labels = Array.from({ length: maxLen }, (_, i) => {
+      const yr = Math.floor(i / 12); const mo = i % 12;
+      return mo === 0 ? `Yr ${yr}` : (mo === 6 ? `Yr ${yr}.5` : '');
+    });
+
+    const gridColor  = 'rgba(255,255,255,.06)';
+    const textColor  = 'rgba(250,249,247,.45)';
+    const chartDefaults = {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(10,18,35,.92)',
+          borderColor: 'rgba(255,255,255,.1)', borderWidth: 1,
+          titleColor: '#fff', bodyColor: 'rgba(250,249,247,.7)',
+          callbacks: { label: ctx => ` ${ctx.dataset.label}: $${ctx.parsed.y.toLocaleString()}` }
+        }
+      },
+      scales: {
+        x: { grid: { color: gridColor }, ticks: { color: textColor, maxTicksLimit: 10 } },
+        y: { grid: { color: gridColor }, ticks: { color: textColor, callback: v => '$' + (v >= 1000 ? (v/1000).toFixed(0)+'k' : v) } }
+      }
+    };
+
+    // ─ Chart 1: Balance over time ─
+    if (chartBalance) chartBalance.destroy();
+    chartBalance = new Chart(document.getElementById('chart-balance'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Min Payments Only', data: pad(minHist, maxLen), borderColor: '#e8604c', backgroundColor: 'rgba(232,96,76,.08)', borderWidth: 2, fill: true, tension: 0.3, pointRadius: 0 },
+          { label: 'Avalanche', data: pad(avHist, maxLen), borderColor: '#4a90d9', backgroundColor: 'rgba(74,144,217,.06)', borderWidth: 2, fill: true, tension: 0.3, pointRadius: 0 },
+          { label: 'Snowball', data: pad(sbHist, maxLen), borderColor: '#3dba7e', backgroundColor: 'rgba(61,186,126,.06)', borderWidth: 2, fill: true, tension: 0.3, pointRadius: 0 },
+        ]
+      },
+      options: { ...chartDefaults, scales: { ...chartDefaults.scales, y: { ...chartDefaults.scales.y, min: 0 } } }
+    });
+
+    // ─ Chart 2: Net wealth comparison ─
+    const wealthA = simulateWealth(debts, extra, 'A');
+    const wealthB = simulateWealth(debts, extra, 'B');
+    const wLen = wealthA.length;
+    const wLabels = Array.from({ length: wLen }, (_, i) => i % 12 === 0 ? `Yr ${i/12}` : '');
+
+    if (chartWealth) chartWealth.destroy();
+    chartWealth = new Chart(document.getElementById('chart-wealth'), {
+      type: 'line',
+      data: {
+        labels: wLabels,
+        datasets: [
+          { label: 'Strategy A: Pay Minimums + Invest', data: wealthA, borderColor: '#e8604c', backgroundColor: 'rgba(232,96,76,.07)', borderWidth: 2, fill: true, tension: 0.4, pointRadius: 0 },
+          { label: 'Strategy B: Avalanche First, Then Invest', data: wealthB, borderColor: '#3dba7e', backgroundColor: 'rgba(61,186,126,.07)', borderWidth: 2, fill: true, tension: 0.4, pointRadius: 0 },
+        ]
+      },
+      options: { ...chartDefaults }
+    });
+
+    // Callout cards at year 10
+    const yr10 = 120 - 1;
+    const aVal = wealthA[Math.min(yr10, wealthA.length-1)];
+    const bVal = wealthB[Math.min(yr10, wealthB.length-1)];
+    document.getElementById('sc-a-val').textContent = fmt$(aVal);
+    document.getElementById('sc-b-val').textContent = fmt$(bVal);
+    document.getElementById('scenario-callout').style.display = 'grid';
   }
 
   // Init
