@@ -174,6 +174,22 @@
     .save-toast { display: none; font-size: .75rem; color: var(--green); font-weight: 600; }
     .save-toast.show { display: inline; }
 
+    /* ── LIVE VISUALIZER ── */
+    .viz-section { background: var(--navy-mid); border: 1px solid var(--border); border-radius: 16px; padding: 26px 28px; margin-bottom: 28px; }
+    .viz-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
+    .viz-title { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 900; }
+    .viz-pills { display: flex; gap: 7px; flex-wrap: wrap; }
+    .viz-pill { background: var(--navy-card); border: 1px solid var(--border); color: var(--white-dim); padding: 5px 14px; border-radius: 20px; font-size: .75rem; font-weight: 700; font-family: 'Plus Jakarta Sans', sans-serif; cursor: pointer; transition: all .18s; }
+    .viz-pill:hover { border-color: rgba(255,255,255,.2); color: var(--white); }
+    .viz-pill.active { background: var(--sky); border-color: var(--sky); color: #fff; }
+    .viz-chart-wrap { position: relative; height: 260px; margin-bottom: 16px; }
+    .viz-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .viz-stat { background: var(--navy-card); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+    .viz-stat-label { font-size: .62rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--white-dim); margin-bottom: 5px; }
+    .viz-stat-val { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 900; }
+    .viz-empty { text-align: center; padding: 40px 20px; color: var(--white-dim); font-size: .85rem; }
+    @media(max-width:700px){ .viz-stats{grid-template-columns:1fr 1fr;} .viz-chart-wrap{height:200px;} }
+
     #results-section { display: none; }
 
     @media(max-width:900px) {
@@ -295,6 +311,24 @@
         <button class="btn-calculate" id="btn-calculate">Calculate Payoff Plan →</button>
         <button class="btn-save-plan" id="btn-save-plan" style="display:none" onclick="window.saveDebtPlan()">💾 Save Plan</button>
         <span class="save-toast" id="save-toast">✓ Saved!</span>
+      </div>
+    </div>
+
+    <!-- LIVE PAYDOWN VISUALIZER -->
+    <div class="viz-section">
+      <div class="viz-header">
+        <div>
+          <div class="viz-title">📈 Live Paydown Visualizer</div>
+          <div style="font-size:.78rem;color:var(--white-dim);margin-top:3px">Updates as you type. Select a debt to see its individual paydown curve.</div>
+        </div>
+        <div class="viz-pills" id="viz-pills"></div>
+      </div>
+      <div class="viz-chart-wrap"><canvas id="viz-chart"></canvas></div>
+      <div class="viz-stats" id="viz-stats">
+        <div class="viz-stat"><div class="viz-stat-label">Min-Only Payoff</div><div class="viz-stat-val" id="vstat-min-date">—</div></div>
+        <div class="viz-stat"><div class="viz-stat-label">Interest (Min Only)</div><div class="viz-stat-val" id="vstat-min-int" style="color:var(--coral)">—</div></div>
+        <div class="viz-stat"><div class="viz-stat-label">Aggressive Payoff</div><div class="viz-stat-val" id="vstat-agg-date" style="color:var(--green)">—</div></div>
+        <div class="viz-stat"><div class="viz-stat-label">Interest Saved</div><div class="viz-stat-val" id="vstat-saved" style="color:var(--green)">—</div></div>
       </div>
     </div>
 
@@ -882,11 +916,161 @@
     document.getElementById('scenario-callout').style.display = 'grid';
   }
 
+  // ── LIVE PAYDOWN VISUALIZER ───────────────────────────────────────────────
+  let vizChart = null;
+  let vizActiveIdx = 'all'; // 'all' or debt index (0,1,2...)
+  let vizDebounce = null;
+
+  function simulateSingleDebt(balance, apr, min, extra) {
+    const rate = apr / 100 / 12;
+    const simulate = (bal, payment) => {
+      const hist = [bal]; let interest = 0;
+      for (let m = 0; m < 600; m++) {
+        if (bal <= 0) break;
+        const int = bal * rate; bal += int; interest += int;
+        bal = Math.max(0, bal - payment);
+        hist.push(Math.round(bal));
+        if (bal <= 0.01) break;
+      }
+      return { hist, interest: Math.round(interest) };
+    };
+    const minResult  = simulate(balance, Math.max(min, balance * 0.01 + balance * rate));
+    const aggrResult = simulate(balance, Math.max(min, balance * 0.01 + balance * rate) + extra);
+    return { minHist: minResult.hist, aggrHist: aggrResult.hist, minInterest: minResult.interest, aggrInterest: aggrResult.interest };
+  }
+
+  function simulateAllDebts(debts, extra) {
+    // Per month: sum all balances for min-only and avalanche
+    const minHist  = simulateHistory(debts, 0,     'min');
+    const aggrHist = simulateHistory(debts, extra,  'avalanche');
+    return { minHist, aggrHist };
+  }
+
+  function updateVizPills(debts) {
+    const pills = document.getElementById('viz-pills');
+    if (!pills) return;
+    let html = `<button class="viz-pill${vizActiveIdx === 'all' ? ' active' : ''}" onclick="window.setVizDebt('all')">All Combined</button>`;
+    debts.forEach((d, i) => {
+      if (!d.balance) return;
+      html += `<button class="viz-pill${vizActiveIdx === i ? ' active' : ''}" onclick="window.setVizDebt(${i})">${d.name || 'Debt ' + (i+1)}</button>`;
+    });
+    pills.innerHTML = html;
+  }
+
+  window.setVizDebt = function(idx) {
+    vizActiveIdx = idx;
+    triggerVizUpdate();
+  };
+
+  function triggerVizUpdate() {
+    clearTimeout(vizDebounce);
+    vizDebounce = setTimeout(updateLiveChart, 120);
+  }
+
+  function payoffDateFromMonths(months) {
+    if (months >= 590) return '50+ years';
+    const d = new Date();
+    d.setMonth(d.getMonth() + months);
+    return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  }
+
+  function updateLiveChart() {
+    if (!window.Chart) return;
+    const debts = getDebts();
+    updateVizPills(debts);
+    if (!debts.length) return;
+
+    const extra = parseFloat(document.getElementById('extra-payment').value) || 0;
+    const gridColor = 'rgba(255,255,255,.06)';
+    const textColor = 'rgba(250,249,247,.45)';
+
+    let minHist, aggrHist, minInterest, aggrInterest;
+
+    if (vizActiveIdx === 'all') {
+      const r = simulateAllDebts(debts, extra);
+      minHist = r.minHist; aggrHist = r.aggrHist;
+      // Calc interest for all combined
+      const avResult = simulate(debts, extra, 'avalanche');
+      const minResult = simulate(debts, 0, 'min');
+      minInterest = minResult.totalInterest; aggrInterest = avResult.totalInterest;
+    } else {
+      const d = debts[vizActiveIdx];
+      if (!d) return;
+      const r = simulateSingleDebt(d.balance, d.apr, d.min, extra);
+      minHist = r.minHist; aggrHist = r.aggrHist;
+      minInterest = r.minInterest; aggrInterest = r.aggrInterest;
+    }
+
+    const maxLen = Math.max(minHist.length, aggrHist.length);
+    const pad = (arr, len) => [...arr, ...Array(Math.max(0, len - arr.length)).fill(0)];
+    const labels = Array.from({ length: maxLen }, (_, i) => {
+      if (i === 0) return 'Now';
+      const yr = Math.floor(i / 12), mo = i % 12;
+      return mo === 0 ? `Yr ${yr}` : (mo === 6 ? `Yr ${yr}.5` : '');
+    });
+
+    if (vizChart) vizChart.destroy();
+    vizChart = new Chart(document.getElementById('viz-chart'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Min Payment Only', data: pad(minHist, maxLen),
+            borderColor: '#e8604c', backgroundColor: 'rgba(232,96,76,.12)',
+            borderWidth: 2.5, fill: true, tension: 0.35, pointRadius: 0,
+            borderDash: [6, 3],
+          },
+          {
+            label: 'Aggressive Payoff', data: pad(aggrHist, maxLen),
+            borderColor: '#3dba7e', backgroundColor: 'rgba(61,186,126,.1)',
+            borderWidth: 2.5, fill: true, tension: 0.35, pointRadius: 0,
+          },
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        animation: { duration: 300 },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(10,18,35,.92)', borderColor: 'rgba(255,255,255,.1)', borderWidth: 1,
+            titleColor: '#fff', bodyColor: 'rgba(250,249,247,.7)',
+            callbacks: { label: ctx => ` ${ctx.dataset.label}: $${ctx.parsed.y.toLocaleString()}` }
+          }
+        },
+        scales: {
+          x: { grid: { color: gridColor }, ticks: { color: textColor, maxTicksLimit: 10 } },
+          y: { grid: { color: gridColor }, min: 0, ticks: { color: textColor, callback: v => '$' + (v >= 1000 ? (v/1000).toFixed(0)+'k' : v) } }
+        }
+      }
+    });
+
+    // Update stat cards
+    document.getElementById('vstat-min-date').textContent  = payoffDateFromMonths(minHist.length - 1);
+    document.getElementById('vstat-min-int').textContent   = fmt$(minInterest);
+    document.getElementById('vstat-agg-date').textContent  = payoffDateFromMonths(aggrHist.length - 1);
+    document.getElementById('vstat-saved').textContent     = fmt$(Math.max(0, minInterest - aggrInterest));
+  }
+
   // Init
   window.addDebt = addDebt; // expose for Firebase module script
-  document.getElementById('btn-add-debt').addEventListener('click', () => addDebt());
+  document.getElementById('btn-add-debt').addEventListener('click', () => { addDebt(); triggerVizUpdate(); });
   document.getElementById('btn-calculate').addEventListener('click', calculate);
+  document.getElementById('extra-payment').addEventListener('input', triggerVizUpdate);
+
+  // Live update on any debt field change (event delegation)
+  document.getElementById('debt-list').addEventListener('input', triggerVizUpdate);
+
+  // Observe DOM changes (new cards added / removed) to refresh pills
+  new MutationObserver(() => triggerVizUpdate())
+    .observe(document.getElementById('debt-list'), { childList: true });
+
   defaultDebts.forEach(d => addDebt(d.name, d.balance, d.apr, d.min));
+
+  // Initial render after defaults load
+  setTimeout(triggerVizUpdate, 200);
 </script>
 <script type="module">
   import { initializeApp }          from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";

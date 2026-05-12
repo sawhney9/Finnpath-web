@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #1a202c; background-color: #f7fafc; margin: 0; padding: 0; }
+  .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 40px 30px; }
+  .header { text-align: center; border-bottom: 2px solid #edf2f7; padding-bottom: 20px; margin-bottom: 30px; }
+  .meta { font-size: 12px; color: #718096; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; text-align: center; }
+  
+  h1 { font-family: 'Georgia', serif; font-size: 32px; line-height: 1.2; margin-bottom: 10px; color: #2d3748; }
+  .accent { color: #e8604c; font-style: italic; }
+  .subhead { font-size: 18px; color: #4a5568; margin-bottom: 30px; }
+  
+  .feature-box { background-color: #f8fafc; border-left: 4px solid #3dba7e; padding: 25px; margin: 30px 0; border-radius: 0 8px 8px 0; }
+  .kicker { font-size: 12px; font-weight: bold; color: #3dba7e; text-transform: uppercase; margin-bottom: 10px; display: block; }
+  .feature-box h2 { margin-top: 0; font-size: 24px; color: #1a202c; }
+  .btn { display: inline-block; background-color: #4a90d9; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; margin-top: 15px; }
+  
+  .stat-block { text-align: center; padding: 30px 0; border-top: 1px solid #edf2f7; border-bottom: 1px solid #edf2f7; margin: 40px 0; }
+  .stat-num { font-size: 48px; font-weight: 900; color: #e8604c; line-height: 1; margin-bottom: 10px; }
+  .stat-label { font-size: 14px; color: #4a5568; }
+
+  .hits h3 { font-size: 18px; color: #2d3748; margin-bottom: 5px; }
+  .hits p { margin-top: 0; font-size: 15px; color: #4a5568; }
+  .hits a { color: #4a90d9; text-decoration: none; font-weight: bold; }
+  
+  .quote { font-style: italic; font-size: 20px; color: #4a5568; text-align: center; margin: 40px 0; }
+  .quote-src { display: block; font-size: 14px; font-style: normal; color: #a0aec0; margin-top: 10px; }
+
+  .sponsor { background-color: #ebf8ff; padding: 20px; border-radius: 8px; text-align: center; margin: 40px 0; }
+  .sponsor p { margin-top: 0; color: #2b6cb0; font-weight: 500; }
+  .sponsor .btn { background-color: #3182ce; }
+
+  .footer { text-align: center; font-size: 12px; color: #a0aec0; margin-top: 40px; border-top: 1px solid #edf2f7; padding-top: 20px; }
+  .footer a { color: #a0aec0; text-decoration: underline; }
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="https://finnpath.com/favicon.svg" width="40" alt="Finnpath Logo" style="margin-bottom:10px;">
+      <div class="meta">Issue #{{issue_number}} • {{date}} • {{read_time}} min read</div>
+      <h1>{{headline_line1}}<br><span class="accent">{{headline_line2}}</span></h1>
+      <div class="subhead">{{subheadline}}</div>
+    </div>
+
+    <p>{{opening_paragraph}}</p>
+
+    <div class="feature-box">
+      <span class="kicker">{{feature_kicker}} • {{feature_read_time}} min read</span>
+      <h2>{{feature_title_line1}} <span class="accent">{{feature_title_accent}}</span> {{feature_title_line2}}</h2>
+      <p>{{feature_body}}</p>
+      <a href="{{feature_url}}" class="btn">Read the full breakdown →</a>
+    </div>
+
+    <div class="stat-block">
+      <div class="stat-num">{{stat_number}}</div>
+      <div class="stat-label">{{stat_label}}</div>
+    </div>
+
+    <div class="hits">
+      <h3>1. {{hit1_title}}</h3>
+      <p>{{hit1_desc}} <a href="{{hit1_url}}">Read more</a></p>
+
+      <h3>2. {{hit2_title}}</h3>
+      <p>{{hit2_desc}} <a href="{{hit2_url}}">Read more</a></p>
+
+      <h3>3. {{hit3_title}}</h3>
+      <p>{{hit3_desc}} <a href="{{hit3_url}}">Read more</a></p>
+    </div>
+
+    <div class="quote">
+      "{{quote_text}}"
+      <span class="quote-src">— {{quote_source}}</span>
+    </div>
+
+    <hr style="border:0; border-top:1px solid #edf2f7; margin:30px 0;">
+
+    <h3>🛠 Tool of the Week: {{tool_title}}</h3>
+    <p>{{tool_desc}}</p>
+    <p><a href="{{tool_url}}" style="color:#4a90d9; font-weight:bold;">Try it out →</a></p>
+
+    <div class="sponsor">
+      <p>Sponsored</p>
+      <p>{{sponsor_body}}</p>
+      <a href="{{sponsor_url}}" class="btn">{{sponsor_cta_text}}</a>
+    </div>
+
+    <div class="footer">
+      <p>Join {{subscriber_count}} others getting smarter about money.</p>
+      <p>Finnpath • 123 Finance St, New York, NY</p>
+      <p><a href="{{unsubscribe_url}}">Unsubscribe</a></p>
+    </div>
+  </div>
+</body>
+</html>
