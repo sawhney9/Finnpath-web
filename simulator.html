@@ -12,6 +12,49 @@
   <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
   <style>
     :root{--tab-active:var(--green);}
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes fadeInUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+    /* ── Portfolio Pulse ── */
+    .pulse-ticker-section { padding: 16px 20px 6px; }
+    .pulse-ticker-label {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+    }
+    .pulse-ticker-chip {
+      background: rgba(74,144,217,.12); border: 1px solid rgba(74,144,217,.3);
+      color: #4a90d9; padding: 4px 12px; border-radius: 100px;
+      font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    }
+    .pulse-sentiment-badge {
+      font-size: .68rem; font-weight: 700; padding: 3px 10px; border-radius: 100px;
+      letter-spacing: .05em; text-transform: uppercase;
+    }
+    .pulse-sentiment-badge.bullish { background: rgba(61,186,126,.15); color: var(--green); border: 1px solid rgba(61,186,126,.3); }
+    .pulse-sentiment-badge.bearish { background: rgba(239,104,104,.12); color: var(--coral); border: 1px solid rgba(239,104,104,.25); }
+    .pulse-sentiment-badge.neutral { background: rgba(255,255,255,.06); color: var(--white-dim); border: 1px solid var(--border); }
+    .pulse-synopsis {
+      font-size: .82rem; color: #d0d8e8; line-height: 1.65; margin-bottom: 10px;
+      padding: 10px 14px; background: rgba(255,255,255,.03); border-radius: 8px;
+      border-left: 3px solid rgba(74,144,217,.3);
+    }
+    .pulse-news-card {
+      display: flex; gap: 12px; align-items: flex-start;
+      padding: 10px 14px; border-radius: 8px; transition: background .15s;
+      border-bottom: 1px solid rgba(255,255,255,.04);
+      animation: fadeInUp .3s ease both;
+    }
+    .pulse-news-card:hover { background: rgba(255,255,255,.035); }
+    .pulse-news-card:last-child { border-bottom: none; }
+    .pulse-news-icon { font-size: 1.1rem; margin-top: 2px; flex-shrink: 0; }
+    .pulse-news-body { flex: 1; min-width: 0; }
+    .pulse-news-headline {
+      font-size: .82rem; font-weight: 600; color: #e8edf5; line-height: 1.45;
+      margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .pulse-news-meta { font-size: .7rem; color: var(--white-dim); }
+    .pulse-divider { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
+    .pulse-empty { padding: 32px; text-align: center; color: var(--white-dim); font-size: .85rem; }
+
     .page-hero{padding:calc(var(--nav-h)+48px) 56px 52px;background:var(--navy-mid);border-bottom:1px solid var(--border);position:relative;z-index:1;overflow:hidden;text-align:center;}
     .page-hero::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 55% 80% at 95% 50%,rgba(61,186,126,.07) 0%,transparent 65%),radial-gradient(ellipse 45% 60% at 5% 50%,rgba(74,144,217,.08) 0%,transparent 65%);}
     .hero-inner{max-width:800px;margin-inline:auto;position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:16px;}
@@ -307,6 +350,19 @@
       </div>
     </div>
     <div id="shared-portfolios-container"></div>
+
+    <!-- ── PORTFOLIO PULSE: News + AI Sentiment ── -->
+    <div class="panel" id="pulse-panel" style="margin-top:20px;display:none">
+      <div class="panel-hdr" style="display:flex;justify-content:space-between;align-items:center">
+        <span>📡 Portfolio Pulse</span>
+        <span style="font-size:.72rem;color:var(--white-dim);font-weight:400">AI-powered news digest for your holdings</span>
+      </div>
+      <div id="pulse-loading" style="display:none;padding:24px;text-align:center;color:var(--white-dim);font-size:.85rem">
+        <div style="font-size:1.5rem;margin-bottom:8px;animation:spin 1s linear infinite;display:inline-block">⟳</div>
+        <div>Scanning news &amp; generating insights…</div>
+      </div>
+      <div id="pulse-list" style="padding:4px 0"></div>
+    </div>
   </div>
 
   <!-- ── JOURNAL TAB ── -->
@@ -904,6 +960,12 @@
       dayEl.className = `m-val ${totalDayGain>=0?'up':'dn'}`;
       document.getElementById('total-day-gain-pct').innerText  = `${dayPct>=0?'+':''}${dayPct.toFixed(2)}% today`;
       document.getElementById('total-day-gain-pct').className  = `m-sub ${totalDayGain>=0?'up':'dn'}`;
+
+      // Trigger Portfolio Pulse news + sentiment panel
+      if (typeof window._triggerPulse === 'function') {
+        window._triggerPulse(holdings, priceMap);
+      }
+
     });
     activeUnsubs.push(unsub);
   }
@@ -1206,6 +1268,132 @@
     });
     document.getElementById('groups-list').innerHTML = html + '</div>';
   }
+
+  // ── PORTFOLIO PULSE: News + AI Sentiment ──────────────────────────────────
+  const GEMINI_KEY = 'AIzaSyB6bIkJYS9txL8_vcPorRxTtUyYkNBlFG0';
+  let pulseDebounce = null;
+
+  async function fetchTickerNews(ticker) {
+    const toDate   = new Date().toISOString().slice(0,10);
+    const fromDate = new Date(Date.now() - 7*24*3600*1000).toISOString().slice(0,10);
+    const url = `https://finnhub.io/api/v1/company-news?symbol=${ticker}&from=${fromDate}&to=${toDate}&token=${FINNHUB_KEY}`;
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      return Array.isArray(data) ? data.slice(0, 4) : [];
+    } catch { return []; }
+  }
+
+  async function generateSentimentSynopsis(ticker, newsItems, dayChangePct) {
+    if (!newsItems.length) return null;
+    const headlines = newsItems.map(n => `- ${n.headline}`).join('\n');
+    const direction = dayChangePct > 1 ? 'up' : dayChangePct < -1 ? 'down' : 'roughly flat';
+    const prompt = `You are a concise financial analyst. Based on these recent headlines for ${ticker} (which is trading ${direction} today), write ONE plain-English sentence (max 25 words) explaining why the stock is moving. Be direct, no jargon. Don't start with "${ticker}".
+
+Headlines:
+${headlines}
+
+Respond with ONLY a JSON object: {"sentiment": "bullish"|"bearish"|"neutral", "synopsis": "your one sentence here"}`;
+
+    try {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+      });
+      const json = await res.json();
+      let text = json?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+      text = text.replace(/^```(?:json)?\s*/im, '').replace(/\s*```$/im, '');
+      return JSON.parse(text);
+    } catch { return null; }
+  }
+
+  function formatTimeAgo(date) {
+    const secs = Math.floor((Date.now() - date) / 1000);
+    if (secs < 3600)  return `${Math.floor(secs / 60)}m ago`;
+    if (secs < 86400) return `${Math.floor(secs / 3600)}h ago`;
+    return `${Math.floor(secs / 86400)}d ago`;
+  }
+
+  async function renderPulse(stockHoldings, priceMap) {
+    const panel   = document.getElementById('pulse-panel');
+    const loading = document.getElementById('pulse-loading');
+    const list    = document.getElementById('pulse-list');
+    const tickers = Object.keys(stockHoldings).filter(t => stockHoldings[t].type === 'stock' && stockHoldings[t].shares > 0);
+
+    if (!tickers.length) { panel.style.display = 'none'; return; }
+
+    panel.style.display = 'block';
+    loading.style.display = 'block';
+    list.innerHTML = '';
+
+    // Fetch all news in parallel
+    const newsMap = {};
+    await Promise.all(tickers.map(async t => { newsMap[t] = await fetchTickerNews(t); }));
+
+    // Generate AI sentiments sequentially to avoid rate limits
+    const results = [];
+    for (const t of tickers) {
+      const prices = priceMap[t] || {};
+      const dayPct = prices.pc > 0 ? ((prices.c - prices.pc) / prices.pc) * 100 : 0;
+      const ai = newsMap[t].length ? await generateSentimentSynopsis(t, newsMap[t], dayPct) : null;
+      results.push({ ticker: t, news: newsMap[t], ai, dayPct });
+    }
+
+    loading.style.display = 'none';
+
+    if (!results.length) {
+      list.innerHTML = '<div class="pulse-empty">📰 No recent news found for your holdings.</div>';
+      return;
+    }
+
+    results.forEach(({ ticker, news, ai, dayPct }, idx) => {
+      const sentiment = ai?.sentiment || 'neutral';
+      const synopsis  = ai?.synopsis  || null;
+      const sentLabel = sentiment === 'bullish' ? '📈 Bullish' : sentiment === 'bearish' ? '📉 Bearish' : '➡️ Neutral';
+      const dayStr    = dayPct >= 0 ? `+${dayPct.toFixed(2)}%` : `${dayPct.toFixed(2)}%`;
+      const dayClass  = dayPct >= 0.1 ? 'up' : dayPct <= -0.1 ? 'dn' : '';
+
+      let html = `<div class="pulse-ticker-section">`;
+      html += `<div class="pulse-ticker-label">
+        <span class="pulse-ticker-chip">${esc(ticker)}</span>
+        <span class="pulse-sentiment-badge ${sentiment}">${sentLabel}</span>
+        <span class="${dayClass}" style="font-size:.75rem;font-weight:700;margin-left:auto">${dayStr} today</span>
+      </div>`;
+
+      if (synopsis) {
+        html += `<div class="pulse-synopsis">💡 ${esc(synopsis)}</div>`;
+      }
+
+      if (news.length) {
+        news.forEach(n => {
+          const ago  = formatTimeAgo(new Date(n.datetime * 1000));
+          const icon = sentiment === 'bullish' ? '📈' : sentiment === 'bearish' ? '📉' : '📰';
+          html += `<a href="${esc(n.url)}" target="_blank" rel="noopener" style="text-decoration:none;display:block">
+            <div class="pulse-news-card">
+              <div class="pulse-news-icon">${icon}</div>
+              <div class="pulse-news-body">
+                <div class="pulse-news-headline">${esc(n.headline)}</div>
+                <div class="pulse-news-meta">${esc(n.source)} · ${ago}</div>
+              </div>
+            </div>
+          </a>`;
+        });
+      } else {
+        html += `<div style="padding:8px 14px 14px;font-size:.8rem;color:var(--white-dim)">No recent headlines found.</div>`;
+      }
+
+      html += '</div>';
+      if (idx < results.length - 1) html += '<hr class="pulse-divider">';
+      list.insertAdjacentHTML('beforeend', html);
+    });
+  }
+
+  // Hook pulse into the holdings snapshot — debounced so it only runs once per snapshot
+  window._triggerPulse = function(stockHoldings, priceMap) {
+    clearTimeout(pulseDebounce);
+    pulseDebounce = setTimeout(() => renderPulse(stockHoldings, priceMap), 500);
+  };
 
 
 </script>
