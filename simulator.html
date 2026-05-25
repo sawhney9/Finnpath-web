@@ -1093,55 +1093,69 @@
     const btn = document.getElementById('btn-compare');
     btn.disabled = true; btn.innerText = 'Loading...';
 
-    // TF mapping for Finnhub
-    const now = Math.floor(Date.now() / 1000);
-    const timeMap = {
-      '1mo': { res: 'D', from: now - 30*24*3600 },
-      '3mo': { res: 'D', from: now - 90*24*3600 },
-      '6mo': { res: 'D', from: now - 180*24*3600 },
-      '1y':  { res: 'W', from: now - 365*24*3600 },
-      '2y':  { res: 'W', from: now - 730*24*3600 }
+    // TF → Yahoo Finance interval/range mapping
+    const yahooMap = {
+      '1mo': { interval: '1d',  range: '1mo'  },
+      '3mo': { interval: '1d',  range: '3mo'  },
+      '6mo': { interval: '1d',  range: '6mo'  },
+      '1y':  { interval: '1wk', range: '1y'   },
+      '2y':  { interval: '1wk', range: '2y'   }
     };
-    
+
     try {
-      const fetchHistory = async (t) => {
-        const { res: resolution, from } = timeMap[tf];
-        const url = `https://finnhub.io/api/v1/stock/candle?symbol=${t}&resolution=${resolution}&from=${from}&to=${now}&token=${FINNHUB_KEY}`;
+      const fetchHistory = async (ticker) => {
+        const { interval, range } = yahooMap[tf];
+        // Use a public Yahoo Finance proxy that doesn't require an API key
+        const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=${interval}&range=${range}&events=div`;
         const res = await fetch(url);
-        if(!res.ok) throw new Error();
-        const data = await res.json();
-        if(data.s !== 'ok') throw new Error(`No data for ${t}`);
-        return data;
+        if (!res.ok) throw new Error(`Could not reach data source for ${ticker}`);
+        const json = await res.json();
+        const result = json?.chart?.result?.[0];
+        if (!result) throw new Error(`"${ticker}" not found — check the ticker symbol and try again`);
+        const timestamps = result.timestamp;
+        const closes = result.indicators?.quote?.[0]?.close;
+        if (!timestamps || !closes || closes.length === 0) {
+          throw new Error(`No price history available for "${ticker}"`);
+        }
+        // Filter out any null/undefined close values (e.g. weekends in weekly bars)
+        const pairs = timestamps.map((t, i) => ({ t, c: closes[i] })).filter(p => p.c != null);
+        return { t: pairs.map(p => p.t), c: pairs.map(p => p.c) };
       };
 
       const [d1, d2] = await Promise.all([fetchHistory(t1), fetchHistory(t2)]);
-      
-      const timestamps = d1.t;
+
       const p1 = d1.c;
       const p2 = d2.c;
 
-      // Normalize
-      const base1 = p1[0]; const base2 = p2[0];
-      const norm1 = p1.map(p => ((p - base1)/base1)*100);
-      const norm2 = p2.map(p => ((p - base2)/base2)*100);
-      const labels = timestamps.map(ts => new Date(ts*1000).toLocaleDateString());
+      // Align to the shorter dataset length so indices match
+      const len = Math.min(p1.length, p2.length);
+      const t1Slice = d1.t.slice(0, len);
+      const norm1 = p1.slice(0, len).map(p => ((p - p1[0]) / p1[0]) * 100);
+      const norm2 = p2.slice(0, len).map(p => ((p - p2[0]) / p2[0]) * 100);
+      const labels = t1Slice.map(ts => new Date(ts * 1000).toLocaleDateString());
 
-      if(chartInstance) chartInstance.destroy();
+      if (chartInstance) chartInstance.destroy();
       const ctx = document.getElementById('cmp-chart').getContext('2d');
       chartInstance = new Chart(ctx, {
         type: 'line',
         data: {
           labels,
           datasets: [
-            { label: t1, data: norm1, borderColor: '#4a90d9', tension: 0.1, borderWidth: 2, pointRadius: 0 },
-            { label: t2, data: norm2, borderColor: '#3dba7e', tension: 0.1, borderWidth: 2, pointRadius: 0 }
+            { label: t1, data: norm1, borderColor: '#4a90d9', tension: 0.1, borderWidth: 2, pointRadius: 0, fill: false },
+            { label: t2, data: norm2, borderColor: '#3dba7e', tension: 0.1, borderWidth: 2, pointRadius: 0, fill: false }
           ]
         },
         options: {
           responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false, callbacks: { label: function(c) { return c.dataset.label + ': ' + c.raw.toFixed(2) + '%'; } } } },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              mode: 'index', intersect: false,
+              callbacks: { label: c => c.dataset.label + ': ' + (c.raw >= 0 ? '+' : '') + c.raw.toFixed(2) + '%' }
+            }
+          },
           scales: {
-            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888', callback: v => v+'%' } },
+            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888', callback: v => (v >= 0 ? '+' : '') + v + '%' } },
             x: { grid: { display: false }, ticks: { color: '#888', maxTicksLimit: 8 } }
           }
         }
@@ -1151,20 +1165,22 @@
       document.getElementById('leg-a').innerText = t1;
       document.getElementById('leg-b').innerText = t2;
       document.getElementById('cmp-stats').style.display = 'grid';
-      
-      const updateStat = (id, t, start, end) => {
-        document.getElementById(`stat-${id}-name`).innerText = t;
-        const ret = ((end-start)/start)*100;
-        document.getElementById(`stat-${id}-ret`).innerText = `${ret>=0?'+':''}${ret.toFixed(2)}%`;
-        document.getElementById(`stat-${id}-ret`).className = `s-return ${ret>=0?'up':'dn'}`;
-        document.getElementById(`stat-${id}-start`).innerText = fmt$(start);
-        document.getElementById(`stat-${id}-end`).innerText = fmt$(end);
-      };
-      updateStat('a', t1, base1, p1[p1.length-1]);
-      updateStat('b', t2, base2, p2[p2.length-1]);
 
-    } catch(e) {
-      alert('Failed to fetch historical data. Check tickers.');
+      const updateStat = (id, ticker, closes) => {
+        const start = closes[0];
+        const end   = closes[len - 1];
+        const ret   = ((end - start) / start) * 100;
+        document.getElementById(`stat-${id}-name`).innerText  = ticker;
+        document.getElementById(`stat-${id}-ret`).innerText   = `${ret >= 0 ? '+' : ''}${ret.toFixed(2)}%`;
+        document.getElementById(`stat-${id}-ret`).className   = `s-return ${ret >= 0 ? 'up' : 'dn'}`;
+        document.getElementById(`stat-${id}-start`).innerText = fmt$(start);
+        document.getElementById(`stat-${id}-end`).innerText   = fmt$(end);
+      };
+      updateStat('a', t1, p1.slice(0, len));
+      updateStat('b', t2, p2.slice(0, len));
+
+    } catch (e) {
+      alert(e.message || 'Failed to fetch historical data. Please check the ticker symbols and try again.');
     } finally {
       btn.disabled = false; btn.innerText = 'Compare →';
     }
