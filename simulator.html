@@ -1270,7 +1270,8 @@
   }
 
   // ── PORTFOLIO PULSE: News + AI Sentiment ──────────────────────────────────
-  const GEMINI_KEY = 'AIzaSyB6bIkJYS9txL8_vcPorRxTtUyYkNBlFG0';
+  // The Gemini key lives in a Cloudflare Worker — never in client-side code.
+  const PULSE_PROXY_URL = 'https://finnpath-gemini-proxy.sawhney9.workers.dev';
   let pulseDebounce = null;
 
   async function fetchTickerNews(ticker) {
@@ -1296,13 +1297,15 @@ ${headlines}
 Respond with ONLY a JSON object: {"sentiment": "bullish"|"bearish"|"neutral", "synopsis": "your one sentence here"}`;
 
     try {
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`, {
+      // Call our Cloudflare Worker proxy — the Gemini key never leaves the server
+      const res = await fetch(PULSE_PROXY_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        body: JSON.stringify({ prompt })
       });
+      if (!res.ok) return null;
       const json = await res.json();
-      let text = json?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+      let text = (json?.text || '').trim();
       text = text.replace(/^```(?:json)?\s*/im, '').replace(/\s*```$/im, '');
       return JSON.parse(text);
     } catch { return null; }
