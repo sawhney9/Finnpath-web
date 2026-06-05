@@ -1,11 +1,10 @@
 import os
 import re
 import json
-import praw
 import time
 import random
 import hashlib
-import psycopg2
+import sqlite3
 import feedparser
 import subprocess
 from datetime import datetime
@@ -17,12 +16,13 @@ load_dotenv()
 # ─── Config ───────────────────────────────────────────────────────────────────
 BLOG_PATH = os.getenv(
     'BLOG_PATH',
-    os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'finnpath-web', 'blog.html')
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'blog.html')
 )
-SUBREDDITS    = ['stocks', 'investing', 'personalfinance', 'CryptoCurrency', 'startups', 'venturecapital']
-MIN_UPVOTES   = 300
+DB_PATH = os.getenv(
+    'DB_PATH',
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'finnpath.db')
+)
 POLL_INTERVAL = int(os.getenv('POLL_INTERVAL_SECONDS', '3600'))  # default 1 hour
-NEWS_SOURCE   = os.getenv('NEWS_SOURCE', 'reddit')
 
 CATEGORY_MAP = {
     'stocks':          ('news',   '📰 Market News',      'cat-news'),
@@ -41,106 +41,81 @@ EMOJIS_BY_CAT = {
 }
 
 # ─── Init clients ─────────────────────────────────────────────────────────────
-reddit = praw.Reddit(
-    client_id=os.getenv('REDDIT_CLIENT_ID'),
-    client_secret=os.getenv('REDDIT_CLIENT_SECRET'),
-    user_agent=os.getenv('REDDIT_USER_AGENT', 'FinnpathAgent/1.0'),
-)
+gemini_key = os.getenv('GEMINI_API_KEY')
+if not gemini_key:
+    print("WARNING: GEMINI_API_KEY is not set in environment or .env file.")
+else:
+    genai.configure(api_key=gemini_key)
 
-genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
 model = genai.GenerativeModel('gemini-2.5-flash')
 
-db = psycopg2.connect(os.getenv('NEON_DATABASE_URL'))
-db.autocommit = True
+# Open SQLite DB connection with autocommit
+db = sqlite3.connect(DB_PATH, isolation_level=None)
 
 
 # ─── DB setup ─────────────────────────────────────────────────────────────────
 def init_db():
-    with db.cursor() as cur:
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS processed_posts (
-                reddit_id TEXT PRIMARY KEY,
-                processed_at TIMESTAMPTZ DEFAULT NOW()
-            )
-        """)
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS articles (
-                id          TEXT PRIMARY KEY,
-                reddit_id   TEXT,
-                category    TEXT,
-                cat_label   TEXT,
-                cat_class   TEXT,
-                emoji       TEXT,
-                title       TEXT,
-                excerpt     TEXT,
-                read_time   TEXT,
-                author      TEXT,
-                author_emoji TEXT,
-                author_role TEXT,
-                date        TEXT,
-                content     TEXT,
-                created_at  TIMESTAMPTZ DEFAULT NOW()
-            )
-        """)
+    cursor = db.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS processed_posts (
+            reddit_id TEXT PRIMARY KEY,
+            processed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS articles (
+            id          TEXT PRIMARY KEY,
+            reddit_id   TEXT,
+            category    TEXT,
+            cat_label   TEXT,
+            cat_class   TEXT,
+            emoji       TEXT,
+            title       TEXT,
+            excerpt     TEXT,
+            read_time   TEXT,
+            author      TEXT,
+            author_emoji TEXT,
+            author_role TEXT,
+            date        TEXT,
+            content     TEXT,
+            created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
 
 
 # ─── State helpers ────────────────────────────────────────────────────────────
 def load_processed():
-    with db.cursor() as cur:
-        cur.execute("SELECT reddit_id FROM processed_posts")
-        return set(row[0] for row in cur.fetchall())
+    cursor = db.cursor()
+    cursor.execute("SELECT reddit_id FROM processed_posts")
+    return set(row[0] for row in cursor.fetchall())
 
 
 def save_processed(reddit_id):
-    with db.cursor() as cur:
-        cur.execute(
-            "INSERT INTO processed_posts (reddit_id) VALUES (%s) ON CONFLICT DO NOTHING",
-            (reddit_id,)
-        )
+    cursor = db.cursor()
+    cursor.execute(
+        "INSERT INTO processed_posts (reddit_id) VALUES (?) ON CONFLICT DO NOTHING",
+        (reddit_id,)
+    )
 
 
 def save_article(article, reddit_id):
-    with db.cursor() as cur:
-        cur.execute("""
-            INSERT INTO articles
-              (id, reddit_id, category, cat_label, cat_class, emoji, title,
-               excerpt, read_time, author, author_emoji, author_role, date, content)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-            ON CONFLICT (id) DO NOTHING
-        """, (
-            article['id'], reddit_id, article['category'], article['catLabel'],
-            article['catClass'], article['emoji'], article['title'],
-            article['excerpt'], article['readTime'], article['author'],
-            article['authorEmoji'], article['authorRole'], article['date'],
-            article['content']
-        ))
+    cursor = db.cursor()
+    cursor.execute("""
+        INSERT INTO articles
+          (id, reddit_id, category, cat_label, cat_class, emoji, title,
+           excerpt, read_time, author, author_emoji, author_role, date, content)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        ON CONFLICT (id) DO NOTHING
+    """, (
+        article['id'], reddit_id, article['category'], article['catLabel'],
+        article['catClass'], article['emoji'], article['title'],
+        article['excerpt'], article['readTime'], article['author'],
+        article['authorEmoji'], article['authorRole'], article['date'],
+        article['content']
+    ))
 
 
-# ─── Reddit fetching ──────────────────────────────────────────────────────────
-def fetch_top_posts(processed_ids):
-    candidates = []
-    for sub in SUBREDDITS:
-        subreddit = reddit.subreddit(sub)
-        for post in subreddit.hot(limit=15):
-            if post.id in processed_ids:
-                continue
-            if post.score < MIN_UPVOTES:
-                continue
-            if post.is_self and len(post.selftext) < 80:
-                continue
-            candidates.append({
-                'id':           post.id,
-                'subreddit':    sub,
-                'title':        post.title,
-                'body':         post.selftext[:3000] if post.is_self else '',
-                'url':          post.url,
-                'score':        post.score,
-                'num_comments': post.num_comments,
-            })
-    candidates.sort(key=lambda x: x['score'], reverse=True)
-    return candidates[:3]  # process up to 3 per run
-
-
+# ─── RSS fetching ─────────────────────────────────────────────────────────────
 def fetch_rss_posts(processed_ids):
     candidates = []
     url = "https://news.google.com/rss/search?q=crypto+OR+startups+OR+venture+capital+OR+private+equity+OR+stocks"
@@ -151,9 +126,21 @@ def fetch_rss_posts(processed_ids):
         if entry_id in processed_ids:
             continue
             
+        title_lower = entry.title.lower()
+        if 'crypto' in title_lower or 'bitcoin' in title_lower or 'blockchain' in title_lower:
+            category = 'CryptoCurrency'
+        elif 'startup' in title_lower or 'founder' in title_lower:
+            category = 'startups'
+        elif 'vc' in title_lower or 'venture' in title_lower or 'equity' in title_lower:
+            category = 'venturecapital'
+        elif 'invest' in title_lower or 'portfolio' in title_lower or 'retire' in title_lower:
+            category = 'investing'
+        else:
+            category = 'stocks'
+
         candidates.append({
             'id':           entry_id,
-            'subreddit':    'stocks',
+            'subreddit':    category,
             'title':        entry.title,
             'body':         f"Summary: {entry.get('summary', '')} Source Link: {entry.link}",
             'url':          entry.link,
@@ -172,11 +159,14 @@ def slugify(title):
 
 
 def generate_article(post):
+    if not os.getenv('GEMINI_API_KEY'):
+        raise ValueError("GEMINI_API_KEY environment variable is not set. Cannot call Gemini API.")
+
     cat, cat_label, cat_class = CATEGORY_MAP.get(
         post['subreddit'], ('news', '📰 Market News', 'cat-news')
     )
 
-    source_context = f"Based on this Reddit discussion from r/{post['subreddit']}:" if NEWS_SOURCE == 'reddit' else "Based on this recent financial news:"
+    source_context = "Based on this recent financial news:"
 
     prompt = f"""You are writing for Finnpath — a financial literacy blog aimed at 18–30 year olds. Tone: clear, honest, no hype, slightly conversational. Explain jargon plainly.
 
@@ -300,10 +290,7 @@ def push_to_git():
 # ─── Main loop ────────────────────────────────────────────────────────────────
 def run_once():
     processed = load_processed()
-    if NEWS_SOURCE == 'rss':
-        posts = fetch_rss_posts(processed)
-    else:
-        posts = fetch_top_posts(processed)
+    posts = fetch_rss_posts(processed)
 
     if not posts:
         print('  No new qualifying posts found.')
@@ -325,10 +312,9 @@ def run_once():
 
 def main():
     init_db()
-    print('Finnpath Agent — polling Reddit for financial content')
+    print('Finnpath Agent — polling RSS feeds for financial content')
     print(f'  Blog path   : {os.path.abspath(BLOG_PATH)}')
-    print(f'  Subreddits  : {", ".join(f"r/{s}" for s in SUBREDDITS)}')
-    print(f'  Min upvotes : {MIN_UPVOTES}')
+    print(f'  DB path     : {os.path.abspath(DB_PATH)}')
     print(f'  Poll interval: {POLL_INTERVAL // 60} min\n')
 
     while True:
