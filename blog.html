@@ -2275,6 +2275,10 @@ function openArticle(id) {
 
   document.getElementById('article-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
+
+  // Must come after .open — Chart.js sizes to the container, and a chart built
+  // inside a still-hidden modal latches onto a 0x0 canvas and never recovers.
+  renderArticleCharts(document.getElementById('modal-body'));
 }
 
 function closeModal() {
@@ -2337,6 +2341,96 @@ document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
     checkPos();
   });
 })();
+</script>
+<style>
+.article-chart{margin:28px 0;padding:18px 16px 12px;background:var(--navy-card);border:1px solid var(--border);border-radius:var(--radius)}
+.article-chart-title{font-size:.82rem;font-weight:600;color:var(--white);margin-bottom:2px}
+.article-chart-note{font-size:.7rem;color:var(--white-dim);margin-bottom:14px}
+.article-chart-canvas{position:relative;height:280px}
+.article-chart table{width:100%;border-collapse:collapse;margin-top:14px;font-size:.72rem;color:var(--white-dim)}
+.article-chart th,.article-chart td{padding:5px 8px;text-align:right;border-top:1px solid var(--border)}
+.article-chart th:first-child,.article-chart td:first-child{text-align:left}
+.article-chart details{margin-top:10px}
+.article-chart summary{font-size:.72rem;color:var(--white-dim);cursor:pointer}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+/* Charts for data-driven articles. Article HTML is injected with innerHTML, which
+   never runs a <script>, so each chart arrives as JSON on a data-chart attribute
+   and is rendered here after injection. Palette is CVD-validated against the card
+   surface — do not swap in the raw --green, it collides with coral for protanopia. */
+const CHART_SERIES = {
+  invested: { label: 'Total you put in', color: 'rgba(250,249,247,.45)', dashed: true },
+  dca:      { label: 'Bought every month',        color: '#35a874' },
+  timer:    { label: 'Waited for a crash',        color: '#e8604c' },
+  lump:     { label: 'Bought the peak, all at once', color: '#e8604c' },
+  us:       { label: 'US (S&P 500)',              color: '#4a90d9' },
+  intl:     { label: 'International (EFA)',       color: '#b08f3a' },
+};
+
+const money = v => '$' + (Math.abs(v) >= 1e6
+  ? (v / 1e6).toFixed(2) + 'M'
+  : Math.abs(v) >= 1e3 ? Math.round(v / 1e3) + 'k' : Math.round(v));
+
+function renderArticleCharts(root) {
+  if (typeof Chart === 'undefined') return;   // CDN blocked — prose still stands
+  root.querySelectorAll('.article-chart[data-chart]').forEach(el => {
+    let spec;
+    try { spec = JSON.parse(el.dataset.chart); } catch { return; }
+    const rows = spec.series || [];
+    if (!rows.length) return;
+
+    const keys = Object.keys(rows[0]).filter(k => k !== 'date' && CHART_SERIES[k]);
+    const labels = rows.map(r => r.date.slice(0, 4));
+
+    el.innerHTML = `
+      <div class="article-chart-title">${spec.title}</div>
+      <div class="article-chart-note">Real market data, dividends included. Past performance doesn't predict future returns.</div>
+      <div class="article-chart-canvas"><canvas></canvas></div>
+      <details><summary>View as table</summary>
+        <table><thead><tr><th>Year</th>${keys.map(k => `<th>${CHART_SERIES[k].label}</th>`).join('')}</tr></thead>
+        <tbody>${rows.map(r => `<tr><td>${r.date.slice(0, 4)}</td>${keys.map(k => `<td>${money(r[k])}</td>`).join('')}</tr>`).join('')}</tbody></table>
+      </details>`;
+
+    new Chart(el.querySelector('canvas'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: keys.map(k => ({
+          label: CHART_SERIES[k].label,
+          data: rows.map(r => r[k]),
+          borderColor: CHART_SERIES[k].color,
+          backgroundColor: CHART_SERIES[k].color,
+          borderWidth: 2,
+          borderDash: CHART_SERIES[k].dashed ? [5, 4] : undefined,
+          pointRadius: 0,
+          pointHoverRadius: 4,
+          tension: 0.25,
+        })),
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },   // crosshair-style hover
+        // The "time lapse": the lines draw themselves left to right.
+        animation: { x: { type: 'number', easing: 'linear', duration: 900, from: NaN,
+                          delay: ctx => (ctx.type === 'data' && ctx.mode === 'default' ? ctx.index * 18 : 0) },
+                     y: { duration: 0 } },
+        plugins: {
+          legend: { labels: { color: 'rgba(250,249,247,.75)', boxWidth: 10, boxHeight: 10,
+                              usePointStyle: true, pointStyle: 'line', font: { size: 11 } } },
+          tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${money(c.parsed.y)}` } },
+        },
+        scales: {
+          x: { grid: { display: false },
+               ticks: { color: 'rgba(250,249,247,.45)', maxTicksLimit: 8, font: { size: 10 } } },
+          y: { grid: { color: 'rgba(250,249,247,.07)' },
+               ticks: { color: 'rgba(250,249,247,.45)', font: { size: 10 }, callback: money } },
+        },
+      },
+    });
+  });
+}
 </script>
 <script src="newsletter.js"></script>
 <script type="module" src="ticker.js"></script>
