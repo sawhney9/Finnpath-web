@@ -171,6 +171,7 @@
       border-radius: var(--radius); overflow: hidden; cursor: pointer;
       transition: transform .22s, border-color .22s;
       display: flex; flex-direction: column;
+      text-decoration: none; color: inherit;
     }
     .article-card:hover { transform: translateY(-5px); border-color: rgba(250,249,247,.18); }
     .article-card.large { grid-column: span 2; flex-direction: row; }
@@ -2177,9 +2178,16 @@ function renderArticles() {
 
   grid.innerHTML = '';
   filtered.forEach(a => {
-    const card = document.createElement('div');
+    // Real link (crawlable, shareable, opens in new tab on middle-click); the
+    // click handler keeps the in-page modal experience for normal left-clicks.
+    const card = document.createElement('a');
     card.className = `article-card${a.large ? ' large' : ''}`;
-    card.onclick = () => openArticle(a.id);
+    card.href = `blog/${a.id}.html`;
+    card.onclick = (e) => {
+      if (e.metaKey || e.ctrlKey || e.shiftKey) return;  // let new-tab/window through
+      e.preventDefault();
+      openArticle(a.id);
+    };
     card.innerHTML = `
       <div class="ac-image" style="${a.imageUrl ? `background-image:url('${a.imageUrl}');background-size:cover;background-position:center;` : ''}">
         ${a.imageUrl ? '' : `<span>${a.emoji}</span>`}
