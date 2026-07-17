@@ -134,6 +134,16 @@ const STYLE = `<style>
   .related h4 { font-size:.9rem; color:var(--white); margin-bottom:14px; }
   .related a { display:block; color:var(--white-dim); text-decoration:none; padding:10px 0; border-top:1px solid var(--border); font-size:.9rem; }
   .related a:hover { color:var(--coral); }
+  .article-newsletter { margin-top:44px; padding:26px 24px; background:var(--navy-card); border:1px solid var(--border); border-radius:var(--radius); text-align:center; }
+  .article-newsletter h4 { font-size:1.1rem; color:var(--white); margin-bottom:6px; }
+  .article-newsletter p { font-size:.86rem; color:var(--white-dim); margin-bottom:16px; }
+  .article-newsletter form { display:flex; gap:8px; max-width:420px; margin:0 auto; }
+  .article-newsletter .nl-input { flex:1; padding:11px 14px; border-radius:10px; border:1px solid var(--border); background:var(--navy-mid); color:var(--white); font-size:.9rem; }
+  .article-newsletter .nl-input::placeholder { color:var(--white-dim); }
+  .article-newsletter .nl-btn { padding:11px 18px; border-radius:10px; border:none; background:var(--coral); color:#fff; font-weight:600; font-size:.9rem; cursor:pointer; white-space:nowrap; }
+  .article-newsletter .nl-btn:hover { background:var(--coral-soft); }
+  .article-newsletter .nl-note { font-size:.7rem; margin-top:10px; min-height:1em; }
+  @media (max-width:480px) { .article-newsletter form { flex-direction:column; } }
 </style>`;
 
 function relatedLinks(article, all) {
@@ -202,6 +212,15 @@ ${NAV}
   </div>
   <div class="article-content">${article.content}</div>
   <div class="article-disclaimer">This article is for educational purposes only and does not constitute financial, investment, or tax advice. Always consult a qualified financial advisor for personalized guidance.</div>
+  <div class="article-newsletter">
+    <h4>Get one money lesson a week</h4>
+    <p>Plain-English financial insight in your inbox. No spam, no upsells.</p>
+    <form data-newsletter-form>
+      <input class="nl-input" type="email" name="email" autocomplete="email" required placeholder="you@email.com"/>
+      <button class="nl-btn" type="submit">Subscribe Free</button>
+    </form>
+    <p class="nl-note" data-newsletter-feedback></p>
+  </div>
   ${relatedLinks(article, all)}
 </article>
 ${FOOTER}
@@ -211,6 +230,7 @@ ${chartScript}
 document.addEventListener('DOMContentLoaded', () => renderArticleCharts(document));
 </script>
 <script src="../newsletter.js"></script>
+<script src="../analytics.js" defer></script>
 </body>
 </html>`;
 }
