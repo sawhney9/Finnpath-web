@@ -1,17 +1,14 @@
 // ── NEWSLETTER SETUP ──
-// To connect Beehiiv:
-// 1. Log into beehiiv.com → Settings → Integrations → Subscribe URL
-// 2. Copy your URL (looks like: https://your-pub.beehiiv.com/subscribe)
-// 3. Replace the placeholder below with your real URL
-// 4. Done — all forms on the site will automatically work
+// Beehiiv publication served on the custom domain insights.finnpath.com.
+// All subscribe forms on the site post to the URL below.
 const BEEHIIV_SUBSCRIBE_URL =
   window.FINNPATH_BEEHIIV_SUBSCRIBE_URL ||
-  "https://YOUR_PUBLICATION.beehiiv.com/subscribe";
+  "https://insights.finnpath.com/subscribe";
 
 function isBeehiivConfigured() {
   return (
     typeof BEEHIIV_SUBSCRIBE_URL === "string" &&
-    BEEHIIV_SUBSCRIBE_URL.includes("beehiiv.com") &&
+    /^https:\/\//.test(BEEHIIV_SUBSCRIBE_URL) &&
     !BEEHIIV_SUBSCRIBE_URL.includes("YOUR_PUBLICATION")
   );
 }
