@@ -230,7 +230,6 @@ ${chartScript}
 document.addEventListener('DOMContentLoaded', () => renderArticleCharts(document));
 </script>
 <script src="../newsletter.js"></script>
-<script src="../analytics.js" defer></script>
 </body>
 </html>`;
 }
