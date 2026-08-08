@@ -56,24 +56,24 @@ const esc = s => String(s == null ? '' : s)
   .replace(/"/g, '&quot;');
 
 const NAV = `<nav>
-  <a href="../index.html" class="logo">Finnpath<span class="logo-dot">.</span></a>
+  <a href="../" class="logo">Finnpath<span class="logo-dot">.</span></a>
   <ul class="nav-links">
-    <li><a href="../index.html">Home</a></li>
-    <li><a href="../learn.html">Learn</a></li>
+    <li><a href="../">Home</a></li>
+    <li><a href="../learn">Learn</a></li>
     <li class="nav-dropdown">
       <a href="#" class="nav-dropdown-toggle">Tools <span class="nav-caret">▾</span></a>
       <div class="nav-dropdown-menu">
-        <a href="../calculator.html">🧮 Calculator</a>
-        <a href="../simulator.html">📈 Portfolio Tracker</a>
-        <a href="../401k.html">📄 401k Decoder</a>
-        <a href="../roth.html">🏦 Roth IRA Guide</a>
-        <a href="../tool-debt.html">💳 Debt Planner</a>
+        <a href="../calculator">🧮 Calculator</a>
+        <a href="../simulator">📈 Portfolio Tracker</a>
+        <a href="../401k">📄 401k Decoder</a>
+        <a href="../roth">🏦 Roth IRA Guide</a>
+        <a href="../tool-debt">💳 Debt Planner</a>
       </div>
     </li>
-    <li><a href="../paths.html">Your Path</a></li>
-    <li><a href="../blog.html">Money Moves</a></li>
+    <li><a href="../paths">Your Path</a></li>
+    <li><a href="../blog">Money Moves</a></li>
   </ul>
-  <a href="../simulator.html" class="nav-cta">Track Portfolio →</a>
+  <a href="../simulator" class="nav-cta">Track Portfolio →</a>
 </nav>`;
 
 const FOOTER = `<footer class="site-footer">
@@ -83,13 +83,13 @@ const FOOTER = `<footer class="site-footer">
       <p class="f-tagline">Financial education for every stage of life.</p>
     </div>
     <nav class="footer-nav">
-      <a href="../index.html">Home</a>
-      <a href="../learn.html">Learn</a>
-      <a href="../calculator.html">Calculator</a>
-      <a href="../simulator.html">Simulator</a>
-      <a href="../blog.html">Money Moves</a>
-      <a href="../paths.html">Your Path</a>
-      <a href="../compete.html">Compete</a>
+      <a href="../">Home</a>
+      <a href="../learn">Learn</a>
+      <a href="../calculator">Calculator</a>
+      <a href="../simulator">Simulator</a>
+      <a href="../blog">Money Moves</a>
+      <a href="../paths">Your Path</a>
+      <a href="../compete">Compete</a>
     </nav>
   </div>
   <div class="footer-bottom">
@@ -151,12 +151,12 @@ function relatedLinks(article, all) {
   const pool = same.length ? same : all.filter(a => a.id !== article.id).slice(0, 4);
   if (!pool.length) return '';
   return `<div class="related"><h4>Keep reading</h4>${
-    pool.map(a => `<a href="${a.id}.html">${esc(a.title)}</a>`).join('')
+    pool.map(a => `<a href="${a.id}">${esc(a.title)}</a>`).join('')
   }</div>`;
 }
 
 function page(article, all) {
-  const url = `${SITE}/blog/${article.id}.html`;
+  const url = `${SITE}/blog/${article.id}`;
   const img = article.imageUrl || `${SITE}/finnpath-logo.svg`;
   const ld = {
     '@context': 'https://schema.org',
@@ -199,7 +199,7 @@ ${STYLE}
 <body>
 ${NAV}
 <article class="article-wrap">
-  <a href="../blog.html" class="article-back">← Money Moves</a>
+  <a href="../blog" class="article-back">← Money Moves</a>
   ${article.imageUrl ? `<img class="article-hero-img" src="${esc(article.imageUrl)}" alt="${esc(article.title)}"/>` : ''}
   <div class="article-head">
     <span class="cat-tag ${esc(article.catClass)}">${esc(article.catLabel)}</span>
@@ -245,14 +245,14 @@ for (const a of articles) {
 
 // ── sitemap.xml (main pages + every article) ──────────────────────────────────
 const staticPages = [
-  '', 'blog.html', 'learn.html', 'paths.html', 'calculator.html',
-  'simulator.html', 'compete.html', '401k.html', 'roth.html',
-  'tool-debt.html', 'tool-dca.html', 'tool-index.html', 'tool-save.html', 'tools.html',
+  '', 'blog', 'learn', 'paths', 'calculator',
+  'simulator', 'compete', '401k', 'roth',
+  'tool-debt', 'tool-dca', 'tool-index', 'tool-save', 'tools',
 ];
 const today = new Date().toISOString().slice(0, 10);
 const urls = [
   ...staticPages.map(p => ({ loc: `${SITE}/${p}`, pri: p === '' ? '1.0' : '0.7' })),
-  ...articles.filter(a => a.id).map(a => ({ loc: `${SITE}/blog/${a.id}.html`, pri: '0.6' })),
+  ...articles.filter(a => a.id).map(a => ({ loc: `${SITE}/blog/${a.id}`, pri: '0.6' })),
 ];
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
