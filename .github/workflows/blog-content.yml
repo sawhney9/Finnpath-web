@@ -1,8 +1,8 @@
 name: Generate blog draft
 
-# Replaces the Mac launchd job (com.finnpath.agent). Polls Reddit for a trending
-# finance post, writes an article with Gemini, saves it as a draft in Cloudflare
-# KV, and emails a review link. Approve/Edit/Skip are handled by the
+# Replaces the Mac launchd job (com.finnpath.agent). Polls Google News for a
+# trending finance story, writes an article with Gemini, saves it as a draft in
+# Cloudflare KV, and emails a review link. Approve/Edit/Skip are handled by the
 # finnpath-approval Cloudflare Worker — see cloudflare-worker/approval/.
 
 on:
@@ -31,8 +31,6 @@ jobs:
       - name: Generate draft(s) and email for review
         run: python scripts/generate_draft.py
         env:
-          REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
-          REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}

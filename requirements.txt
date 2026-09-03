@@ -1,4 +1,4 @@
-praw
 google-genai
+feedparser
 requests
 python-dotenv

@@ -1,20 +1,21 @@
 #!/usr/bin/env python3
 """GitHub Actions entry point — replaces the local `stock_news_agent/main.py` loop.
 
-Finds a trending finance post on Reddit, writes an article with Gemini (same prompt
-and ARTICLES schema as before), and instead of injecting it into blog.html and
+Finds a trending finance story on Google News, writes an article with Gemini (same
+prompt and ARTICLES schema as before), and instead of injecting it into blog.html and
 pushing directly, saves it as a draft in Cloudflare KV and emails a review link.
 Approve/Edit/Skip are handled by the `finnpath-approval` Cloudflare Worker — see
 cloudflare-worker/approval/index.js.
 
-Required env vars: REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, GEMINI_API_KEY,
-UNSPLASH_ACCESS_KEY, RESEND_API_KEY, REVIEW_EMAIL, APPROVAL_WORKER_URL,
-CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_KV_NAMESPACE_ID.
+Required env vars: GEMINI_API_KEY, UNSPLASH_ACCESS_KEY, RESEND_API_KEY, REVIEW_EMAIL,
+APPROVAL_WORKER_URL, CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID,
+CLOUDFLARE_KV_NAMESPACE_ID.
 """
 import os
 import re
 import json
 import random
+import hashlib
 import tempfile
 import subprocess
 import urllib.request
@@ -22,7 +23,7 @@ import urllib.parse
 import uuid
 from datetime import datetime
 
-import praw
+import feedparser
 import requests
 from dotenv import load_dotenv
 from google import genai
@@ -31,8 +32,12 @@ from google.genai import types
 load_dotenv()
 
 # ─── Config (unchanged from the local agent) ─────────────────────────────────
-SUBREDDITS = ['stocks', 'investing', 'personalfinance', 'CryptoCurrency', 'startups', 'venturecapital']
-MIN_UPVOTES = 300
+# The local agent could run against Reddit (fetch_top_posts) or Google News RSS
+# (fetch_rss_posts) via NEWS_SOURCE. Its Reddit app was never actually approved
+# for API access — NEWS_SOURCE has been 'rss' in production the whole time — so
+# only the RSS path is ported here.
+RSS_URL = ('https://news.google.com/rss/search?q='
+           'crypto+OR+startups+OR+venture+capital+OR+private+equity+OR+stocks')
 SITE = 'https://finnpath.com'
 UNSPLASH_KEY = os.getenv('UNSPLASH_ACCESS_KEY', '')
 
@@ -54,12 +59,6 @@ EMOJIS_BY_CAT = {
 
 KV_NAMESPACE_ID = os.environ['CLOUDFLARE_KV_NAMESPACE_ID']
 WORKER_URL = os.environ['APPROVAL_WORKER_URL'].rstrip('/')
-
-reddit = praw.Reddit(
-    client_id=os.getenv('REDDIT_CLIENT_ID'),
-    client_secret=os.getenv('REDDIT_CLIENT_SECRET'),
-    user_agent=os.getenv('REDDIT_USER_AGENT', 'FinnpathAgent/1.0'),
-)
 
 client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
 MODEL = 'gemini-2.5-flash'
@@ -100,34 +99,30 @@ def load_processed():
     return set(kv_get('processed-ids') or [])
 
 
-def save_processed(reddit_id):
+def save_processed(post_id):
     ids = load_processed()
-    ids.add(reddit_id)
+    ids.add(post_id)
     kv_put('processed-ids', sorted(ids))
 
 
-# ─── Reddit fetching (unchanged) ─────────────────────────────────────────────
-def fetch_top_posts(processed_ids):
+# ─── Google News RSS fetching (unchanged from the local agent) ───────────────
+def fetch_rss_posts(processed_ids):
     candidates = []
-    for sub in SUBREDDITS:
-        subreddit = reddit.subreddit(sub)
-        for post in subreddit.hot(limit=15):
-            if post.id in processed_ids:
-                continue
-            if post.score < MIN_UPVOTES:
-                continue
-            if post.is_self and len(post.selftext) < 80:
-                continue
-            candidates.append({
-                'id':           post.id,
-                'subreddit':    sub,
-                'title':        post.title,
-                'body':         post.selftext[:3000] if post.is_self else '',
-                'url':          post.url,
-                'score':        post.score,
-                'num_comments': post.num_comments,
-            })
-    candidates.sort(key=lambda x: x['score'], reverse=True)
+    feed = feedparser.parse(RSS_URL)
+
+    for entry in feed.entries:
+        entry_id = hashlib.md5(entry.link.encode('utf-8')).hexdigest()
+        if entry_id in processed_ids:
+            continue
+
+        candidates.append({
+            'id':      entry_id,
+            'source':  'stocks',  # feeds CATEGORY_MAP → 'news' category
+            'title':   entry.title,
+            'body':    f"Summary: {entry.get('summary', '')} Source Link: {entry.link}",
+            'url':     entry.link,
+        })
+
     return candidates[:3]  # up to 3 draft emails per run, same cadence as before
 
 
@@ -185,7 +180,7 @@ def slugify(title):
 
 def generate_article(post):
     cat, cat_label, cat_class = CATEGORY_MAP.get(
-        post['subreddit'], ('news', '📰 Market News', 'cat-news')
+        post['source'], ('news', '📰 Market News', 'cat-news')
     )
 
     author_voices = {
@@ -202,9 +197,9 @@ def generate_article(post):
 
 {author_voice}
 
-Based on this Reddit discussion from r/{post['subreddit']}:
+Based on this recent financial news:
 Title: {post['title']}
-Body: {post['body'] or '(link post — use the title as the topic)'}
+Body: {post['body']}
 
 Your job is to write an article that teaches a real financial lesson using this news as the hook. Do NOT just summarize what happened. Dig into why it matters to someone who is just starting to build wealth.
 
@@ -338,12 +333,12 @@ def send_review_email(article, token):
     print(f"  ✓ Review email sent → {os.environ['REVIEW_EMAIL']}")
 
 
-def save_draft_and_email(article, reddit_id):
+def save_draft_and_email(article, post_id):
     token = str(uuid.uuid4())
     draft = {
         'token': token,
         'article': article,
-        'redditId': reddit_id,
+        'postId': post_id,
         'createdAt': datetime.utcnow().isoformat() + 'Z',
     }
     kv_put(f'draft:{token}', draft)
@@ -354,7 +349,7 @@ def save_draft_and_email(article, reddit_id):
 # ─── Main ─────────────────────────────────────────────────────────────────────
 def run_once():
     processed = load_processed()
-    posts = fetch_top_posts(processed)
+    posts = fetch_rss_posts(processed)
 
     if not posts:
         print('  No new qualifying posts found.')
@@ -362,7 +357,7 @@ def run_once():
 
     for post in posts:
         label = post['title'][:65]
-        print(f'\n  → [{post["subreddit"]}] {label}...')
+        print(f'\n  → {label}...')
         try:
             article = generate_article(post)
             save_draft_and_email(article, post['id'])
@@ -372,7 +367,5 @@ def run_once():
 
 
 if __name__ == '__main__':
-    print('Finnpath draft generator — polling Reddit for financial content')
-    print(f'  Subreddits  : {", ".join(f"r/{s}" for s in SUBREDDITS)}')
-    print(f'  Min upvotes : {MIN_UPVOTES}\n')
+    print('Finnpath draft generator — polling Google News for financial content')
     run_once()
