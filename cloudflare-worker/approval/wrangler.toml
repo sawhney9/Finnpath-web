@@ -1,0 +1,20 @@
+name = "finnpath-approval"
+main = "index.js"
+compatibility_date = "2024-01-01"
+
+# Secrets (set via: wrangler secret put SECRET_NAME)
+# GITHUB_TOKEN    — PAT with contents:write on sawhney9/Finnpath-web
+# GEMINI_API_KEY
+# RESEND_API_KEY
+# REVIEW_EMAIL
+
+[vars]
+GITHUB_OWNER = "sawhney9"
+GITHUB_REPO = "Finnpath-web"
+
+[[kv_namespaces]]
+binding = "DRAFTS"
+# Namespace titled "FINNPATH_DRAFTS" (kept distinct from SHL's own "DRAFTS"
+# namespace on the same Cloudflare account). Same id goes in the
+# CLOUDFLARE_KV_NAMESPACE_ID GitHub secret used by generate_draft.py.
+id = "0305980a30fa40f7ae70ac202ffec7fb"

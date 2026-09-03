@@ -1,0 +1,44 @@
+name: Generate blog draft
+
+# Replaces the Mac launchd job (com.finnpath.agent). Polls Reddit for a trending
+# finance post, writes an article with Gemini, saves it as a draft in Cloudflare
+# KV, and emails a review link. Approve/Edit/Skip are handled by the
+# finnpath-approval Cloudflare Worker — see cloudflare-worker/approval/.
+
+on:
+  schedule:
+    # ~10:00 America/New_York, Sun & Wed (matches the old launchd schedule).
+    # GitHub cron is UTC with no DST awareness — this is 10am EDT / 9am EST.
+    - cron: '0 14 * * 0,3'
+  workflow_dispatch: {}
+
+concurrency:
+  group: blog-content
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: pip install -r requirements.txt
+
+      - name: Generate draft(s) and email for review
+        run: python scripts/generate_draft.py
+        env:
+          REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
+          REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          REVIEW_EMAIL: ${{ secrets.REVIEW_EMAIL }}
+          APPROVAL_WORKER_URL: ${{ secrets.APPROVAL_WORKER_URL }}
+          # Needs Workers KV Storage:Edit (NOT just Pages:Edit) for the KV write
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_KV_NAMESPACE_ID: ${{ secrets.CLOUDFLARE_KV_NAMESPACE_ID }}

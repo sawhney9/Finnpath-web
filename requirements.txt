@@ -1,3 +1,4 @@
-google-generativeai
+praw
+google-genai
+requests
 python-dotenv
-feedparser

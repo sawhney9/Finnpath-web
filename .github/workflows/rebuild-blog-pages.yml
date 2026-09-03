@@ -1,0 +1,79 @@
+name: Rebuild blog SEO pages
+
+# Runs build_blog_pages.js whenever blog.html changes on main — including the
+# finnpath-approval Worker's "Approve & Publish" commits — and pings IndexNow
+# for any newly-added article pages. Replaces rebuild_blog_pages()/push_to_git()/
+# ping_indexnow() from the old local agent.
+
+on:
+  push:
+    branches: [main]
+    paths: ['blog.html']
+  workflow_dispatch: {}
+
+concurrency:
+  group: rebuild-blog-pages
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: node build_blog_pages.js
+
+      - name: Find newly-added article pages
+        id: newpages
+        run: |
+          mkdir -p blog
+          new_files=$(git status --porcelain blog/ | awk '$1=="??"{print $2}')
+          {
+            echo 'urls<<EOF'
+            for f in $new_files; do
+              slug=$(basename "$f" .html)
+              echo "https://finnpath.com/blog/$slug"
+            done
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Commit rebuilt pages
+        id: commit
+        run: |
+          git config user.email 'bot@finnpath.com'
+          git config user.name 'Finnpath Bot'
+          git add blog/ sitemap.xml robots.txt
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m 'Rebuild blog SEO pages'
+            git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Ping IndexNow
+        if: steps.commit.outputs.changed == 'true' && steps.newpages.outputs.urls != ''
+        env:
+          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+        run: |
+          if [ -z "$INDEXNOW_KEY" ]; then
+            echo "No INDEXNOW_KEY secret set — skipping."
+            exit 0
+          fi
+          urls_json=$(printf '%s\n' "${{ steps.newpages.outputs.urls }}" | jq -R . | jq -s .)
+          payload=$(jq -n --arg host "finnpath.com" --arg key "$INDEXNOW_KEY" \
+            --arg keyLocation "https://finnpath.com/$INDEXNOW_KEY.txt" \
+            --argjson urlList "$urls_json" \
+            '{host:$host, key:$key, keyLocation:$keyLocation, urlList:$urlList}')
+          curl -s -X POST https://api.indexnow.org/indexnow \
+            -H 'Content-Type: application/json; charset=utf-8' \
+            -d "$payload"
