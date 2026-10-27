@@ -52,6 +52,16 @@ TOPIC_FEEDS = [
     ('venturecapital', '"private equity" OR "venture capital" OR IPO',                       1),
 ]
 STORIES_PER_RUN = 3
+
+# (weight, prompt rules). One is picked per article.
+ARTICLE_TYPES = {
+    'History Rhymes': (4, """  • Build the article around a historical parallel: a past moment in the economy that looks like today's news (e.g. 1970s inflation, the dot-com bust, 2008 housing crash, 2020 COVID crash, 1980s high rates, 1990s low unemployment).
+  • Include one h3 section on what happened then, and one h3 section comparing it to today: what's genuinely similar, and what's different now (rates, policy, who owns what, how people invest).
+  • Show what an ordinary person who kept investing, saving or paying down debt through that period experienced, and what someone who panicked or chased the hype experienced.
+  • Be careful with history: use only well-documented events. Give figures only when you are confident (round them, e.g. "about 50%"), and say "roughly" when unsure. Never invent quotes, dates or statistics.
+  • Do not claim history will repeat — the point is perspective, not prediction."""),
+    'Practical Lesson': (6, """  • Use the news as a hook, then focus on one concrete money principle and what the reader can do this week."""),
+}
 SITE = 'https://finnpath.com'
 UNSPLASH_KEY = os.getenv('UNSPLASH_ACCESS_KEY', '')
 
@@ -223,6 +233,11 @@ def generate_article(post):
         "Finnpath Team": "You write as the Finnpath editorial team — balanced, informative, and never condescending. You treat the reader like a smart adult who just hasn't had access to good financial education yet.",
     }
     chosen_author = random.choice(list(author_voices.keys()))
+    article_type = random.choices(
+        list(ARTICLE_TYPES.keys()),
+        weights=[w for w, _ in ARTICLE_TYPES.values()],
+    )[0]
+    article_type_rules = ARTICLE_TYPES[article_type][1]
     author_voice = author_voices[chosen_author]
 
     prompt = f"""You are a human financial writer for Finnpath, a personal finance blog for 18–30 year olds.
@@ -268,6 +283,9 @@ STRUCTURE:
       - Before/After framing
       - Q&A style (pose a question as an h3, answer it in the paragraph)
   • Use callout boxes sparingly — max 1 per article, only for a genuinely important insight
+
+ARTICLE TYPE FOR THIS PIECE — {article_type}:
+{article_type_rules}
 
 CONTENT (CRUCIAL):
   • Don't summarize the news — extract the underlying financial principle
