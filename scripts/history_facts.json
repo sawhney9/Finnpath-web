@@ -1,0 +1,67 @@
+{
+  "_note": "Vetted figures for History Rhymes articles. The model may only use numbers that appear here. Add an episode by adding an entry with a source URL for every fact.",
+  "episodes": [
+    {
+      "name": "1973-74 oil crisis bear market",
+      "keywords": ["oil", "energy", "inflation", "recession", "stagflation", "bear market"],
+      "facts": [
+        {"fact": "The S&P 500 fell about 48% from January 11, 1973 to October 3, 1974.", "source": "https://keyt.com/stacker-business-economy/2026/08/12/every-major-stock-market-correction-since-1950-and-how-long-recovery-took/"},
+        {"fact": "The S&P 500 did not regain its January 1973 high until July 1980, roughly 7.5 years after the peak (price only, before dividends).", "source": "https://keyt.com/stacker-business-economy/2026/08/12/every-major-stock-market-correction-since-1950-and-how-long-recovery-took/"}
+      ]
+    },
+    {
+      "name": "1979-82 Volcker inflation fight",
+      "keywords": ["inflation", "interest rates", "Fed", "federal reserve", "mortgage", "rate hikes", "recession", "unemployment"],
+      "facts": [
+        {"fact": "Headline CPI inflation peaked at 14.8% in March 1980.", "source": "https://cepr.org/voxeu/columns/past-and-present-inflation-are-more-similar-you-think"},
+        {"fact": "The federal funds rate reached a record 20% in late 1980.", "source": "https://www.federalreservehistory.org/essays/anti-inflation-measures"},
+        {"fact": "Unemployment peaked at 10.8% in late 1982.", "source": "https://www.federalreservehistory.org/essays/anti-inflation-measures"},
+        {"fact": "Inflation fell to 3.7% in 1983.", "source": "https://www.federalreservehistory.org/essays/anti-inflation-measures"},
+        {"fact": "The 30-year fixed mortgage rate peaked at 18.63% in October 1981.", "source": "https://www.marketplace.org/story/2018/10/12/highest-mortgage-rate"}
+      ]
+    },
+    {
+      "name": "1987 Black Monday",
+      "keywords": ["crash", "one-day drop", "volatility", "panic", "selloff"],
+      "facts": [
+        {"fact": "The S&P 500 fell about 33.5% from August 25, 1987 to December 4, 1987.", "source": "https://keyt.com/stacker-business-economy/2026/08/12/every-major-stock-market-correction-since-1950-and-how-long-recovery-took/"},
+        {"fact": "The S&P 500 regained its prior high on July 26, 1989, about 23 months after the peak.", "source": "https://keyt.com/stacker-business-economy/2026/08/12/every-major-stock-market-correction-since-1950-and-how-long-recovery-took/"}
+      ]
+    },
+    {
+      "name": "2000-02 dot-com bust",
+      "keywords": ["tech", "AI", "bubble", "hype", "startups", "IPO", "valuations", "nasdaq", "growth stocks"],
+      "facts": [
+        {"fact": "The Nasdaq Composite peaked at 5,048.62 on March 10, 2000.", "source": "https://en.wikipedia.org/wiki/Dot-com_bubble"},
+        {"fact": "By October 2002 the Nasdaq had fallen about 78% from its peak.", "source": "https://en.wikipedia.org/wiki/Dot-com_bubble"},
+        {"fact": "The S&P 500 fell about 49% from March 24, 2000 to October 9, 2002, and regained that high in May 2007.", "source": "https://keyt.com/stacker-business-economy/2026/08/12/every-major-stock-market-correction-since-1950-and-how-long-recovery-took/"},
+        {"fact": "About $5 trillion in stock market value was lost from the peak to the end of the 2002 downturn.", "source": "https://en.wikipedia.org/wiki/Dot-com_bubble"}
+      ]
+    },
+    {
+      "name": "2007-09 financial crisis and housing crash",
+      "keywords": ["banks", "housing", "home prices", "mortgage", "credit", "recession", "financial crisis", "real estate"],
+      "facts": [
+        {"fact": "The S&P 500 fell about 57% from October 9, 2007 to March 9, 2009, and regained its prior closing high in March 2013.", "source": "https://keyt.com/stacker-business-economy/2026/08/12/every-major-stock-market-correction-since-1950-and-how-long-recovery-took/"},
+        {"fact": "U.S. home prices fell about 34% from their July 2006 peak by early 2012 (S&P/Case-Shiller).", "source": "https://www.pbs.org/newshour/economy/us-home-prices-still-going-dow"}
+      ]
+    },
+    {
+      "name": "2020 COVID crash",
+      "keywords": ["pandemic", "crash", "panic", "recovery", "volatility", "shock"],
+      "facts": [
+        {"fact": "The S&P 500 fell about 34% from February 19, 2020 to March 23, 2020.", "source": "https://www.npr.org/sections/coronavirus-live-updates/2020/08/18/903252878/the-big-comeback-s-p-500-closes-at-record-high-6-months-after-coronavirus-plunge"},
+        {"fact": "The S&P 500 closed at a new record high on August 18, 2020, about five months after the low.", "source": "https://www.npr.org/sections/coronavirus-live-updates/2020/08/18/903252878/the-big-comeback-s-p-500-closes-at-record-high-6-months-after-coronavirus-plunge"}
+      ]
+    },
+    {
+      "name": "2022 inflation and rate-hike bear market",
+      "keywords": ["inflation", "interest rates", "Fed", "rate hikes", "bonds", "grocery prices", "gas prices", "bear market"],
+      "facts": [
+        {"fact": "CPI rose 9.1% over the 12 months ending June 2022, the largest increase since November 1981.", "source": "https://www.bls.gov/opub/ted/2022/consumer-prices-up-9-1-percent-over-the-year-ended-june-2022-largest-increase-in-40-years.htm"},
+        {"fact": "Over the same 12 months, food prices rose 10.4% and energy prices rose 41.6%.", "source": "https://www.bls.gov/opub/ted/2022/consumer-prices-up-9-1-percent-over-the-year-ended-june-2022-largest-increase-in-40-years.htm"},
+        {"fact": "The S&P 500 fell about 25% from January 3, 2022 to October 12, 2022, and regained its prior high in January 2024.", "source": "https://keyt.com/stacker-business-economy/2026/08/12/every-major-stock-market-correction-since-1950-and-how-long-recovery-took/"}
+      ]
+    }
+  ]
+}

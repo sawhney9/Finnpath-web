@@ -55,13 +55,29 @@ STORIES_PER_RUN = 3
 
 # (weight, prompt rules). One is picked per article.
 ARTICLE_TYPES = {
-    'History Rhymes': (4, """  • Build the article around a historical parallel: a past moment in the economy that looks like today's news (e.g. 1970s inflation, the dot-com bust, 2008 housing crash, 2020 COVID crash, 1980s high rates, 1990s low unemployment).
+    'History Rhymes': (4, """  • Build the article around ONE historical parallel chosen from the VETTED HISTORY FACTS below — the episode that best matches today's news.
   • Include one h3 section on what happened then, and one h3 section comparing it to today: what's genuinely similar, and what's different now (rates, policy, who owns what, how people invest).
   • Show what an ordinary person who kept investing, saving or paying down debt through that period experienced, and what someone who panicked or chased the hype experienced.
-  • Be careful with history: use only well-documented events. Give figures only when you are confident (round them, e.g. "about 50%"), and say "roughly" when unsure. Never invent quotes, dates or statistics.
+  • Every historical number, date or percentage MUST come from the VETTED HISTORY FACTS. If a fact you want isn't listed, describe it in words without a number. Never invent quotes, dates or statistics.
   • Do not claim history will repeat — the point is perspective, not prediction."""),
-    'Practical Lesson': (6, """  • Use the news as a hook, then focus on one concrete money principle and what the reader can do this week."""),
+    'Practical Lesson': (6, """  • Use the news as a hook, then focus on one concrete money principle and what the reader can do this week.
+  • Avoid historical statistics unless they appear in the VETTED HISTORY FACTS."""),
 }
+
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'history_facts.json')) as _f:
+    HISTORY_EPISODES = json.load(_f)['episodes']
+
+
+def history_facts_block():
+    lines = []
+    for ep in HISTORY_EPISODES:
+        lines.append(f"[{ep['name']}]")
+        lines.extend(f"  - {f['fact']}" for f in ep['facts'])
+    return '\n'.join(lines)
+
+
+ARTICLE_FETCH_CHARS = 6000
+
 SITE = 'https://finnpath.com'
 UNSPLASH_KEY = os.getenv('UNSPLASH_ACCESS_KEY', '')
 
@@ -168,7 +184,35 @@ def fetch_rss_posts(processed_ids):
     return candidates
 
 
-# ─── Unsplash image fetch (unchanged) ────────────────────────────────────────
+# ─── Full article text (best effort; falls back to the RSS summary) ─────────
+def fetch_article_text(google_news_url):
+    try:
+        from googlenewsdecoder import gnewsdecoder
+        import trafilatura
+
+        decoded = gnewsdecoder(google_news_url, interval=1)
+        if not decoded.get('success'):
+            print(f"  ⚠ Could not decode Google News link: {decoded.get('message')}")
+            return '', ''
+        real_url = decoded['decoded_url']
+
+        res = requests.get(real_url, timeout=15, headers={
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) '
+                          'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
+        })
+        res.raise_for_status()
+        text = trafilatura.extract(res.text, include_comments=False, include_tables=False) or ''
+        if len(text) < 500:
+            print(f'  ⚠ Article text too short ({len(text)} chars) — likely paywalled')
+            return real_url, ''
+        print(f'  ✓ Fetched article text ({len(text)} chars) from {real_url}')
+        return real_url, text[:ARTICLE_FETCH_CHARS]
+    except Exception as e:
+        print(f'  ⚠ Article fetch failed: {e}')
+        return '', ''
+
+
+# ─── Unsplash image fetch (unchanged)────────────────────────────────────────
 def fetch_unsplash_image(title, category, fallback=False):
     if not UNSPLASH_KEY:
         return ''
@@ -240,13 +284,20 @@ def generate_article(post):
     article_type_rules = ARTICLE_TYPES[article_type][1]
     author_voice = author_voices[chosen_author]
 
+    if post.get('article_text'):
+        news_block = f"""Full article text (from {post.get('article_url') or 'the original source'}):
+{post['article_text']}"""
+    else:
+        news_block = f"""{post['body']}
+NOTE: Only this short summary is available. Do not add any details about this news story (names, numbers, dates, quotes) beyond what the summary says."""
+
     prompt = f"""You are a human financial writer for Finnpath, a personal finance blog for 18–30 year olds.
 
 {author_voice}
 
 Based on this recent financial news:
 Title: {post['title']}
-Body: {post['body']}
+{news_block}
 
 Your job is to write an article that teaches a real financial lesson using this news as the hook. Do NOT just summarize what happened. Dig into why it matters to someone who is just starting to build wealth.
 
@@ -292,6 +343,13 @@ CONTENT (CRUCIAL):
   • Always connect back to what someone with $500–$5,000 to invest should actually think or do
   • Be honest about uncertainty ("Nobody knows exactly when...", "This might not matter for years, or it might matter next month")
   • If something is complicated, say so — then explain one part of it clearly
+
+ACCURACY:
+  • Facts about the news story must come from the text above. Historical figures must come from VETTED HISTORY FACTS.
+  • General, well-established principles (compound interest, diversification, how a 401k match works) are fine without a source, but don't attach specific numbers to them unless they are simple arithmetic you show.
+
+VETTED HISTORY FACTS (the only historical numbers you may use):
+{history_facts_block()}
 
 Return ONLY valid JSON (no markdown, no code fences). Use these exact fields:
 {{
@@ -344,6 +402,74 @@ Return ONLY valid JSON (no markdown, no code fences). Use these exact fields:
     }
 
 
+# ─── Fact-check pass (shown in the review email only) ───────────────────────
+def fact_check(article, post):
+    plain = re.sub(r'<[^>]+>', ' ', article['content'])
+    plain = re.sub(r'\s+', ' ', plain).strip()
+    source_text = post.get('article_text') or post['body']
+
+    prompt = f"""You are a strict fact-checker. List every specific factual claim in the ARTICLE below:
+any number, percentage, dollar amount, date, year, named person, named company, named law, or historical event.
+Skip opinions, advice, and general principles with no specifics.
+
+For each claim, decide:
+  "history"   — it matches a fact in VETTED HISTORY FACTS
+  "source"    — it is stated in the NEWS SOURCE text
+  "unverified" — it is in neither, or it contradicts them
+
+Be conservative: if the number or date differs at all, it is "unverified".
+
+VETTED HISTORY FACTS:
+{history_facts_block()}
+
+NEWS SOURCE:
+{source_text}
+
+ARTICLE:
+{article['title']}
+{plain}
+
+Return ONLY JSON: {{"claims": [{{"claim": "short quote or paraphrase", "status": "history|source|unverified", "note": "why, max 15 words"}}]}}"""
+
+    try:
+        response = client.models.generate_content(
+            model=MODEL,
+            contents=prompt,
+            config=types.GenerateContentConfig(response_mime_type='application/json', temperature=0),
+        )
+        claims = json.loads(response.text).get('claims', [])
+        n_bad = sum(1 for c in claims if c.get('status') == 'unverified')
+        print(f'  ✓ Fact-check: {len(claims)} claims, {n_bad} unverified')
+        return claims
+    except Exception as e:
+        print(f'  ⚠ Fact-check failed: {e}')
+        return None
+
+
+def fact_check_html(claims):
+    if claims is None:
+        return ('<div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;padding:12px 16px;margin-bottom:24px;font-size:14px;">'
+                '⚠️ Fact-check did not run for this draft — check every number by hand.</div>')
+    if not claims:
+        return ('<div style="background:#f0fdf4;border:1px solid #16a34a;border-radius:8px;padding:12px 16px;margin-bottom:24px;font-size:14px;">'
+                '✅ Fact-check: no specific factual claims found.</div>')
+
+    order = {'unverified': 0, 'source': 1, 'history': 2}
+    icons = {'unverified': '🔴', 'source': '🟢', 'history': '🟢'}
+    labels = {'unverified': 'Unverified', 'source': 'In news source', 'history': 'In history facts'}
+    n_bad = sum(1 for c in claims if c.get('status') == 'unverified')
+    rows = ''.join(
+        f'<li style="margin-bottom:6px;">{icons.get(c.get("status"), "🔴")} '
+        f'<strong>{labels.get(c.get("status"), "Unverified")}:</strong> {c.get("claim", "")}'
+        f'<span style="color:#666;"> — {c.get("note", "")}</span></li>'
+        for c in sorted(claims, key=lambda c: order.get(c.get('status'), 0))
+    )
+    border, bg = ('#dc2626', '#fef2f2') if n_bad else ('#16a34a', '#f0fdf4')
+    return (f'<div style="background:{bg};border:1px solid {border};border-radius:8px;padding:12px 16px;margin-bottom:24px;font-size:14px;">'
+            f'<div style="font-weight:700;margin-bottom:8px;">Fact-check: {n_bad} of {len(claims)} claims unverified</div>'
+            f'<ul style="margin:0;padding-left:18px;">{rows}</ul></div>')
+
+
 # ─── Draft + review email (replaces inject_article/push_to_git/rebuild) ──────
 def action_buttons(token):
     return f'''<div style="display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap;">
@@ -353,7 +479,7 @@ def action_buttons(token):
 </div>'''
 
 
-def send_review_email(article, token):
+def send_review_email(article, token, claims):
     html_body = f'''<!DOCTYPE html>
 <html><head><meta charset="utf-8"></head>
 <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:680px;margin:0 auto;padding:24px;color:#1a1a1a;">
@@ -363,6 +489,7 @@ def send_review_email(article, token):
   <div style="font-size:13px;color:#666;">/blog/{article['id']} · {article['author']} · {article['readTime']}</div>
 </div>
 {action_buttons(token)}
+{fact_check_html(claims)}
 <div style="line-height:1.7;">{article['content']}</div>
 <div style="margin-top:40px;font-size:11px;color:#999;border-top:1px solid #e5e7eb;padding-top:16px;">Finnpath Content Review · Token: {token}</div>
 </body></html>'''
@@ -373,7 +500,9 @@ def send_review_email(article, token):
         json={
             'from': 'Finnpath Content <content@finnpath.com>',
             'to': os.environ['REVIEW_EMAIL'],
-            'subject': f"[Finnpath Review] {article['title']}",
+            'subject': (f"[Finnpath Review] {article['title']}"
+                        + (f" — ⚠️ {sum(1 for c in claims if c.get('status') == 'unverified')} unverified"
+                           if claims and any(c.get('status') == 'unverified' for c in claims) else '')),
             'html': html_body,
         },
         timeout=15,
@@ -383,17 +512,18 @@ def send_review_email(article, token):
     print(f"  ✓ Review email sent → {os.environ['REVIEW_EMAIL']}")
 
 
-def save_draft_and_email(article, post_id):
+def save_draft_and_email(article, post_id, claims):
     token = str(uuid.uuid4())
     draft = {
         'token': token,
         'article': article,
         'postId': post_id,
+        'factCheck': claims,
         'createdAt': datetime.utcnow().isoformat() + 'Z',
     }
     kv_put(f'draft:{token}', draft)
     print('  ✓ Draft saved to KV')
-    send_review_email(article, token)
+    send_review_email(article, token, claims)
 
 
 # ─── Main ─────────────────────────────────────────────────────────────────────
@@ -409,8 +539,10 @@ def run_once():
         label = post['title'][:65]
         print(f'\n  → {label}...')
         try:
+            post['article_url'], post['article_text'] = fetch_article_text(post['url'])
             article = generate_article(post)
-            save_draft_and_email(article, post['id'])
+            claims = fact_check(article, post)
+            save_draft_and_email(article, post['id'], claims)
             save_processed(post['id'])
         except Exception as e:
             print(f'  ✗ Failed ({post["id"]}): {e}')

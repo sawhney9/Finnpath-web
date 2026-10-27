@@ -2,3 +2,5 @@ google-genai
 feedparser
 requests
 python-dotenv
+googlenewsdecoder==0.2.2
+trafilatura
