@@ -533,8 +533,10 @@ def run_once():
 
     if not posts:
         print('  No new qualifying posts found.')
+        print('::notice::No new qualifying posts found')
         return
 
+    ok = 0
     for post in posts:
         label = post['title'][:65]
         print(f'\n  → {label}...')
@@ -544,8 +546,16 @@ def run_once():
             claims = fact_check(article, post)
             save_draft_and_email(article, post['id'], claims)
             save_processed(post['id'])
+            ok += 1
+            n_bad = sum(1 for c in claims if c.get('status') == 'unverified') if claims else 'n/a'
+            print(f"::notice::[{post['source']}] {article['title'][:80]} | full text: {'yes' if post['article_text'] else 'no'} | unverified: {n_bad}")
         except Exception as e:
             print(f'  ✗ Failed ({post["id"]}): {e}')
+            print(f"::error::[{post['source']}] {label}: {str(e)[:300]}")
+
+    print(f'::notice::{ok} of {len(posts)} drafts created')
+    if ok == 0:
+        raise SystemExit(1)
 
 
 if __name__ == '__main__':
