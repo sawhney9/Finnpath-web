@@ -36,8 +36,22 @@ load_dotenv()
 # (fetch_rss_posts) via NEWS_SOURCE. Its Reddit app was never actually approved
 # for API access — NEWS_SOURCE has been 'rss' in production the whole time — so
 # only the RSS path is ported here.
-RSS_URL = ('https://news.google.com/rss/search?q='
-           'crypto+OR+startups+OR+venture+capital+OR+private+equity+OR+stocks')
+RSS_BASE = 'https://news.google.com/rss/search?q='
+
+# Each run picks distinct feeds (weighted) and takes one story from each, so a
+# single hot topic can no longer fill every draft slot.
+TOPIC_FEEDS = [
+    # (source key → CATEGORY_MAP, Google News query, weight)
+    ('budgeting',  'budgeting OR "cost of living" OR "saving money" OR "high-yield savings"', 3),
+    ('credit',     '"credit card" OR "credit score" OR "student loans" OR "debt payoff"',    3),
+    ('retirement', '401k OR "Roth IRA" OR "retirement savings" OR "employer match"',         3),
+    ('tax',        '"tax refund" OR "tax bracket" OR IRS OR "tax deduction"',                2),
+    ('investing',  '"index funds" OR ETF OR "dollar cost averaging" OR "stock market"',      2),
+    ('housing',    'mortgage rates OR "first-time homebuyer" OR rent prices',                2),
+    ('CryptoCurrency', 'bitcoin OR ethereum OR crypto regulation',                           1),
+    ('venturecapital', '"private equity" OR "venture capital" OR IPO',                       1),
+]
+STORIES_PER_RUN = 3
 SITE = 'https://finnpath.com'
 UNSPLASH_KEY = os.getenv('UNSPLASH_ACCESS_KEY', '')
 
@@ -48,6 +62,11 @@ CATEGORY_MAP = {
     'CryptoCurrency':  ('crypto', '⚡ Crypto Markets',   'cat-crypto'),
     'startups':        ('news',   '🚀 Startup News',     'cat-news'),
     'venturecapital':  ('news',   '💸 VC & Private Equity', 'cat-news'),
+    'budgeting':       ('basics', '💡 Budgeting & Saving', 'cat-basics'),
+    'credit':          ('basics', '💳 Credit & Debt',      'cat-basics'),
+    'housing':         ('basics', '🏠 Housing & Rent',     'cat-basics'),
+    'retirement':      ('tax',    '🧾 401k & Retirement',  'cat-tax'),
+    'tax':             ('tax',    '🧾 Taxes',              'cat-tax'),
 }
 
 EMOJIS_BY_CAT = {
@@ -106,24 +125,37 @@ def save_processed(post_id):
 
 
 # ─── Google News RSS fetching (unchanged from the local agent) ───────────────
+def pick_feeds(n):
+    pool = list(TOPIC_FEEDS)
+    picked = []
+    while pool and len(picked) < n:
+        choice = random.choices(pool, weights=[w for _, _, w in pool])[0]
+        picked.append(choice)
+        pool.remove(choice)
+    return picked
+
+
 def fetch_rss_posts(processed_ids):
     candidates = []
-    feed = feedparser.parse(RSS_URL)
 
-    for entry in feed.entries:
-        entry_id = hashlib.md5(entry.link.encode('utf-8')).hexdigest()
-        if entry_id in processed_ids:
-            continue
+    for source, query, _ in pick_feeds(len(TOPIC_FEEDS)):
+        feed = feedparser.parse(RSS_BASE + urllib.parse.quote_plus(query))
+        for entry in feed.entries:
+            entry_id = hashlib.md5(entry.link.encode('utf-8')).hexdigest()
+            if entry_id in processed_ids:
+                continue
+            candidates.append({
+                'id':      entry_id,
+                'source':  source,
+                'title':   entry.title,
+                'body':    f"Summary: {entry.get('summary', '')} Source Link: {entry.link}",
+                'url':     entry.link,
+            })
+            break  # one story per topic
+        if len(candidates) >= STORIES_PER_RUN:
+            break
 
-        candidates.append({
-            'id':      entry_id,
-            'source':  'stocks',  # feeds CATEGORY_MAP → 'news' category
-            'title':   entry.title,
-            'body':    f"Summary: {entry.get('summary', '')} Source Link: {entry.link}",
-            'url':     entry.link,
-        })
-
-    return candidates[:3]  # up to 3 draft emails per run, same cadence as before
+    return candidates
 
 
 # ─── Unsplash image fetch (unchanged) ────────────────────────────────────────
