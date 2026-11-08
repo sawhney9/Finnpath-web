@@ -7,9 +7,9 @@ name: Generate blog draft
 
 on:
   schedule:
-    # ~10:00 America/New_York, Sun & Wed (matches the old launchd schedule).
+    # ~10:00 America/New_York, Mon/Wed/Fri — one draft per run (STORIES_PER_RUN).
     # GitHub cron is UTC with no DST awareness — this is 10am EDT / 9am EST.
-    - cron: '0 14 * * 0,3'
+    - cron: '0 14 * * 1,3,5'
   workflow_dispatch: {}
 
 concurrency:

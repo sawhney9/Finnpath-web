@@ -51,7 +51,7 @@ TOPIC_FEEDS = [
     ('CryptoCurrency', 'bitcoin OR ethereum OR crypto regulation',                           1),
     ('venturecapital', '"private equity" OR "venture capital" OR IPO',                       1),
 ]
-STORIES_PER_RUN = 3
+STORIES_PER_RUN = 1
 
 # (weight, prompt rules). One is picked per article.
 ARTICLE_TYPES = {
