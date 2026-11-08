@@ -264,8 +264,8 @@
   const PDFJS_CDN = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
   const PDFJS_WORKER = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
-  const GEMINI_API_KEY = "AIzaSyCBPd8YbW3uiZTtF92oW-1QuGi027faxKU";
-  const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+  // Gemini is called through our Cloudflare Worker proxy — the API key never reaches the browser
+  const ANALYZE_URL = 'https://finnpath-gemini-proxy.rimas2043.workers.dev/401k';
 
   let extractedText = "";
 
@@ -375,73 +375,17 @@
     }
   };
 
-  // ── Gemini API call ──
+  // ── Gemini API call (prompt is built server-side in the proxy) ──
   async function callGemini(docText) {
-    const prompt = `You are a financial education assistant for Finnpath, a platform that helps young adults (18-30) understand their workplace benefits.
-
-A user has uploaded their 401k plan document. Analyze it and return ONLY valid JSON (no markdown, no code fences) with this EXACT structure:
-
-{
-  "planName": "Name of the 401k plan if found, or 'Your 401k Plan'",
-  "summary": "2-3 sentence plain-English overview of the plan for a first-time employee",
-  "keyFacts": [
-    {"label": "Employer Match", "value": "e.g. 50% up to 6%", "note": "short plain-English note", "color": "green"},
-    {"label": "Employee Contribution Limit", "value": "e.g. $23,500/yr (2025)", "note": "short note", "color": "sky"},
-    {"label": "Vesting Schedule", "value": "e.g. 3-year graded", "note": "short note", "color": "gold"},
-    {"label": "Eligible After", "value": "e.g. 90 days", "note": "short note", "color": "sky"}
-  ],
-  "allowed": [
-    "plain-English list of things this plan allows (e.g. Roth after-tax contributions, loans, hardship withdrawals)",
-    "add 3-6 items"
-  ],
-  "notAllowed": [
-    "plain-English list of restrictions or things the plan does not allow",
-    "add 3-5 items"
-  ],
-  "scenarios": [
-    {
-      "type": "best",
-      "label": "Maximize Every Dollar",
-      "title": "Contribute enough to capture the full employer match",
-      "body": "Detailed hypothetical scenario (2-3 sentences) explaining exactly how much to contribute, how much the employer adds, and a rough estimate of long-term value. Use specific numbers from the plan if possible."
-    },
-    {
-      "type": "moderate",
-      "label": "Balance Growth & Cash Flow",
-      "title": "Contribute comfortably while keeping take-home pay livable",
-      "body": "Hypothetical scenario for someone contributing slightly less than max, still getting meaningful match. Focus on balance."
-    },
-    {
-      "type": "conservative",
-      "label": "Start Small, Build Up",
-      "title": "Start with the minimum and increase contributions annually",
-      "body": "Scenario for someone just starting out who increases contribution 1-2% per year. Motivating and realistic."
-    }
-  ],
-  "watchOuts": [
-    "1-2 sentence warning about something people commonly miss (e.g. forgetting to invest contributions, leaving before full vesting)"
-  ]
-}
-
-If you cannot find specific values in the document for required fields, use reasonable 2025 defaults and note them as "Standard Plan Default". Keep all explanations under a 7th-grade reading level.
-
-Here is the 401k plan document text:
----
-${docText}
----`;
-
-    const res = await fetch(GEMINI_URL, {
+    const res = await fetch(ANALYZE_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.3, maxOutputTokens: 2048 }
-      })
+      body: JSON.stringify({ docText })
     });
 
     if (!res.ok) throw new Error(`API error ${res.status}: ${await res.text()}`);
     const data = await res.json();
-    let text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    let text = data.text || "";
 
     // Strip fences if any
     text = text.replace(/^```(?:json)?\s*/m, '').replace(/\s*```$/m, '').trim();

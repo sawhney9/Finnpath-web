@@ -106,7 +106,7 @@ KV_NAMESPACE_ID = os.environ['CLOUDFLARE_KV_NAMESPACE_ID']
 WORKER_URL = os.environ['APPROVAL_WORKER_URL'].rstrip('/')
 
 client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
-MODEL = 'gemini-2.5-flash'
+MODEL = 'gemini-3.8-flash'
 
 
 # ─── Cloudflare KV (replaces the Neon Postgres processed-posts table) ────────
@@ -535,6 +535,7 @@ def run_once():
         print('  No new qualifying posts found.')
         return
 
+    succeeded = 0
     for post in posts:
         label = post['title'][:65]
         print(f'\n  → {label}...')
@@ -544,8 +545,14 @@ def run_once():
             claims = fact_check(article, post)
             save_draft_and_email(article, post['id'], claims)
             save_processed(post['id'])
+            succeeded += 1
         except Exception as e:
             print(f'  ✗ Failed ({post["id"]}): {e}')
+
+    # Exit non-zero when every post failed so the Actions run goes red and
+    # GitHub emails a failure notice, instead of silently "succeeding".
+    if succeeded == 0:
+        raise SystemExit(f'\n✗ All {len(posts)} posts failed — no draft was created.')
 
 
 if __name__ == '__main__':
