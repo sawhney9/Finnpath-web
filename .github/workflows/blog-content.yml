@@ -18,6 +18,11 @@ on:
         default: ''
         type: choice
         options: ['', 'News Take', 'Deep Guide']
+      feed:
+        description: 'Force a topic feed, e.g. equity, everyday, firstjob (blank = rotation)'
+        required: false
+        default: ''
+        type: string
 
 concurrency:
   group: blog-content
@@ -39,6 +44,7 @@ jobs:
         run: python scripts/generate_draft.py
         env:
           FORCE_TIER: ${{ inputs.tier }}
+          FORCE_FEED: ${{ inputs.feed }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}

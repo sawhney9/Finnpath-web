@@ -52,6 +52,7 @@ TOPIC_FEEDS = [
     ('tax',        '"tax refund" OR "tax bracket" OR IRS OR "tax deduction"',                2),
     ('investing',  '"index funds" OR ETF OR "dollar cost averaging" OR "stock market"',      2),
     ('housing',    'mortgage rates OR "first-time homebuyer" OR rent prices',                2),
+    ('equity',     '"restricted stock units" OR RSUs OR ESPP OR "stock options" OR "equity compensation" OR "tech layoffs"', 2),
     ('CryptoCurrency', 'bitcoin OR ethereum OR crypto regulation',                           1),
     ('venturecapital', '"private equity" OR "venture capital" OR IPO',                       1),
 ]
@@ -69,13 +70,47 @@ TITLE_OVERLAP_MAX = 2
 # Two lengths: quick takes on the news, and evergreen guides that fully answer
 # a reader's question. Deep Guides only come from evergreen feeds.
 EVERGREEN_SOURCES = {'budgeting', 'credit', 'retirement', 'firstjob', 'everyday',
-                     'sidehustle', 'tax', 'investing', 'housing'}
+                     'sidehustle', 'tax', 'investing', 'housing', 'equity'}
+
+# Who each feed is written for. Most posts stay early-career; equity posts are
+# for readers a few years further along who've started getting stock as pay.
+DEFAULT_AUDIENCE = {
+    'who': "a 22–30 year old",
+    'moments': "first paycheck, a job offer, rent and roommates, a car payment, a friend's wedding, a side gig, moving out, a surprise bill",
+    'numbers': "salaries of $40k–$90k, a few hundred dollars a month to save or invest",
+    'investable': "$500–$5,000",
+}
+AUDIENCE_BY_SOURCE = {
+    'equity': {
+        'who': "a 24–38 year old at a tech or growth company who has started getting RSUs, ESPP or options",
+        'moments': "a first RSU vest showing up on a pay stub, an offer letter with an equity grant, a refresher grant, a layoff announcement, a tax bill bigger than expected, watching the company stock swing",
+        'numbers': "salaries of $90k–$200k, an RSU grant of $40k–$200k vesting over four years, quarterly vests of a few thousand to $15k",
+        'investable': "$5,000–$50,000",
+    },
+}
+
+# Evergreen equity questions used when the equity feed has no fresh news.
+EQUITY_GUIDE_TOPICS = [
+    "Your first RSU vest: what actually happens to the shares and the taxes",
+    "Sell at vest or hold? How to decide what to do with vested RSUs",
+    "Why your RSU tax withholding is probably too low (and how to avoid an April surprise)",
+    "How much of your net worth should be in your employer's stock?",
+    "ESPP explained: the discount, the lookback, and when to sell",
+    "Got laid off with unvested RSUs: what happens to your equity",
+    "Stock options vs. RSUs: what's the difference when you get an offer",
+    "Turning RSUs into a diversified portfolio: a simple selldown plan",
+    "Cost basis on RSUs: how to avoid paying tax twice when you sell",
+    "Wash sales and RSUs: the 30-day trap when you sell at a loss",
+    "Comparing job offers with equity: how to value the stock part honestly",
+    "What to do with RSU money: emergency fund, debt, or index funds first?",
+]
+EQUITY_TOPICS_USED_KEY = 'equity-topics-used'
 DEEP_GUIDE_SHARE = 0.4
 LENGTH_TIERS = {
-    'News Take': {'min': 700, 'max': 900, 'sections': '3–4', 'rules': """  • A focused take on the news: what happened in one or two sentences, why it matters to a 22–30 year old, and what to do about it."""},
+    'News Take': {'min': 700, 'max': 900, 'sections': '3–4', 'rules': """  • A focused take on the news: what happened in one or two sentences, why it matters to the reader described under REAL LIFE FIRST, and what to do about it."""},
     'Deep Guide': {'min': 1200, 'max': 1800, 'sections': '5–7', 'rules': """  • Answer the reader's underlying question completely, so they don't need to Google anything else.
   • Right after the hook paragraph, add a TL;DR as <div class="article-callout"><p><strong>TL;DR:</strong> point one · point two · point three</p></div>.
-  • Include ONE worked example with real dollar amounts and a realistic early-career income ($40k–$90k), e.g. "$300/month for 10 years…". Show the simple math so the reader can check it.
+  • Include ONE worked example with real dollar amounts that fit the reader described under REAL LIFE FIRST, e.g. "$300/month for 10 years…". Show the simple math so the reader can check it.
   • Include an h3 section on a common mistake people make with this.
   • Include an h3 section called "What to do this week" with 2–4 concrete steps as an <ul class="article-list">.
   • End with a short FAQ: 2–3 questions, each as its own <h3> followed by one <p> answer.
@@ -127,6 +162,7 @@ CATEGORY_MAP = {
     'firstjob':        ('basics', '💼 First Job & Paycheck', 'cat-basics'),
     'everyday':        ('basics', '🛒 Everyday Money',     'cat-basics'),
     'sidehustle':      ('basics', '🧑‍💻 Side Hustles',      'cat-basics'),
+    'equity':          ('tax',    '📈 Equity & RSUs',      'cat-tax'),
     'credit':          ('basics', '💳 Credit & Debt',      'cat-basics'),
     'housing':         ('basics', '🏠 Housing & Rent',     'cat-basics'),
     'retirement':      ('tax',    '🧾 401k & Retirement',  'cat-tax'),
@@ -280,8 +316,38 @@ def too_similar(title, recent):
     return None, None
 
 
+def next_equity_topic(recent):
+    used = set() if DRY_RUN else set(kv_get(EQUITY_TOPICS_USED_KEY) or [])
+    for topic in EQUITY_GUIDE_TOPICS:
+        if topic in used or too_similar(topic, recent)[0]:
+            continue
+        print('  · No fresh equity news — using an evergreen equity guide topic')
+        return {
+            'id':        'topic-' + hashlib.md5(topic.encode('utf-8')).hexdigest(),
+            'source':    'equity',
+            'title':     topic,
+            'body':      '',
+            'url':       '',
+            'evergreen': True,
+        }
+    return None
+
+
+def mark_equity_topic_used(topic):
+    used = kv_get(EQUITY_TOPICS_USED_KEY) or []
+    if topic not in used:
+        kv_put(EQUITY_TOPICS_USED_KEY, used + [topic])
+
+
 # ─── Google News RSS fetching ────────────────────────────────────────────────
 def pick_feeds(n, cooling, last_used):
+    force_feed = os.getenv('FORCE_FEED', '').strip()
+    if force_feed:
+        forced = [f for f in TOPIC_FEEDS if f[0] == force_feed]
+        if not forced:
+            raise SystemExit(f'FORCE_FEED must be one of {[f[0] for f in TOPIC_FEEDS]}')
+        print(f'  Forced feed: {force_feed}')
+        return forced
     available = [f for f in TOPIC_FEEDS if f[0] not in cooling]
     if not available:
         # Every feed is cooling down: fall back to the least recently used ones.
@@ -321,6 +387,8 @@ def fetch_rss_posts(processed_ids, recent):
                 'url':     entry.link,
             }
             break  # one story per topic
+        if not picked and source == 'equity':
+            picked = next_equity_topic(recent)
         if picked:
             print(f'  ✓ Picked feed "{source}": {picked["title"][:70]}')
             candidates.append(picked)
@@ -432,8 +500,16 @@ def generate_article(post):
     article_type_rules = ARTICLE_TYPES[article_type][1]
     author_voice = author_voices[chosen_author]
 
+    evergreen = post.get('evergreen', False)
+    if evergreen:
+        article_type = 'Practical Lesson'
+        article_type_rules = ARTICLE_TYPES[article_type][1]
+    audience = AUDIENCE_BY_SOURCE.get(post['source'], DEFAULT_AUDIENCE)
+
     if post.get('force_tier'):
         tier_name = post['force_tier']
+    elif evergreen:
+        tier_name = 'Deep Guide'
     elif post['source'] in EVERGREEN_SOURCES and random.random() < DEEP_GUIDE_SHARE:
         tier_name = 'Deep Guide'
     else:
@@ -441,22 +517,29 @@ def generate_article(post):
     tier = LENGTH_TIERS[tier_name]
     print(f'  Tier: {tier_name} ({tier["min"]}–{tier["max"]} words) · Type: {article_type} · Author: {chosen_author}')
 
-    if post.get('article_text'):
-        news_block = f"""Full article text (from {post.get('article_url') or 'the original source'}):
-{post['article_text']}"""
+    if evergreen:
+        source_block = f"""Write an evergreen guide answering this reader question (there is no news story for this piece):
+Question: {post['title']}
+
+Your job is to answer it completely and practically for the reader described under REAL LIFE FIRST. Don't cite news events, specific companies' stock prices, or current tax-year numbers you aren't certain of — explain the rules in general terms and show simple arithmetic instead. Where a rule depends on the person's situation or tax bracket, say so and suggest checking with a tax professional."""
     else:
-        news_block = f"""{post['body']}
+        if post.get('article_text'):
+            news_block = f"""Full article text (from {post.get('article_url') or 'the original source'}):
+{post['article_text']}"""
+        else:
+            news_block = f"""{post['body']}
 NOTE: Only this short summary is available. Do not add any details about this news story (names, numbers, dates, quotes) beyond what the summary says."""
-
-    prompt = f"""You are a human financial writer for Finnpath, a personal finance blog for 18–30 year olds.
-
-{author_voice}
-
-Based on this recent financial news:
+        source_block = f"""Based on this recent financial news:
 Title: {post['title']}
 {news_block}
 
-Your job is to write an article that teaches a real financial lesson using this news as the hook. Do NOT just summarize what happened. Dig into why it matters to someone who is just starting to build wealth.
+Your job is to write an article that teaches a real financial lesson using this news as the hook. Do NOT just summarize what happened. Dig into why it matters to someone who is building wealth."""
+
+    prompt = f"""You are a human financial writer for Finnpath, a personal finance blog for people in their 20s and 30s — from first paycheck to first equity grant.
+
+{author_voice}
+
+{source_block}
 
 ━━━ STRICT RULES — FOLLOW EVERY SINGLE ONE ━━━
 
@@ -500,13 +583,14 @@ LENGTH FOR THIS PIECE — {tier_name}: {tier['min']}–{tier['max']} words in th
   • Keep paragraphs to 4 sentences or fewer so it reads well on a phone.
 
 REAL LIFE FIRST:
-  • Ground the article in a real moment from a 22–30 year old's life: first paycheck, a job offer, rent and roommates, a car payment, a friend's wedding, a side gig, moving out, a surprise bill.
-  • Use realistic early-career numbers (salaries of $40k–$90k, a few hundred dollars a month to save or invest), not millionaire examples.
+  • The reader for this piece is {audience['who']}.
+  • Ground the article in a real moment from their life: {audience['moments']}.
+  • Use realistic numbers for them ({audience['numbers']}), not millionaire examples.
   • Wall Street, venture capital or big-company news is only a hook — spend the article on what it means for the reader's own paycheck, debt, savings or investing.
 
 CONTENT (CRUCIAL):
   • Don't summarize the news — extract the underlying financial principle
-  • Always connect back to what someone with $500–$5,000 to invest should actually think or do
+  • Always connect back to what someone with {audience['investable']} to invest should actually think or do
   • Be honest about uncertainty ("Nobody knows exactly when...", "This might not matter for years, or it might matter next month")
   • If something is complicated, say so — then explain one part of it clearly
 
@@ -740,7 +824,10 @@ def run_once():
         try:
             if force_tier:
                 post['force_tier'] = force_tier
-            post['article_url'], post['article_text'] = fetch_article_text(post['url'])
+            if post.get('evergreen'):
+                post['article_url'], post['article_text'] = '', ''
+            else:
+                post['article_url'], post['article_text'] = fetch_article_text(post['url'])
             article = generate_article(post)
             claims = fact_check(article, post)
             if DRY_RUN:
@@ -752,6 +839,8 @@ def run_once():
             save_draft_and_email(article, post['id'], claims)
             save_processed(post['id'])
             save_recent(post['source'], article['title'])
+            if post.get('evergreen'):
+                mark_equity_topic_used(post['title'])
             succeeded += 1
         except Exception as e:
             print(f'  ✗ Failed ({post["id"]}): {e}')
