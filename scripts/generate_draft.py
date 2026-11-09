@@ -13,6 +13,7 @@ CLOUDFLARE_KV_NAMESPACE_ID.
 """
 import os
 import re
+import sys
 import json
 import random
 import hashlib
@@ -21,7 +22,7 @@ import subprocess
 import urllib.request
 import urllib.parse
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import feedparser
 import requests
@@ -45,6 +46,9 @@ TOPIC_FEEDS = [
     ('budgeting',  'budgeting OR "cost of living" OR "saving money" OR "high-yield savings"', 3),
     ('credit',     '"credit card" OR "credit score" OR "student loans" OR "debt payoff"',    3),
     ('retirement', '401k OR "Roth IRA" OR "retirement savings" OR "employer match"',         3),
+    ('firstjob',   '"first job" OR "entry-level salary" OR "salary negotiation" OR "open enrollment" OR "job offer"', 3),
+    ('everyday',   '"buy now pay later" OR "car loan" OR "car insurance" OR "subscription prices" OR "grocery prices" OR "wedding costs"', 3),
+    ('sidehustle', '"side hustle" OR "gig workers" OR freelancers OR "creator economy"',     2),
     ('tax',        '"tax refund" OR "tax bracket" OR IRS OR "tax deduction"',                2),
     ('investing',  '"index funds" OR ETF OR "dollar cost averaging" OR "stock market"',      2),
     ('housing',    'mortgage rates OR "first-time homebuyer" OR rent prices',                2),
@@ -52,6 +56,37 @@ TOPIC_FEEDS = [
     ('venturecapital', '"private equity" OR "venture capital" OR IPO',                       1),
 ]
 STORIES_PER_RUN = 1
+
+# A feed can't produce another draft until its cooldown has passed, so one hot
+# topic can't fill the blog. Niche feeds wait longer.
+DEFAULT_COOLDOWN_DAYS = 10
+NICHE_COOLDOWN_DAYS = {'venturecapital': 21, 'CryptoCurrency': 21}
+RECENT_DRAFTS_KEY = 'recent-drafts'
+RECENT_DRAFTS_KEEP = 20
+TITLE_OVERLAP_LOOKBACK = 6
+TITLE_OVERLAP_MAX = 2
+
+# Two lengths: quick takes on the news, and evergreen guides that fully answer
+# a reader's question. Deep Guides only come from evergreen feeds.
+EVERGREEN_SOURCES = {'budgeting', 'credit', 'retirement', 'firstjob', 'everyday',
+                     'sidehustle', 'tax', 'investing', 'housing'}
+DEEP_GUIDE_SHARE = 0.4
+LENGTH_TIERS = {
+    'News Take': {'min': 700, 'max': 900, 'sections': '3–4', 'rules': """  • A focused take on the news: what happened in one or two sentences, why it matters to a 22–30 year old, and what to do about it."""},
+    'Deep Guide': {'min': 1200, 'max': 1800, 'sections': '5–7', 'rules': """  • Answer the reader's underlying question completely, so they don't need to Google anything else.
+  • Right after the hook paragraph, add a TL;DR as <div class="article-callout"><p><strong>TL;DR:</strong> point one · point two · point three</p></div>.
+  • Include ONE worked example with real dollar amounts and a realistic early-career income ($40k–$90k), e.g. "$300/month for 10 years…". Show the simple math so the reader can check it.
+  • Include an h3 section on a common mistake people make with this.
+  • Include an h3 section called "What to do this week" with 2–4 concrete steps as an <ul class="article-list">.
+  • End with a short FAQ: 2–3 questions, each as its own <h3> followed by one <p> answer.
+  • Length must come from substance — examples, trade-offs, steps — never from repeating points."""},
+}
+WORDS_PER_MINUTE = 230
+SHORT_RETRY_RATIO = 0.85
+
+DISCLAIMER_HTML = ('<div class="article-callout"><p><strong>For educational purposes only.</strong> '
+                   'This isn\'t financial advice. Consult a licensed financial advisor before '
+                   'making financial decisions.</p></div>')
 
 # (weight, prompt rules). One is picked per article.
 ARTICLE_TYPES = {
@@ -89,6 +124,9 @@ CATEGORY_MAP = {
     'startups':        ('news',   '🚀 Startup News',     'cat-news'),
     'venturecapital':  ('news',   '💸 VC & Private Equity', 'cat-news'),
     'budgeting':       ('basics', '💡 Budgeting & Saving', 'cat-basics'),
+    'firstjob':        ('basics', '💼 First Job & Paycheck', 'cat-basics'),
+    'everyday':        ('basics', '🛒 Everyday Money',     'cat-basics'),
+    'sidehustle':      ('basics', '🧑‍💻 Side Hustles',      'cat-basics'),
     'credit':          ('basics', '💳 Credit & Debt',      'cat-basics'),
     'housing':         ('basics', '🏠 Housing & Rent',     'cat-basics'),
     'retirement':      ('tax',    '🧾 401k & Retirement',  'cat-tax'),
@@ -102,8 +140,12 @@ EMOJIS_BY_CAT = {
     'tax':    ['🧾', '💸', '🏛️', '📋', '💼'],
 }
 
-KV_NAMESPACE_ID = os.environ['CLOUDFLARE_KV_NAMESPACE_ID']
-WORKER_URL = os.environ['APPROVAL_WORKER_URL'].rstrip('/')
+DRY_RUN = '--dry-run' in sys.argv
+
+KV_NAMESPACE_ID = os.environ.get('CLOUDFLARE_KV_NAMESPACE_ID', '')
+WORKER_URL = os.environ.get('APPROVAL_WORKER_URL', '').rstrip('/')
+if not DRY_RUN and not (KV_NAMESPACE_ID and WORKER_URL):
+    raise SystemExit('CLOUDFLARE_KV_NAMESPACE_ID and APPROVAL_WORKER_URL are required')
 
 client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
 MODEL = 'gemini-3.8-flash'
@@ -141,6 +183,8 @@ def kv_put(key, value):
 
 
 def load_processed():
+    if DRY_RUN:
+        return set()
     return set(kv_get('processed-ids') or [])
 
 
@@ -150,9 +194,100 @@ def save_processed(post_id):
     kv_put('processed-ids', sorted(ids))
 
 
-# ─── Google News RSS fetching (unchanged from the local agent) ───────────────
-def pick_feeds(n):
-    pool = list(TOPIC_FEEDS)
+# ─── Topic history (cooldowns + repeat-title guard) ──────────────────────────
+TITLE_STOPWORDS = {'the', 'a', 'an', 'is', 'are', 'was', 'be', 'to', 'of', 'in', 'on', 'at',
+                   'by', 'for', 'with', 'and', 'or', 'but', 'if', 'it', 'its', 'this', 'that',
+                   'what', 'how', 'why', 'when', 'your', 'you', 'my', 'we', 'our', 'even',
+                   'just', 'more', 'than', 'about', 'still', 'does', 'it\'s', 'you\'re', 'from',
+                   'matters', 'matter', 'means', 'mean', 'should', 'need', 'actually', 'really'}
+
+
+def title_keywords(title):
+    words = re.sub(r"[^\w\s]", ' ', title.lower()).split()
+    keys = set()
+    for w in words:
+        if w in TITLE_STOPWORDS or len(w) <= 2:
+            continue
+        keys.add(w[:-1] if w.endswith('s') and len(w) > 4 else w)
+    return keys
+
+
+def published_history():
+    """Recent published posts from blog.html, newest first, as {source, title, date}."""
+    label_to_source = {label: src for src, (_, label, _) in CATEGORY_MAP.items()
+                       if label not in ('📰 Market News', '📘 Investing Basics', '🚀 Startup News')}
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'blog.html')
+    try:
+        with open(path, encoding='utf-8') as f:
+            html = f.read()
+    except OSError:
+        return []
+    out = []
+    pattern = re.compile(r"catLabel: '((?:[^'\\]|\\.)*)'.*?title: '((?:[^'\\]|\\.)*)'.*?date: '([^']*)'", re.S)
+    for m in list(pattern.finditer(html))[:RECENT_DRAFTS_KEEP]:
+        try:
+            date = datetime.strptime(m.group(3), '%B %d, %Y').strftime('%Y-%m-%d')
+        except ValueError:
+            continue
+        title = m.group(2).replace("\\'", "'")
+        source = label_to_source.get(m.group(1).replace("\\'", "'"))
+        if not source:
+            # Older posts used the generic "Market News" label; infer niche topics from the title.
+            if re.search(r'venture|\bVC\b|\bIPOs?\b|private equity|startup', title, re.I):
+                source = 'venturecapital'
+            elif re.search(r'crypto|bitcoin|ethereum', title, re.I):
+                source = 'CryptoCurrency'
+        out.append({'source': source, 'title': title, 'date': date})
+    return out
+
+
+def load_recent():
+    drafts = [] if DRY_RUN else (kv_get(RECENT_DRAFTS_KEY) or [])
+    combined = drafts + published_history()
+    combined.sort(key=lambda r: r.get('date', ''), reverse=True)
+    return combined
+
+
+def save_recent(source, title):
+    recent = kv_get(RECENT_DRAFTS_KEY) or []
+    recent.insert(0, {'source': source, 'title': title, 'date': datetime.now().strftime('%Y-%m-%d')})
+    kv_put(RECENT_DRAFTS_KEY, recent[:RECENT_DRAFTS_KEEP])
+
+
+def feed_cooldowns(recent):
+    """Return {source: days_left} for feeds still cooling down, and {source: last_date}."""
+    today = datetime.now().date()
+    last_used = {}
+    for r in recent:
+        src = r.get('source')
+        if src and src not in last_used:
+            last_used[src] = r['date']
+    cooling = {}
+    for src, date in last_used.items():
+        wait = NICHE_COOLDOWN_DAYS.get(src, DEFAULT_COOLDOWN_DAYS)
+        days_left = wait - (today - datetime.strptime(date, '%Y-%m-%d').date()).days
+        if days_left > 0:
+            cooling[src] = days_left
+    return cooling, last_used
+
+
+def too_similar(title, recent):
+    new_keys = title_keywords(title)
+    for r in recent[:TITLE_OVERLAP_LOOKBACK]:
+        shared = new_keys & title_keywords(r['title'])
+        if len(shared) >= TITLE_OVERLAP_MAX:
+            return r['title'], shared
+    return None, None
+
+
+# ─── Google News RSS fetching ────────────────────────────────────────────────
+def pick_feeds(n, cooling, last_used):
+    available = [f for f in TOPIC_FEEDS if f[0] not in cooling]
+    if not available:
+        # Every feed is cooling down: fall back to the least recently used ones.
+        print('  ⚠ All feeds on cooldown — using least recently used')
+        return sorted(TOPIC_FEEDS, key=lambda f: last_used.get(f[0], ''))[:n]
+    pool = list(available)
     picked = []
     while pool and len(picked) < n:
         choice = random.choices(pool, weights=[w for _, _, w in pool])[0]
@@ -161,23 +296,36 @@ def pick_feeds(n):
     return picked
 
 
-def fetch_rss_posts(processed_ids):
+def fetch_rss_posts(processed_ids, recent):
     candidates = []
+    cooling, last_used = feed_cooldowns(recent)
+    if cooling:
+        print('  Cooling down: ' + ', '.join(f'{s} ({d}d left)' for s, d in sorted(cooling.items())))
 
-    for source, query, _ in pick_feeds(len(TOPIC_FEEDS)):
+    for source, query, _ in pick_feeds(len(TOPIC_FEEDS), cooling, last_used):
         feed = feedparser.parse(RSS_BASE + urllib.parse.quote_plus(query))
+        picked = None
         for entry in feed.entries:
             entry_id = hashlib.md5(entry.link.encode('utf-8')).hexdigest()
             if entry_id in processed_ids:
                 continue
-            candidates.append({
+            similar_to, shared = too_similar(entry.title, recent)
+            if similar_to:
+                print(f'  ↷ [{source}] skipping "{entry.title[:60]}" — overlaps "{similar_to[:50]}" on {sorted(shared)}')
+                continue
+            picked = {
                 'id':      entry_id,
                 'source':  source,
                 'title':   entry.title,
                 'body':    f"Summary: {entry.get('summary', '')} Source Link: {entry.link}",
                 'url':     entry.link,
-            })
+            }
             break  # one story per topic
+        if picked:
+            print(f'  ✓ Picked feed "{source}": {picked["title"][:70]}')
+            candidates.append(picked)
+        else:
+            print(f'  · No usable story in feed "{source}"')
         if len(candidates) >= STORIES_PER_RUN:
             break
 
@@ -284,6 +432,15 @@ def generate_article(post):
     article_type_rules = ARTICLE_TYPES[article_type][1]
     author_voice = author_voices[chosen_author]
 
+    if post.get('force_tier'):
+        tier_name = post['force_tier']
+    elif post['source'] in EVERGREEN_SOURCES and random.random() < DEEP_GUIDE_SHARE:
+        tier_name = 'Deep Guide'
+    else:
+        tier_name = 'News Take'
+    tier = LENGTH_TIERS[tier_name]
+    print(f'  Tier: {tier_name} ({tier["min"]}–{tier["max"]} words) · Type: {article_type} · Author: {chosen_author}')
+
     if post.get('article_text'):
         news_block = f"""Full article text (from {post.get('article_url') or 'the original source'}):
 {post['article_text']}"""
@@ -333,10 +490,19 @@ STRUCTURE:
       - Myth vs. Reality sections
       - Before/After framing
       - Q&A style (pose a question as an h3, answer it in the paragraph)
-  • Use callout boxes sparingly — max 1 per article, only for a genuinely important insight
+  • Use callout boxes sparingly — max 1 per article, only for a genuinely important insight (a Deep Guide's TL;DR box doesn't count toward this). Don't add a disclaimer — one is appended automatically.
 
 ARTICLE TYPE FOR THIS PIECE — {article_type}:
 {article_type_rules}
+
+LENGTH FOR THIS PIECE — {tier_name}: {tier['min']}–{tier['max']} words in the content field, {tier['sections']} h3 sections.
+{tier['rules']}
+  • Keep paragraphs to 4 sentences or fewer so it reads well on a phone.
+
+REAL LIFE FIRST:
+  • Ground the article in a real moment from a 22–30 year old's life: first paycheck, a job offer, rent and roommates, a car payment, a friend's wedding, a side gig, moving out, a surprise bill.
+  • Use realistic early-career numbers (salaries of $40k–$90k, a few hundred dollars a month to save or invest), not millionaire examples.
+  • Wall Street, venture capital or big-company news is only a hook — spend the article on what it means for the reader's own paycheck, debt, savings or investing.
 
 CONTENT (CRUCIAL):
   • Don't summarize the news — extract the underlying financial principle
@@ -363,25 +529,22 @@ Return ONLY valid JSON (no markdown, no code fences). Use these exact fields:
   "content": "full article HTML using ONLY: <h3>, <p>, <ul class=\\"article-list\\">, <li><strong>Label:</strong> explanation</li>, <div class=\\"article-callout\\"><p>key insight</p></div>. Minimum 3 h3 sections. Minimum 400 words. First <p> must be the hook — no h3 before it."
 }}"""
 
-    response = client.models.generate_content(
-        model=MODEL,
-        contents=prompt,
-        config=types.GenerateContentConfig(response_mime_type='application/json'),
-    )
-    text = response.text.strip()
-    cleaned_text = re.sub(r'^```(?:json)?\s*', '', text, flags=re.MULTILINE)
-    cleaned_text = re.sub(r'\s*```$', '', cleaned_text, flags=re.MULTILINE)
-    cleaned_text = cleaned_text.strip()
+    data = call_model_json(prompt)
+    words = word_count(data['content'])
+    floor = int(tier['min'] * SHORT_RETRY_RATIO)
+    if words < floor:
+        print(f'  ⚠ Draft came back at {words} words (target {tier["min"]}–{tier["max"]}) — regenerating once')
+        retry_prompt = (prompt + f"\n\nIMPORTANT: Your previous draft was only {words} words. "
+                        f"The content field MUST be {tier['min']}–{tier['max']} words. Add substance "
+                        f"(examples, trade-offs, concrete steps), not filler.")
+        retry = call_model_json(retry_prompt)
+        retry_words = word_count(retry['content'])
+        if retry_words > words:
+            data, words = retry, retry_words
+    print(f'  ✓ Draft: {words} words')
 
-    try:
-        data = json.loads(cleaned_text)
-    except json.JSONDecodeError:
-        start = cleaned_text.find('{')
-        end = cleaned_text.rfind('}')
-        if start != -1 and end != -1:
-            data = json.loads(cleaned_text[start:end + 1])
-        else:
-            raise ValueError(f"Could not find JSON block in model output: {cleaned_text}")
+    content = data['content'].rstrip() + '\n' + DISCLAIMER_HTML
+    minutes = max(1, round(word_count(content) / WORDS_PER_MINUTE))
 
     return {
         'id':          slugify(data['title']),
@@ -391,15 +554,44 @@ Return ONLY valid JSON (no markdown, no code fences). Use these exact fields:
         'emoji':       data.get('emoji', random.choice(EMOJIS_BY_CAT.get(cat, ['📊']))),
         'title':       data['title'],
         'excerpt':     data['excerpt'],
-        'readTime':    data.get('readTime', '5 min read'),
+        'readTime':    f'{minutes} min read',
         'author':      data.get('author', 'Finnpath Team'),
         'authorEmoji': data.get('authorEmoji', '🏦'),
         'authorRole':  data.get('authorRole', 'Finnpath Editorial'),
         'date':        datetime.now().strftime('%B %-d, %Y'),
         'large':       False,
-        'content':     data['content'],
+        'content':     content,
         'imageUrl':    fetch_unsplash_image(data['title'], cat),
+        'source':      post['source'],
+        'tier':        tier_name,
+        'wordCount':   words,
     }
+
+
+def word_count(html_text):
+    return len(re.sub(r'<[^>]+>', ' ', html_text).split())
+
+
+def call_model_json(prompt):
+    response = client.models.generate_content(
+        model=MODEL,
+        contents=prompt,
+        config=types.GenerateContentConfig(response_mime_type='application/json',
+                                           max_output_tokens=8192),
+    )
+    text = response.text.strip()
+    cleaned_text = re.sub(r'^```(?:json)?\s*', '', text, flags=re.MULTILINE)
+    cleaned_text = re.sub(r'\s*```$', '', cleaned_text, flags=re.MULTILINE)
+    cleaned_text = cleaned_text.strip()
+
+    try:
+        return json.loads(cleaned_text)
+    except json.JSONDecodeError:
+        start = cleaned_text.find('{')
+        end = cleaned_text.rfind('}')
+        if start != -1 and end != -1:
+            return json.loads(cleaned_text[start:end + 1])
+        raise ValueError(f"Could not find JSON block in model output: {cleaned_text}")
 
 
 # ─── Fact-check pass (shown in the review email only) ───────────────────────
@@ -487,6 +679,7 @@ def send_review_email(article, token, claims):
   <div style="display:inline-block;background:#0B5FFF;color:white;font-size:11px;font-weight:600;letter-spacing:.5px;padding:3px 10px;border-radius:20px;text-transform:uppercase;margin-bottom:8px;">{article['catLabel']}</div>
   <div style="font-size:22px;font-weight:700;margin:0 0 8px;">{article['emoji']} {article['title']}</div>
   <div style="font-size:13px;color:#666;">/blog/{article['id']} · {article['author']} · {article['readTime']}</div>
+  <div style="font-size:13px;color:#666;margin-top:4px;">{article.get('tier', '')} · {article.get('wordCount', '?')} words · feed: {article.get('source', '?')}</div>
 </div>
 {action_buttons(token)}
 {fact_check_html(claims)}
@@ -529,22 +722,36 @@ def save_draft_and_email(article, post_id, claims):
 # ─── Main ─────────────────────────────────────────────────────────────────────
 def run_once():
     processed = load_processed()
-    posts = fetch_rss_posts(processed)
+    recent = load_recent()
+    posts = fetch_rss_posts(processed, recent)
 
     if not posts:
         print('  No new qualifying posts found.')
         return
+
+    force_tier = os.getenv('FORCE_TIER', '').strip()
+    if force_tier and force_tier not in LENGTH_TIERS:
+        raise SystemExit(f'FORCE_TIER must be one of {list(LENGTH_TIERS)}')
 
     succeeded = 0
     for post in posts:
         label = post['title'][:65]
         print(f'\n  → {label}...')
         try:
+            if force_tier:
+                post['force_tier'] = force_tier
             post['article_url'], post['article_text'] = fetch_article_text(post['url'])
             article = generate_article(post)
             claims = fact_check(article, post)
+            if DRY_RUN:
+                print(f"\n  [dry run] {article['title']} — {article['tier']}, {article['wordCount']} words, "
+                      f"{article['readTime']}, feed {article['source']}")
+                print(re.sub(r'<[^>]+>', '\n', article['content']).strip()[:3000])
+                succeeded += 1
+                continue
             save_draft_and_email(article, post['id'], claims)
             save_processed(post['id'])
+            save_recent(post['source'], article['title'])
             succeeded += 1
         except Exception as e:
             print(f'  ✗ Failed ({post["id"]}): {e}')

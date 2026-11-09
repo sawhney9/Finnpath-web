@@ -10,7 +10,14 @@ on:
     # ~10:00 America/New_York, Mon/Wed/Fri — one draft per run (STORIES_PER_RUN).
     # GitHub cron is UTC with no DST awareness — this is 10am EDT / 9am EST.
     - cron: '0 14 * * 1,3,5'
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      tier:
+        description: 'Force a length tier (blank = random)'
+        required: false
+        default: ''
+        type: choice
+        options: ['', 'News Take', 'Deep Guide']
 
 concurrency:
   group: blog-content
@@ -31,6 +38,7 @@ jobs:
       - name: Generate draft(s) and email for review
         run: python scripts/generate_draft.py
         env:
+          FORCE_TIER: ${{ inputs.tier }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
