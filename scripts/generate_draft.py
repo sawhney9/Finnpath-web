@@ -105,6 +105,14 @@ EQUITY_GUIDE_TOPICS = [
     "What to do with RSU money: emergency fund, debt, or index funds first?",
 ]
 EQUITY_TOPICS_USED_KEY = 'equity-topics-used'
+
+# Headlines that are SEC filings or insider-trade notices, not stories a reader
+# can learn from. Skipped so the equity feed falls back to a guide topic.
+FEED_TITLE_EXCLUDE = {
+    'equity': re.compile(r'\bForm 4\b|\b8-K\b|\b10-Q\b|\bSEC filing\b|insider|was granted|received [\d,]+|'
+                         r'(sells|buys|acquires|disposes of) [\d,.]+[kKmM]? (shares|RSUs)|'
+                         r'\b(executive|director|officer|CEO|CFO)\b.*\b(granted|awarded|received)\b', re.I),
+}
 DEEP_GUIDE_SHARE = 0.4
 LENGTH_TIERS = {
     'News Take': {'min': 700, 'max': 900, 'sections': '3–4', 'rules': """  • A focused take on the news: what happened in one or two sentences, why it matters to the reader described under REAL LIFE FIRST, and what to do about it."""},
@@ -374,6 +382,9 @@ def fetch_rss_posts(processed_ids, recent):
         for entry in feed.entries:
             entry_id = hashlib.md5(entry.link.encode('utf-8')).hexdigest()
             if entry_id in processed_ids:
+                continue
+            if FEED_TITLE_EXCLUDE.get(source) and FEED_TITLE_EXCLUDE[source].search(entry.title):
+                print(f'  ↷ [{source}] skipping filing/insider headline "{entry.title[:60]}"')
                 continue
             similar_to, shared = too_similar(entry.title, recent)
             if similar_to:
