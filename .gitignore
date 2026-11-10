@@ -4,3 +4,7 @@ __pycache__/
 .venv/
 venv/
 *.db
+
+# social reel output
+social-out/
+__pycache__/

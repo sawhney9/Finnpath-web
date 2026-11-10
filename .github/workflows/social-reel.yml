@@ -1,0 +1,85 @@
+name: Social reel for new articles
+
+# When the approval Worker publishes an article (a commit to blog.html on main),
+# build a reel, slides and captions (Instagram, TikTok, Shorts, X) for each new
+# article and email them for manual posting. Edits to existing articles don't
+# trigger it: only article ids that weren't in the previous blog.html.
+
+on:
+  push:
+    branches: [main]
+    paths: ['blog.html']
+  workflow_dispatch:
+    inputs:
+      ids:
+        description: 'Article id(s), space-separated (the part after /blog/)'
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: social-reel
+  cancel-in-progress: false
+
+jobs:
+  reel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Find new articles
+        id: detect
+        env:
+          INPUT_IDS: ${{ inputs.ids }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          if [ -n "$INPUT_IDS" ]; then
+            echo "args=$INPUT_IDS" >> "$GITHUB_OUTPUT"
+          elif [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            echo "args=" >> "$GITHUB_OUTPUT"
+          else
+            git fetch --no-tags --depth=1 origin "$BEFORE"
+            git show "$BEFORE:blog.html" > "$RUNNER_TEMP/blog-before.html"
+            new=$(node scripts/social/generate-social.mjs --new-since "$RUNNER_TEMP/blog-before.html" --list-only)
+            echo "New articles: ${new:-none}"
+            echo "args=$new" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.detect.outputs.args != ''
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - if: steps.detect.outputs.args != ''
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - if: steps.detect.outputs.args != ''
+        name: Install tools
+        # No apt: the runner's package mirror can take 10+ minutes. ffmpeg comes
+        # from the imageio-ffmpeg wheel (static build with libx264).
+        run: |
+          pip install -q playwright imageio-ffmpeg
+          python -m playwright install chromium
+          echo "REEL_FFMPEG=$(python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')" >> "$GITHUB_ENV"
+
+      - if: steps.detect.outputs.args != ''
+        name: Build reels and email
+        run: node scripts/social/generate-social.mjs $IDS --out social-out
+        env:
+          IDS: ${{ steps.detect.outputs.args }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          REVIEW_EMAIL: ${{ secrets.REVIEW_EMAIL }}
+
+      - if: always() && steps.detect.outputs.args != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: social-reels
+          path: social-out
+          retention-days: 14
+          if-no-files-found: ignore
