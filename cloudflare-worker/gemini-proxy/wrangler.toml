@@ -5,3 +5,19 @@ compatibility_date = "2024-01-01"
 # Secrets (NEVER put real values here — set them with `wrangler secret put`)
 # Run: wrangler secret put GEMINI_API_KEY
 # Then paste in your NEW rotated key when prompted.
+
+# Per-IP rate limit for GET /stats (RSU planner price lookups).
+[[ratelimits]]
+name = "PRICE_LIMITER"
+namespace_id = "2001"
+
+  [ratelimits.simple]
+  limit = 20
+  period = 60
+
+# 12h cache for /stats results. Create once with:
+#   npx wrangler kv namespace create PRICE_CACHE
+# then paste the printed id below.
+[[kv_namespaces]]
+binding = "PRICE_CACHE"
+id = "REPLACE_WITH_PRICE_CACHE_ID"

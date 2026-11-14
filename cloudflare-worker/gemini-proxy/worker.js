@@ -5,6 +5,8 @@
  *   POST /       { prompt }   — Portfolio Pulse (simulator.html), short prompts only
  *   POST /401k   { docText }  — 401k plan analyzer (401k.html); the prompt is built
  *                               here so the proxy can't be used as a general LLM
+ *   GET  /stats?symbol=GOOG   — price-history stats for the RSU planner (see stats.js);
+ *                               rate-limited per IP and cached in KV
  *
  * This worker keeps the Gemini API key on the server side.
  * Deploy with: wrangler deploy
@@ -13,6 +15,8 @@
  * The key is NEVER in this source file — it is injected by Cloudflare
  * at runtime via `wrangler secret put GEMINI_API_KEY`.
  */
+
+import { getStats, normalizeSymbol } from './stats.js';
 
 const ALLOWED_ORIGINS = [
   'https://finnpath.com',
@@ -33,6 +37,10 @@ export default {
     // CORS preflight
     if (request.method === 'OPTIONS') {
       return corsResponse(null, 204, origin);
+    }
+
+    if (request.method === 'GET' && new URL(request.url).pathname === '/stats') {
+      return handleStats(request, env, origin);
     }
 
     if (request.method !== 'POST') {
@@ -96,14 +104,41 @@ export default {
   },
 };
 
-function corsResponse(body, status, origin) {
+async function handleStats(request, env, origin) {
+  const sym = normalizeSymbol(new URL(request.url).searchParams.get('symbol'));
+  if (!sym) {
+    return corsResponse(JSON.stringify({ error: 'invalid_symbol' }), 400, origin);
+  }
+
+  if (env.PRICE_LIMITER) {
+    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+    const { success } = await env.PRICE_LIMITER.limit({ key: ip });
+    if (!success) {
+      return corsResponse(JSON.stringify({ error: 'rate_limited' }), 429, origin, { 'Retry-After': '60' });
+    }
+  }
+
+  try {
+    const [status, body] = await getStats(env, sym);
+    return corsResponse(JSON.stringify(body), status, origin, {
+      'Cache-Control': status === 200 ? 'public, max-age=43200' : 'public, max-age=3600',
+    });
+  } catch (err) {
+    console.error('stats error:', sym, err.message);
+    return corsResponse(JSON.stringify({ error: 'upstream_unavailable' }), 502, origin);
+  }
+}
+
+function corsResponse(body, status, origin, extraHeaders = {}) {
   const isAllowed = ALLOWED_ORIGINS.includes(origin);
   const headers = {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': isAllowed ? origin : 'https://finnpath.com',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
     'Access-Control-Max-Age': '86400',
+    'Vary': 'Origin',
+    ...extraHeaders,
   };
   return new Response(body, { status, headers });
 }

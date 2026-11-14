@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RSU Selldown Planner: Hold, Diversify, or Sell? | Finnpath</title>
+  <meta name="description" content="Free RSU and concentrated stock selldown planner. Compare holding your company stock, selling over time, or selling now across thousands of simulated markets, after capital gains tax, and choose where the money goes."/>
+  <link rel="canonical" href="https://finnpath.com/tools/rsu-selldown"/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:site_name" content="Finnpath"/>
+  <meta property="og:title" content="RSU Selldown Planner: Hold, Diversify, or Sell?"/>
+  <meta property="og:description" content="Too much of your net worth in one company's stock? Compare holding, selling over a few years, or selling now, after capital gains tax, across thousands of simulated markets."/>
+  <meta property="og:url" content="https://finnpath.com/tools/rsu-selldown"/>
+  <meta name="twitter:card" content="summary"/>
+  <meta name="twitter:title" content="RSU Selldown Planner: Hold, Diversify, or Sell?"/>
+  <meta name="twitter:description" content="Compare holding your company stock, selling over time, or selling now, after tax, across thousands of simulated markets."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/shared.css?v=7"/>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" integrity="sha384-bs/nf9FbdNouRbMiFcrcZfLXYPKiPaGVGplVbv7dLGECccEXDW+S3zjqSKR5ZEaD" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <style>
+    /* Page tokens, mapped onto the Finnpath palette in shared.css. Chart series
+       colors stay literal hex because the charts append alpha suffixes to them. */
+    :root{
+      --bg:var(--navy);--panel:var(--navy-soft);--ink:var(--white);--muted:rgba(250,249,247,.62);--line:rgba(250,249,247,.10);
+      --accent:#e8604c;--accent-soft:rgba(232,96,76,.12);--good:#3dba7e;--bad:#ff7b68;
+      --hold:#e8604c;--plan:#3dba7e;--now:#4a90d9;--tax:#6b7891;--vest:#c9a84c;
+      --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    }
+    .rsu{max-width:1040px;margin:0 auto;padding:calc(var(--nav-bar-h) + 28px) 16px 56px}
+    .rsu .hero h1{font-family:'Playfair Display',serif;font-size:clamp(28px,5vw,40px);line-height:1.15;margin:8px 0 10px;letter-spacing:-.01em}
+    .rsu .hero p{color:var(--muted);margin:0 0 22px;max-width:680px}
+    .rsu .eyebrow{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+    .rsu .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin-bottom:16px}
+    .rsu .card h2{font-size:18px;margin:0 0 4px;letter-spacing:-.01em}
+    .rsu .card h3{font-size:12px;margin:20px 0 8px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+    .rsu .sub{color:var(--muted);font-size:14px;margin:0 0 14px}
+    .rsu .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media(max-width:480px){.rsu .grid{grid-template-columns:1fr}}
+    @media(min-width:760px){.rsu .g3{grid-template-columns:repeat(3,1fr)}.rsu .g4{grid-template-columns:repeat(4,1fr)}}
+    .rsu label.f{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:500;color:var(--muted)}
+    .rsu label.f small{font-weight:400;font-size:12px}
+    .rsu input,.rsu select{font:inherit;font-size:15px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px 11px;width:100%}
+    .rsu select option{background:var(--navy-mid)}
+    .rsu input:focus,.rsu select:focus{outline:2px solid var(--accent);outline-offset:-1px}
+    .rsu input.bad{border-color:var(--bad)}
+    .rsu button{font:inherit;font-weight:650;font-size:15px;border:0;border-radius:10px;padding:11px 18px;cursor:pointer;background:var(--accent);color:#fff}
+    .rsu button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+    .rsu button.sm{padding:7px 12px;font-size:14px}
+    .rsu .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .rsu .dest{display:grid;grid-template-columns:1fr 92px 36px;gap:8px;align-items:center;margin-bottom:8px}
+    .rsu .dest .x{padding:6px;background:transparent;color:var(--muted);border:1px solid var(--line)}
+    .rsu .destcustom{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:-2px 0 10px}
+    .rsu .wsum{font-size:13px;color:var(--muted)}.rsu .wsum.bad{color:var(--bad);font-weight:600}
+    .rsu .note{font-size:12.5px;color:var(--muted);margin:8px 0 0;min-height:1em}
+    .rsu details summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--accent);margin-top:14px}
+    .rsu .kpis{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+    @media(min-width:760px){.rsu .kpis{grid-template-columns:repeat(4,1fr)}}
+    .rsu .kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px}
+    .rsu .kpi .l{font-size:13px;color:var(--muted)}.rsu .kpi .v{font:650 24px/1.2 var(--mono);margin-top:4px;letter-spacing:-.02em}.rsu .kpi .n{font-size:12px;color:var(--muted);margin-top:2px}
+    .rsu .kpi.hero{background:var(--accent-soft);border-color:transparent}
+    .rsu .good{color:var(--good)}.rsu .bad{color:var(--bad)}
+    .rsu .chart{position:relative;height:280px}.rsu .chart.tall{height:320px}.rsu .chart.sq{height:240px}
+    .rsu table{width:100%;border-collapse:collapse;font-size:14px}
+    .rsu th,.rsu td{padding:8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+    .rsu th:first-child,.rsu td:first-child{text-align:left}.rsu th{font-size:12px;color:var(--muted);font-weight:600}
+    .rsu td{font-family:var(--mono);font-size:13.5px}.rsu td:first-child{font-family:inherit}
+    .rsu td.foot{font-family:inherit;color:var(--muted);font-size:12px;text-align:left;white-space:normal}
+    .rsu td.sub-row{color:var(--muted)}
+    .rsu .scroll{overflow-x:auto}
+    .rsu .dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:middle}
+    .rsu .verdict{border-left:4px solid var(--accent);background:var(--accent-soft);padding:14px 16px;border-radius:0 var(--radius) var(--radius) 0;margin-bottom:16px;font-size:15px}
+    .rsu .two{display:grid;grid-template-columns:1fr;gap:16px}@media(min-width:860px){.rsu .two{grid-template-columns:1.4fr 1fr}}
+    .rsu .explain ul{padding-left:20px;margin:10px 0}
+    .rsu .explain li{font-size:15px;margin-bottom:6px}
+    .rsu .disc{font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px;margin-top:8px}
+    .rsu .cta{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+    .rsu .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--white);color:var(--navy);padding:9px 14px;border-radius:9px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:300}.rsu .toast.on{opacity:1}
+    .rsu section{padding:0}
+    .rsu #results{display:none}
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/index.html" class="logo">Finnpath<span class="logo-dot">.</span></a>
+  <ul class="nav-links">
+    <li><a href="/index.html">Home</a></li>
+    <li><a href="/learn.html">Learn</a></li>
+    <li class="nav-dropdown">
+      <a href="/tools.html" class="nav-dropdown-toggle active">Tools <span class="nav-caret">▾</span></a>
+      <div class="nav-dropdown-menu">
+        <a href="/calculator.html">🧮 Calculator</a>
+        <a href="/simulator.html">📈 Portfolio Tracker</a>
+        <a href="/401k.html">📄 401k Decoder</a>
+        <a href="/tools/rsu-selldown" class="active">🧩 RSU Selldown</a>
+      </div>
+    </li>
+    <li><a href="/paths.html">Your Path</a></li>
+    <li><a href="/blog.html">Money Moves</a></li>
+  </ul>
+  <button class="nav-burger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+</nav>
+<div class="nav-backdrop"></div>
+
+<main class="rsu">
+  <header class="hero">
+    <div class="eyebrow">Finnpath · Free tool</div>
+    <h1>RSU selldown planner</h1>
+    <p>Too much of your net worth in one company's stock? Compare three choices: hold it, sell it down over a few years, or sell it all now. See how each plays out across thousands of simulated markets, after capital gains tax, and pick where the money goes.</p>
+  </header>
+
+  <form id="form" class="card" novalidate>
+    <h2>Your position</h2>
+    <p class="sub">Use values after tax withholding. Vested RSUs were taxed as income when they vested, so your cost basis is the share price on each vest date.</p>
+    <div class="grid g3">
+      <label class="f">Stock ticker <small>Fills in volatility from price history</small><input id="ticker" maxlength="12" placeholder="e.g. AAPL" autocomplete="off" autocapitalize="characters" spellcheck="false"></label>
+      <label class="f">Current value of vested shares ($)<input id="value" inputmode="decimal" placeholder="500,000"></label>
+      <label class="f">Total cost basis ($) <small>From your broker's gain/loss view</small><input id="basis" inputmode="decimal" placeholder="300,000"></label>
+      <label class="f">New shares vesting per year ($, after tax)<input id="vests" inputmode="decimal" placeholder="100,000"></label>
+      <label class="f">Years you'll keep receiving vests<input id="vestYears" inputmode="decimal" placeholder="4"></label>
+      <label class="f">Sell new shares as they vest?<select id="sellVests"><option value="1">Yes, sell at vest</option><option value="0">No, hold them</option></select></label>
+    </div>
+
+    <h3>Your selldown plan</h3>
+    <div class="grid g3">
+      <label class="f">Sell existing shares over (years)<input id="sellYears" inputmode="decimal" placeholder="3"></label>
+      <label class="f">Keep this % of today's position <small>A small "conviction" slice</small><input id="keepPct" inputmode="decimal" placeholder="10"></label>
+      <label class="f">Look ahead (years)<input id="horizon" inputmode="decimal" placeholder="10"></label>
+    </div>
+
+    <h3>Where the money goes</h3>
+    <p class="sub" style="margin-top:-4px">Pick one or more destinations for the money from each sale. Weights should add up to 100%.</p>
+    <div id="dests"></div>
+    <div class="row" style="justify-content:space-between"><button type="button" class="ghost sm" id="addDest">+ Add destination</button><span class="wsum" id="wsum"></span></div>
+
+    <h3>Taxes</h3>
+    <div class="grid g3">
+      <label class="f">Federal long-term capital gains rate<select id="fedRate"><option value="0">0%</option><option value="15">15%</option><option value="20" selected>20%</option></select></label>
+      <label class="f">Net investment income tax (3.8%)?<select id="niit"><option value="1" selected>Yes (high income)</option><option value="0">No</option></select></label>
+      <label class="f">State tax rate on gains (%) <small>0 for TX, FL, WA, etc.</small><input id="stateRate" inputmode="decimal" placeholder="5"></label>
+    </div>
+
+    <details>
+      <summary>Market assumptions (advanced)</summary>
+      <p class="sub" style="margin-top:10px">Long-run, before-inflation assumptions for illustration, not forecasts. Single stocks are usually far more volatile than index funds. Entering a ticker fills in volatility and correlations from its price history; you can still edit them.</p>
+      <div class="grid g4">
+        <label class="f">Your stock: expected return %<input id="stkMu" inputmode="decimal"></label>
+        <label class="f">Your stock: volatility %<input id="stkVol" inputmode="decimal"></label>
+        <label class="f">Simulated markets<select id="sims"><option value="2000">2,000 (fast)</option><option value="5000" selected>5,000</option><option value="10000">10,000</option></select></label>
+      </div>
+      <p class="note" id="volNote" aria-live="polite"></p>
+      <h3>Correlation with your stock</h3>
+      <p class="sub" style="margin-top:-4px">From −1 to 1. Higher means the destination tends to rise and fall with your stock, so it diversifies less.</p>
+      <div class="grid g3" id="rhoList"></div>
+    </details>
+
+    <div class="row" style="margin-top:18px">
+      <button type="submit" id="run">Run the simulation</button>
+      <button type="button" class="ghost" id="share">Copy link to this scenario</button>
+      <span class="wsum" id="formErr"></span>
+    </div>
+  </form>
+
+  <section id="results" aria-live="polite">
+    <div class="verdict" id="verdict"></div>
+    <div class="kpis" id="kpis"></div>
+
+    <div class="card">
+      <h2>After-tax value in <span class="hz"></span> years</h2>
+      <p class="sub">Everything converted to after-tax dollars, as if sold at the end. "Bad case" is the 10th percentile: 1 in 10 simulated markets ended lower.</p>
+      <div class="scroll"><table id="outTable"></table></div>
+    </div>
+
+    <div class="card">
+      <h2>Range of outcomes over time</h2>
+      <p class="sub">Solid lines are the typical (median) path; dashed lines are the bad case (10th percentile). Values before tax.</p>
+      <div class="chart tall"><canvas id="chPaths"></canvas></div>
+    </div>
+
+    <div class="card">
+      <h2>How spread out are the results?</h2>
+      <p class="sub">Every simulated market's ending after-tax value. Holding gives a wider spread, with bigger wins and bigger losses. Diversifying narrows it. The first and last bars include everything beyond the edges.</p>
+      <div class="chart"><canvas id="chHist"></canvas></div>
+    </div>
+
+    <div class="two">
+      <div class="card">
+        <h2>Where the money goes</h2>
+        <p class="sub">Sales by year under your plan, at today's price with no market moves.</p>
+        <div class="chart"><canvas id="chFlow"></canvas></div>
+      </div>
+      <div class="card">
+        <h2>Your destination mix</h2>
+        <p class="sub" id="mixSub"></p>
+        <div class="chart sq"><canvas id="chMix"></canvas></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Year-by-year selldown and tax estimate</h2>
+      <p class="sub">At today's price. Spreading sales across tax years can keep more of each year's gains in lower brackets.</p>
+      <div class="scroll"><table id="sched"></table></div>
+    </div>
+  </section>
+
+  <section class="card explain">
+    <h2>How this works</h2>
+    <ul>
+      <li><b>Three strategies, the same markets.</b> Each simulated market is run three times: you hold everything, you follow your selldown plan, or you sell it all today. This shows how the choices compare in the same conditions.</li>
+      <li><b>Taxes.</b> Each sale pays long-term capital gains tax on its share of the gain (federal + 3.8% NIIT if selected + state). At the end, whatever is still held is valued after the tax you'd owe to sell it, so every strategy is compared on an after-tax basis.</li>
+      <li><b>Markets.</b> Each year, your stock and each destination get a random return based on the expected return and volatility above, and they tend to move together according to their correlation. When you enter a ticker, volatility and correlations come from up to 5 years of weekly prices; otherwise typical values are used. Expected return stays a conservative long-run assumption, because a stock's recent run says little about its next ten years.</li>
+      <li><b>What it leaves out.</b> Short-term gains on shares held under a year, wash sales, dividends, fees, tax brackets that change with your income, and the risk your company's stock has that index funds don't, like a single bad year for the company. Real outcomes can be outside every simulated range.</li>
+    </ul>
+    <p class="disc">Education only, not investment, tax or legal advice. Results are hypothetical, rely on simplified assumptions, and are not a prediction or guarantee. Talk with a qualified financial advisor or tax professional before acting.</p>
+  </section>
+
+  <section class="card cta">
+    <div><h2 style="margin:0">Get more on RSUs and equity pay</h2><p class="sub" style="margin:4px 0 0">Plain-English guides on vesting, taxes and diversifying, in your inbox.</p></div>
+    <a href="https://insights.finnpath.com/subscribe" id="ctaLink" target="_blank" rel="noopener"><button type="button">Subscribe to the newsletter</button></a>
+  </section>
+  <div class="toast" id="toast"></div>
+</main>
+
+<script type="module" src="/assets/js/rsu-selldown.js"></script>
+</body>
+</html>
