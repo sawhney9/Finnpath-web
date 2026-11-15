@@ -105,9 +105,9 @@ $('addDest').onclick = () => { if (dests.length>=5) return toast('Up to 5 destin
 /* ---------- custom year-by-year schedule ---------- */
 // sched[y] = {a: dollars to sell that year at today's price, inc: 'work'|'low'|'zero'}
 const INC = {
-  work:{label:'Same rates as above'},
-  low:{label:'Lower income: 15% federal, no NIIT', fed:15, cap:545500, over:'20%'},
-  zero:{label:'Little other income: 0% federal', fed:0, cap:49450, over:'15%'},
+  work:{label:'Same as above'},
+  low:{label:'Lower: 15% fed, no NIIT', fed:15, cap:545500, over:'20%'},
+  zero:{label:'Very low: 0% fed, no NIIT', fed:0, cap:49450, over:'15%'},
 };
 let sched = [];
 const custom = () => $('planMode').value==='custom';
@@ -119,9 +119,11 @@ function evenSched(){ const n=Math.max(1,Math.round(num($('sellYears').value))||
 function fitSched(){ const H=hzYears(), cap=sellable();
   sched = Array.from({length:H},(_,y)=>({a:Math.max(0,num(sched[y]?.a)||0), inc:INC[sched[y]?.inc]?sched[y].inc:'work'}));
   const tot=sched.reduce((t,x)=>t+x.a,0); if (tot>cap && tot>0) sched.forEach(x=>x.a*=cap/tot); }
-function rowNote(y){ const x=sched[y], i=INC[x.inc], v=num($('value').value), b=num($('basis').value);
-  if (!i.cap || !(x.a>0) || !(v>0)) return ''; const gain=x.a*Math.max(0,1-(isFinite(b)?b:0)/v);
-  return gain>i.cap ? `That's about ${fmt(gain)} of gain. Gains above roughly ${fmt(i.cap)} (single filer; more if married) are taxed at ${i.over}, so this year's tax is understated.` : ''; }
+function rowNote(y){ const x=sched[y], i=INC[x.inc], v=num($('value').value), b=num($('basis').value), vy=num($('vestYears').value), vs=num($('vests').value);
+  if (!i.cap || !(x.a>0) || !(v>0)) return ''; const gain=x.a*Math.max(0,1-(isFinite(b)?b:0)/v), notes=[];
+  if (y<vy && vs>0) notes.push(`You're still vesting shares this year, and vests count as income, so a lower rate may not apply.`);
+  if (gain>i.cap) notes.push(`That's about ${fmt(gain)} of gain. Gains above roughly ${fmt(i.cap)} (single filer; more if married) are taxed at ${i.over}, so this year's tax is understated.`);
+  return notes.join(' '); }
 function schedSum(){ const cap=sellable(), tot=sched.reduce((t,x)=>t+x.a,0), left=Math.max(0,cap-tot), el=$('schedSum');
   el.textContent = `Selling ${fmt(tot)} of ${fmt(cap)} available` + (left>=1 ? ` · ${fmt(left)} stays in your stock` : '');
   el.classList.remove('bad'); }
@@ -148,7 +150,7 @@ $('schedRows').addEventListener('focusout', e => { if (e.target.dataset.f==='t')
 $('planMode').addEventListener('change', () => { if (custom() && !sched.some(x=>x.a>0)) evenSched(); renderSched(); });
 $('schedEven').onclick = () => { evenSched(); renderSched(); };
 $('sellYears').addEventListener('change', () => { if (custom()){ evenSched(); renderSched(); } });
-['value','keepPct','horizon','basis'].forEach(id=>$(id).addEventListener('change', renderSched));
+['value','keepPct','horizon','basis','vests','vestYears'].forEach(id=>$(id).addEventListener('change', renderSched));
 
 /* ---------- state: URL, storage ---------- */
 function readForm(){ const o={}; FIELDS.forEach(f=>o[f]=$(f).value); o.dests=dests.map(d=>({...d})); o.sched=sched.map(x=>({...x})); o.volNote=$('volNote').innerHTML; return o; }
