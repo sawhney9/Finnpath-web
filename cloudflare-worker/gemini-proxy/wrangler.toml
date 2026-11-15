@@ -6,13 +6,13 @@ compatibility_date = "2026-11-01"
 # Run: wrangler secret put GEMINI_API_KEY
 # Then paste in your NEW rotated key when prompted.
 
-# Per-IP rate limit for GET /stats (RSU planner price lookups).
+# Per-IP rate limit for the price routes (/stats, /history, /quotes, /news).
 [[ratelimits]]
 name = "PRICE_LIMITER"
 namespace_id = "2001"
 
   [ratelimits.simple]
-  limit = 20
+  limit = 60
   period = 60
 
 # Per-IP limit for the Gemini routes (/401k, /pulse).

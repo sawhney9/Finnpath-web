@@ -16,7 +16,9 @@ const app = getApps().length ? getApps()[0] : initializeApp(FB_CONFIG);
 const auth = getAuth(app);
 const db   = getFirestore(app);
 
-const FINNHUB_KEY = "d7ilfrpr01qn2qaug760d7ilfrpr01qn2qaug76g";
+// Prices come from the Finnpath Worker, which caches them for every visitor
+// (and keeps the Finnhub key server-side).
+const QUOTES_URL = 'https://finnpath-gemini-proxy.rimas2043.workers.dev/quotes';
 
 const DEFAULT_STOCKS  = ['SPY','QQQ','DIA','AAPL','MSFT','GOOGL','AMZN','TSLA','NVDA','META'];
 const DEFAULT_CRYPTOS = ['BTC','ETH','SOL','XRP','DOGE','ADA'];
@@ -39,34 +41,17 @@ let currentUid       = null;
 
 // ── PRICE FETCHERS ──────────────────────────────────────────────────────────
 
-async function fetchStocks(symbols) {
-  const results = await Promise.all(symbols.map(async sym => {
-    try {
-      const r = await fetch(`https://finnhub.io/api/v1/quote?symbol=${sym}&token=${FINNHUB_KEY}`);
-      if (!r.ok) return null;
-      const d = await r.json();
-      if (!d.c) return null;
-      return { symbol: sym, price: d.c, change: d.dp ?? 0, isCrypto: false };
-    } catch { return null; }
-  }));
-  return results.filter(Boolean);
-}
-
-async function fetchCryptos(symbols) {
-  const known = symbols.filter(s => CRYPTO_IDS[s]);
-  if (!known.length) return [];
-  const ids = known.map(s => CRYPTO_IDS[s]).join(',');
+async function fetchQuotes(stocks, cryptos) {
+  const known = cryptos.filter(s => CRYPTO_IDS[s]);
+  if (!stocks.length && !known.length) return [];
   try {
-    const r = await fetch(
-      `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`
-    );
+    const r = await fetch(`${QUOTES_URL}?stocks=${stocks.map(encodeURIComponent).join(',')}&crypto=${known.join(',')}`);
     if (!r.ok) return [];
     const d = await r.json();
-    return known.map(s => {
-      const data = d[CRYPTO_IDS[s]];
-      if (!data) return null;
-      return { symbol: s, price: data.usd, change: data.usd_24h_change ?? 0, isCrypto: true };
-    }).filter(Boolean);
+    return [
+      ...stocks.filter(s => d.stocks?.[s]).map(s => ({ symbol: s, price: d.stocks[s].c, change: d.stocks[s].dp ?? 0, isCrypto: false })),
+      ...known.filter(s => d.crypto?.[s]).map(s => ({ symbol: s, price: d.crypto[s].usd, change: d.crypto[s].change ?? 0, isCrypto: true })),
+    ];
   } catch { return []; }
 }
 
@@ -132,13 +117,10 @@ async function refresh() {
   const allStocks  = [...new Set([...DEFAULT_STOCKS,  ...portfolioStocks])];
   const allCryptos = [...new Set([...DEFAULT_CRYPTOS, ...portfolioCryptos])];
 
-  const [stockData, cryptoData] = await Promise.all([
-    fetchStocks(allStocks),
-    fetchCryptos(allCryptos)
-  ]);
+  // The Worker accepts up to 25 of each per request.
+  const all = await fetchQuotes(allStocks.slice(0, 25), allCryptos.slice(0, 25));
 
   const portSet  = new Set([...portfolioStocks, ...portfolioCryptos]);
-  const all      = [...stockData, ...cryptoData];
   const market   = all.filter(i => !portSet.has(i.symbol));
   const port     = all.filter(i => portSet.has(i.symbol));
 

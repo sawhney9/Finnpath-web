@@ -163,8 +163,8 @@
     .tf-btn.active{background:var(--sky);color:#fff;border-color:var(--sky);}
     .chart-wrap{background:var(--navy-mid);border:1px solid var(--border);border-radius:14px;padding:24px;position:relative;min-height:340px;}
     /* Chart.js fills its parent (maintainAspectRatio:false), so the parent needs a fixed height or the canvas keeps growing. */
-    .cmp-canvas{position:relative;height:320px;}
-    .cmp-canvas:has(+ #cmp-placeholder[style*="flex"]){display:none}
+    .cmp-canvas{position:relative;height:320px;display:none}
+    .cmp-canvas.on{display:block}
     @media(max-width:600px){.cmp-canvas{height:260px}}
     .chart-legend{display:flex;gap:20px;margin-bottom:16px;flex-wrap:wrap;}
     .legend-item{display:flex;align-items:center;gap:7px;font-size:.8rem;font-weight:700;}
@@ -653,7 +653,6 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
   const provider = new GoogleAuthProvider();
-  const FINNHUB_KEY = "d7ilfrpr01qn2qaug760d7ilfrpr01qn2qaug76g";
   const CRYPTO_IDS = { BTC:'bitcoin', ETH:'ethereum', SOL:'solana', ADA:'cardano', DOGE:'dogecoin', XRP:'ripple', AVAX:'avalanche-2', MATIC:'matic-network', LINK:'chainlink' };
 
   let currentUser = null;
@@ -890,19 +889,14 @@
       // Prices & Portfolio
       const tickers = Object.keys(holdings).filter(t => holdings[t].shares > 0);
       const priceMap = {};  // { ticker: { c: currentPrice, pc: prevClose } }
-      await Promise.all(tickers.map(async t => {
-        if(holdings[t].type==='stock') {
-          const r = await fetch(`https://finnhub.io/api/v1/quote?symbol=${t}&token=${FINNHUB_KEY}`).then(res=>res.json()).catch(()=>({}));
-          priceMap[t] = { c: r.c || 0, pc: r.pc || r.c || 0 };
-        } else if(CRYPTO_IDS[t]) {
-          const id = CRYPTO_IDS[t];
-          const r = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd&include_24hr_change=true`).then(res=>res.json()).catch(()=>({}));
-          const price = r[id]?.usd || 0;
-          const chgPct = r[id]?.usd_24h_change || 0;
-          const prevClose = chgPct !== 0 ? price / (1 + chgPct / 100) : price;
-          priceMap[t] = { c: price, pc: prevClose };
-        }
-      }));
+      // One request to the Worker for every holding (it caches prices for all visitors).
+      const stockT = tickers.filter(t => holdings[t].type === 'stock').slice(0, 25);
+      const cryptoT = tickers.filter(t => holdings[t].type !== 'stock' && CRYPTO_IDS[t]).slice(0, 25);
+      if (stockT.length || cryptoT.length) {
+        const q = await fetch(`${PRICE_PROXY_URL}/quotes?stocks=${stockT.map(encodeURIComponent).join(',')}&crypto=${cryptoT.join(',')}`).then(r => r.json()).catch(() => ({}));
+        stockT.forEach(t => { const x = q.stocks?.[t]; if (x) priceMap[t] = { c: x.c, pc: x.pc || x.c }; });
+        cryptoT.forEach(t => { const x = q.crypto?.[t]; if (x) priceMap[t] = { c: x.usd, pc: x.change ? x.usd / (1 + x.change / 100) : x.usd }; });
+      }
 
       let portHTML = '', optHTML = '', totalVal = 0, openPos = 0, totalDayGain = 0;
 
@@ -1137,6 +1131,7 @@
     const tf = document.querySelector('.tf-btn.active').dataset.tf;
     
     document.getElementById('cmp-placeholder').style.display = 'none';
+    document.querySelector('.cmp-canvas').classList.add('on');
     const btn = document.getElementById('btn-compare');
     btn.disabled = true; btn.innerText = 'Loading...';
 
@@ -1245,13 +1240,10 @@
   let pulseDebounce = null;
 
   async function fetchTickerNews(ticker) {
-    const toDate   = new Date().toISOString().slice(0,10);
-    const fromDate = new Date(Date.now() - 7*24*3600*1000).toISOString().slice(0,10);
-    const url = `https://finnhub.io/api/v1/company-news?symbol=${ticker}&from=${fromDate}&to=${toDate}&token=${FINNHUB_KEY}`;
     try {
-      const res = await fetch(url);
+      const res = await fetch(`${PULSE_PROXY_URL}/news?symbol=${encodeURIComponent(ticker)}`);
       const data = await res.json();
-      return Array.isArray(data) ? data.slice(0, 4) : [];
+      return Array.isArray(data.items) ? data.items : [];
     } catch { return []; }
   }
 

@@ -18,6 +18,7 @@
 
 import { getStats, normalizeSymbol } from './stats.js';
 import { getHistory, RANGES } from './history.js';
+import { getQuotes, getNews } from './quotes.js';
 import MODELS from '../../config/models.json';
 import { DurableObject } from 'cloudflare:workers';
 
@@ -69,6 +70,10 @@ export default {
 
     if (request.method === 'GET' && new URL(request.url).pathname === '/history') {
       return handleHistory(request, env, origin);
+    }
+
+    if (request.method === 'GET' && ['/quotes', '/news'].includes(new URL(request.url).pathname)) {
+      return handleQuotes(request, env, origin);
     }
 
     if (request.method !== 'POST') {
@@ -150,6 +155,21 @@ async function priceLimit(request, env, origin) {
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
   const { success } = await env.PRICE_LIMITER.limit({ key: ip });
   return success ? null : corsResponse(JSON.stringify({ error: 'rate_limited' }), 429, origin, { 'Retry-After': '60' });
+}
+
+async function handleQuotes(request, env, origin) {
+  const url = new URL(request.url);
+  const limited = await priceLimit(request, env, origin);
+  if (limited) return limited;
+  try {
+    const [status, body] = url.pathname === '/news'
+      ? await getNews(env, url.searchParams.get('symbol'))
+      : await getQuotes(env, url.searchParams);
+    return corsResponse(JSON.stringify(body), status, origin, { 'Cache-Control': 'public, max-age=30' });
+  } catch (err) {
+    console.error('quotes error:', err.message);
+    return corsResponse(JSON.stringify({ error: 'upstream_unavailable' }), 502, origin);
+  }
 }
 
 async function handleHistory(request, env, origin) {
