@@ -12,6 +12,10 @@ on:
     - cron: '0 14 * * 1,3,5'
   workflow_dispatch: {}
 
+# Only reads the repo; drafts go to Cloudflare KV, not git.
+permissions:
+  contents: read
+
 concurrency:
   group: blog-content
   cancel-in-progress: false
