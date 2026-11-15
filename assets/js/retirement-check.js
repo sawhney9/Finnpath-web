@@ -153,7 +153,7 @@ function renderGauge(p, r) {
   $('verdict').textContent = V[0];
   $('vdetail').innerHTML = `In <b>${pctf(s)}</b> of ${p.sims.toLocaleString()} simulated futures, your money lasts to age ${p.endAge}. ${V[1]}` +
     (r.earlyDeplete ? ` When it falls short, it usually runs out around age <b>${Math.round(r.earlyDeplete)}</b>.` : '') +
-    ` Typical amount left at ${p.endAge}: <b>${fmt(r.endP50)}</b> in today's dollars.`;
+    (r.endP50 >= 1000 ? ` Typical amount left at ${p.endAge}: <b>${fmt(r.endP50)}</b> in today's dollars.` : ` In the typical future, the money is gone before ${p.endAge}.`);
 }
 
 function niceMax(x) { if (!(x > 0)) return undefined; const m = 10 ** Math.floor(Math.log10(x)), f = x / m; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * m; }
