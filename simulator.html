@@ -129,7 +129,10 @@
     .b-put{background:rgba(232,96,76,.15);color:var(--coral);border:1px solid rgba(232,96,76,.3);}
 
     /* PORTFOLIO GRID: ticker type shares avgcost mktprice today-chg mktval return actions */
-    .port-grid{grid-template-columns:80px 65px 80px 90px 90px 130px 90px 130px 70px;}
+    .port-grid{grid-template-columns:80px 65px 80px 90px 90px 130px 90px 130px 190px;}
+    .row-acts{display:flex;gap:6px;flex-wrap:wrap}
+    .row-acts button{padding:5px 10px;font-size:.75rem;border-radius:6px;cursor:pointer;font-family:inherit;font-weight:700}
+    .side-sell{display:inline-block;margin-left:6px;font-size:.62rem;font-weight:800;letter-spacing:.04em;padding:2px 6px;border-radius:4px;background:rgba(232,96,76,.15);color:var(--coral)}
     /* JOURNAL GRID */
     .jrn-grid{grid-template-columns:100px 70px 80px 1fr 1fr 1fr auto;}
     /* OPTIONS GRID */
@@ -625,7 +628,7 @@
 <!-- MODAL: Log Trade -->
 <div class="modal-bd" id="modal-tx">
   <div class="modal">
-    <h2>Log Trade</h2>
+    <h2 id="tx-title">Log Trade</h2>
     <div class="fg">
       <label>Asset Type</label>
       <div class="asset-toggle">
@@ -633,6 +636,13 @@
         <button class="at-btn" id="at-crypto" data-type="crypto">₿ Crypto</button>
         <button class="at-btn" id="at-call" data-type="call">📈 Call</button>
         <button class="at-btn" id="at-put" data-type="put">📉 Put</button>
+      </div>
+    </div>
+    <div class="fg" id="side-fg">
+      <label>Buy or Sell</label>
+      <div class="asset-toggle">
+        <button class="at-btn active" data-side="buy">Buy</button>
+        <button class="at-btn" data-side="sell">Sell</button>
       </div>
     </div>
     <div class="fg"><label>Ticker Symbol</label><input type="text" id="tx-ticker" placeholder="e.g. AAPL" style="text-transform:uppercase"/><div class="form-hint" id="tx-hint">Enter a stock ticker.</div></div>
@@ -755,10 +765,12 @@
   document.getElementById('btn-add-tx')?.addEventListener('click', () => openTxModal('stock'));
   document.getElementById('btn-add-option')?.addEventListener('click', () => openTxModal('call'));
 
-  function openTxModal(type) {
+  function openTxModal(type, ticker = '', side = 'buy') {
     document.getElementById('modal-tx').style.display = 'grid';
     document.getElementById('tx-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('tx-ticker').value = ticker;
     setTxType(type);
+    setSide(side);
   }
 
   document.querySelectorAll('.at-btn[data-type]').forEach(btn => {
@@ -770,9 +782,26 @@
     document.querySelectorAll('.at-btn[data-type]').forEach(b => b.classList.toggle('active', b.dataset.type === type));
     const isOpt = (type === 'call' || type === 'put');
     document.getElementById('opt-fields').style.display = isOpt ? 'block' : 'none';
+    document.getElementById('side-fg').style.display = isOpt ? 'none' : 'block';
+    if (isOpt) currentSide = 'buy';
     document.getElementById('qty-label').textContent = isOpt ? 'Number of Contracts' : 'Shares / Units';
-    document.getElementById('price-label').textContent = isOpt ? 'Premium per Contract ($)' : 'Purchase Price per Share ($)';
+    updateSideLabels();
   }
+
+  // Buy or sell (stocks and crypto). Sells reduce the position at its average cost.
+  let currentSide = 'buy';
+  function setSide(side) {
+    currentSide = side;
+    document.querySelectorAll('.at-btn[data-side]').forEach(b => b.classList.toggle('active', b.dataset.side === side));
+    updateSideLabels();
+  }
+  function updateSideLabels() {
+    const isOpt = currentAssetType === 'call' || currentAssetType === 'put', sell = currentSide === 'sell';
+    document.getElementById('price-label').textContent = isOpt ? 'Premium per Contract ($)' : sell ? 'Sale Price per Share ($)' : 'Purchase Price per Share ($)';
+    document.getElementById('tx-title').textContent = sell ? 'Log a Sale' : 'Log Trade';
+    document.getElementById('tx-submit').textContent = sell ? 'Save Sale' : 'Save Trade';
+  }
+  document.querySelectorAll('.at-btn[data-side]').forEach(b => b.addEventListener('click', () => setSide(b.dataset.side)));
 
   document.getElementById('tx-submit').addEventListener('click', async () => {
     const ticker = document.getElementById('tx-ticker').value.toUpperCase().trim();
@@ -781,12 +810,19 @@
     const date = document.getElementById('tx-date').value;
     const notes = document.getElementById('tx-notes').value.trim();
     
+    const selling = currentSide === 'sell' && currentAssetType !== 'call' && currentAssetType !== 'put';
     if (!ticker) return alert('Please enter a ticker symbol.');
-    if (isNaN(shares) || shares === 0) return alert('Please enter a valid number of shares/units.');
+    if (isNaN(shares) || shares <= 0) return alert('Please enter a number of shares/units above 0.');
     if (isNaN(costBasis) || costBasis < 0) return alert('Please enter a valid price (can be 0 for gifts/airdrops).');
     if (!date) return alert('Please select a date.');
+    if (selling) {
+      const held = latestHoldings[ticker]?.shares || 0;
+      if (held <= 0) return alert(`You don't hold any ${ticker} to sell.`);
+      if (shares > held + 1e-9) return alert(`You only hold ${+held.toFixed(6)} ${ticker}. Enter that many or fewer.`);
+    }
 
     const data = { ticker, shares, costBasis, date, assetType: currentAssetType, notes, createdAt: new Date() };
+    if (selling) data.side = 'sell';
     if (currentAssetType === 'call' || currentAssetType === 'put') {
       data.optionStrike = parseFloat(document.getElementById('tx-strike').value) || 0;
       data.optionExpiry = document.getElementById('tx-expiry').value || '';
@@ -806,7 +842,7 @@
       console.error("Error saving trade:", e);
       alert("Error saving trade: " + e.message);
     }
-    finally { btn.disabled = false; btn.textContent = 'Save Trade'; }
+    finally { btn.disabled = false; updateSideLabels(); }
   });
 
   async function deleteTrade(id) {
@@ -815,18 +851,58 @@
     }
   }
 
+  // Remove a holding entirely: deletes every buy and sell logged for that ticker.
+  async function removeHolding(ticker) {
+    const ids = latestHoldings[ticker]?.tradeIds || [];
+    if (!ids.length) return;
+    const ok = confirm(`Remove ${ticker} from your portfolio?\n\nThis deletes its ${ids.length} trade${ids.length > 1 ? 's' : ''} from your Trade Journal too. If you sold it, use "Sell" instead to keep a record of the sale.`);
+    if (!ok) return;
+    try { await Promise.all(ids.map(id => deleteDoc(doc(db, `portfolios/${currentUser.uid}/transactions/${id}`)))); }
+    catch (e) { alert('Could not remove ' + ticker + ': ' + e.message); }
+  }
+
+  // Average-cost accounting, oldest trade first. A sell (side: 'sell', or a legacy
+  // negative-share entry) removes shares at the position's average cost and books
+  // the difference as realized gain.
+  function buildHoldings(trades) {
+    const h = {};
+    const ts = t => t.createdAt?.toMillis ? t.createdAt.toMillis() : (t.createdAt?.seconds || 0) * 1000;
+    const ordered = trades.slice().sort((a, b) => String(a.date).localeCompare(String(b.date)) || ts(a) - ts(b));
+    for (const t of ordered) {
+      const type = t.assetType || 'stock';
+      if (type === 'call' || type === 'put') continue;
+      const x = h[t.ticker] || (h[t.ticker] = { shares: 0, cost: 0, realized: 0, type, tradeIds: [] });
+      x.tradeIds.push(t.id);
+      const qty = Math.abs(t.shares), sell = t.side === 'sell' || t.shares < 0;
+      if (!sell) { x.shares += qty; x.cost += qty * t.costBasis; continue; }
+      const q = Math.min(qty, x.shares), avg = x.shares > 0 ? x.cost / x.shares : 0;
+      x.realized += (t.costBasis - avg) * q;
+      x.cost -= avg * q; x.shares -= q;
+      if (x.shares < 1e-9) { x.shares = 0; x.cost = 0; }
+    }
+    return h;
+  }
+  let latestHoldings = {};
+
+  document.getElementById('holdings-list').addEventListener('click', e => {
+    const b = e.target.closest('[data-act]'); if (!b) return;
+    if (b.dataset.act === 'remove') return removeHolding(b.dataset.t);
+    openTxModal(b.dataset.type || 'stock', b.dataset.t, b.dataset.act);
+  });
+
   // LOAD TRANSACTIONS (Portfolio, Journal, Options)
   function loadTransactions(uid) {
     const q = query(collection(db, `portfolios/${uid}/transactions`), orderBy('createdAt', 'desc'));
     const unsub = onSnapshot(q, async (snap) => {
       if (snap.empty) {
+        latestHoldings = {};
         document.getElementById('holdings-list').innerHTML = `<div class="empty-st"><div class="icon">📈</div><h3>No investments yet.</h3></div>`;
         document.getElementById('journal-list').innerHTML = `<div class="empty-st"><div class="icon">📋</div><h3>No trades logged yet.</h3></div>`;
         document.getElementById('options-list').innerHTML = `<div class="empty-st"><div class="icon">📉</div><h3>No options tracked yet.</h3></div>`;
         return;
       }
 
-      let holdings = {}, options = [], journalHTML = '';
+      let options = [], journalHTML = '', trades = [];
       let totalInv = 0;
 
       snap.forEach(d => {
@@ -834,34 +910,37 @@
         const id = d.id;
         const type = data.assetType || 'stock';
         const isOpt = type === 'call' || type === 'put';
+        const sell = !isOpt && (data.side === 'sell' || data.shares < 0);
+        trades.push({ ...data, id });
 
         // Journal Row
         journalHTML += `<div class="tbl-row jrn-grid">
           <div>${esc(data.date)}</div>
-          <div>${getBadge(type)}</div>
+          <div>${getBadge(type)}${sell ? '<span class="side-sell">SELL</span>' : ''}</div>
           <div class="t-ticker">${esc(data.ticker)}</div>
-          <div>${data.shares}</div>
+          <div>${sell ? '−' : ''}${Math.abs(data.shares)}</div>
           <div>${fmt$(data.costBasis)}</div>
-          <div>${fmt$(data.shares * data.costBasis * (isOpt?100:1))}</div>
+          <div>${fmt$(Math.abs(data.shares) * data.costBasis * (isOpt?100:1))}</div>
           <div style="font-size:.75rem;color:var(--white-dim)">${esc(data.notes)}</div>
           <button class="bsr" onclick="window.deleteTrade('${id}')">✕</button>
         </div>`;
 
         if (isOpt) {
           options.push({...data, id});
-        } else {
-          if (!holdings[data.ticker]) holdings[data.ticker] = { shares:0, cost:0, type };
-          holdings[data.ticker].shares += data.shares;
-          holdings[data.ticker].cost += (data.shares * data.costBasis);
+          totalInv += data.shares * data.costBasis * 100;
         }
-        totalInv += data.shares * data.costBasis * (isOpt?100:1);
       });
+
+      // Positions from buys and sells; "invested" counts only what's still held.
+      const holdings = buildHoldings(trades);
+      latestHoldings = holdings;
+      for (const h of Object.values(holdings)) totalInv += h.cost;
 
       window.deleteTrade = deleteTrade;
       document.getElementById('journal-list').innerHTML = journalHTML;
 
       // Prices & Portfolio
-      const tickers = Object.keys(holdings);
+      const tickers = Object.keys(holdings).filter(t => holdings[t].shares > 0);
       const priceMap = {};  // { ticker: { c: currentPrice, pc: prevClose } }
       await Promise.all(tickers.map(async t => {
         if(holdings[t].type==='stock') {
@@ -914,7 +993,11 @@
             <span class="${up?'up':'dn'} fw7">${up?'+':''}${fmt$(retDol)}</span>
             <span class="pill ${up?'pill-up':'pill-dn'}">${up?'+':''}${retPct.toFixed(2)}%</span>
           </div>
-          <div><button class="bso" onclick="document.getElementById('tx-ticker').value='${t}';document.getElementById('modal-tx').style.display='grid'">Trade</button></div>
+          <div class="row-acts">
+            <button class="bso" data-act="buy" data-t="${esc(t)}" data-type="${h.type}">Buy</button>
+            <button class="bso" data-act="sell" data-t="${esc(t)}" data-type="${h.type}">Sell</button>
+            <button class="bsr" data-act="remove" data-t="${esc(t)}" title="Remove from portfolio" aria-label="Remove ${esc(t)} from portfolio">✕</button>
+          </div>
         </div>`;
       }
       document.getElementById('holdings-list').innerHTML = portHTML || `<div class="empty-st">No open stock/crypto positions.</div>`;
