@@ -69,6 +69,34 @@
     .rsu .srow .snote{grid-column:2/-1;font-size:12px;color:var(--vest)}
     .rsu .srow .snote:empty{display:none}
     @media(max-width:760px){.rsu .srow{grid-template-columns:44px 1fr 96px}.rsu .srow select{grid-column:2/-1}.rsu .srow.shead span:last-child{display:none}}
+    .rsu .quick .q{display:flex;gap:8px;align-items:center;font-size:14px;font-weight:600;color:var(--ink)}
+    .rsu .quick .q b{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:12px;flex:none}
+    .rsu .quick input{font-size:17px;padding:11px 12px}
+    .rsu .quick-tax{margin-top:12px}
+    .rsu .headline{background:linear-gradient(160deg,rgba(232,96,76,.14),rgba(232,96,76,.03));border-color:rgba(232,96,76,.25);animation:rise .35s ease-out}
+    .rsu .hl-big{font-family:'Playfair Display',serif;font-size:clamp(22px,4vw,30px);line-height:1.25;margin:6px 0 16px}
+    .rsu .hl-big em{font-style:normal;color:var(--good)}
+    .rsu .hl-sub{font-size:15px;color:var(--muted);margin:14px 0 0}
+    .rsu .rng{display:grid;grid-template-columns:120px 1fr;gap:4px 12px;align-items:center;margin:12px 0}
+    .rsu .rng .lb{font-size:14px;font-weight:600}
+    .rsu .rng .lb small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+    .rsu .rng .track{position:relative;height:30px}
+    .rsu .rng .bar{position:absolute;top:11px;height:8px;border-radius:4px;opacity:.55;transition:left .5s ease,width .5s ease}
+    .rsu .rng .mid{position:absolute;top:6px;width:4px;height:18px;border-radius:2px;margin-left:-2px;transition:left .5s ease}
+    .rsu .rng .vals{grid-column:2;display:flex;justify-content:space-between;font:12px var(--mono);color:var(--muted)}
+    .rsu .rng .vals b{color:var(--ink);font-weight:600}
+    @media(max-width:480px){.rsu .rng{grid-template-columns:1fr}.rsu .rng .vals{grid-column:1}}
+    .rsu .ranges .key{font-size:12px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;margin-top:2px}
+    .rsu details.adv>summary,.rsu details.more>summary{list-style:none;cursor:pointer;font-size:17px;font-weight:650;color:var(--ink);margin:0;display:flex;flex-direction:column;gap:2px}
+    .rsu details.adv>summary::-webkit-details-marker,.rsu details.more>summary::-webkit-details-marker{display:none}
+    .rsu details.adv>summary::before,.rsu details.more>summary::before{content:'+ ';color:var(--accent)}
+    .rsu details.adv[open]>summary::before,.rsu details.more[open]>summary::before{content:'− '}
+    .rsu details.adv>summary small,.rsu details.more>summary small{font-size:13px;font-weight:400;color:var(--muted)}
+    .rsu details.more{margin-bottom:16px}
+    .rsu details.more>summary{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px 20px;margin-bottom:16px}
+    .rsu .actions{margin:-4px 0 16px}
+    @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    @media(prefers-reduced-motion:reduce){.rsu .headline{animation:none}.rsu .rng .bar,.rsu .rng .mid{transition:none}}
     .rsu details summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--accent);margin-top:14px}
     .rsu .kpis{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
     @media(min-width:760px){.rsu .kpis{grid-template-columns:repeat(4,1fr)}}
@@ -93,7 +121,6 @@
     .rsu .cta{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
     .rsu .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--white);color:var(--navy);padding:9px 14px;border-radius:9px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:300}.rsu .toast.on{opacity:1}
     .rsu section{padding:0}
-    .rsu #results{display:none}
   </style>
 </head>
 <body>
@@ -123,16 +150,38 @@
   <header class="hero">
     <div class="eyebrow">Finnpath · Free tool</div>
     <h1>RSU selldown planner</h1>
-    <p>Too much of your net worth in one company's stock? Compare three choices: hold it, sell it down over a few years, or sell it all now. See how each plays out across thousands of simulated markets, after capital gains tax, and pick where the money goes.</p>
+    <p>Got a lot of your money in your company's stock? Answer three questions to see what holding it could cost you, and what selling some would protect.</p>
   </header>
 
-  <form id="form" class="card" novalidate>
-    <h2>Your position</h2>
-    <p class="sub">Use values after tax withholding. Vested RSUs were taxed as income when they vested, so your cost basis is the share price on each vest date.</p>
+  <form id="form" novalidate>
+  <div class="card quick">
+    <h2>Three quick questions</h2>
+    <p class="sub">Results update as you type. Use the values from your broker's app.</p>
     <div class="grid g3">
-      <label class="f">Stock ticker <small>Fills in volatility from price history</small><input id="ticker" maxlength="12" placeholder="e.g. AAPL" autocomplete="off" autocapitalize="characters" spellcheck="false"></label>
-      <label class="f">Current value of vested shares ($)<input id="value" inputmode="decimal" placeholder="500,000"></label>
-      <label class="f">Total cost basis ($) <small>From your broker's gain/loss view</small><input id="basis" inputmode="decimal" placeholder="300,000"></label>
+      <label class="f"><span class="q"><b>1</b> Which company?</span><input id="ticker" maxlength="12" placeholder="Ticker, like GOOG" autocomplete="off" autocapitalize="characters" spellcheck="false"></label>
+      <label class="f"><span class="q"><b>2</b> What are your vested shares worth now?</span><input id="value" inputmode="decimal" placeholder="500,000"></label>
+      <label class="f"><span class="q"><b>3</b> What were they worth when they vested?</span><input id="basis" inputmode="decimal" placeholder="300,000"><small>Your broker calls this "cost basis". You only pay tax on growth above it.</small></label>
+    </div>
+    <div class="grid quick-tax">
+      <label class="f">Where do you live?<select id="qState"></select></label>
+      <label class="f">Household income, including RSUs<select id="qIncome"><option value="u100">Under $100K</option><option value="m200">$100K–$200K</option><option value="m500">$200K–$500K</option><option value="o500">Over $500K</option></select></label>
+    </div>
+    <p class="note" id="taxNote"></p>
+    <p class="note" id="volNote" aria-live="polite"></p>
+  </div>
+
+  <div class="card headline" id="headline" aria-live="polite" hidden>
+    <div class="eyebrow" id="hlEyebrow"></div>
+    <p class="hl-big" id="hlBig"></p>
+    <div class="ranges" id="hlRanges"></div>
+    <p class="hl-sub" id="hlSub"></p>
+    <p class="note" id="hlExample" hidden>These are example numbers. Put in yours above.</p>
+  </div>
+
+  <details class="card adv" id="adv">
+    <summary>Fine-tune your plan <small>New vests, when to sell, where the money goes, exact taxes</small></summary>
+    <h3>New shares vesting</h3>
+    <div class="grid g3">
       <label class="f">New shares vesting per year ($, after tax)<input id="vests" inputmode="decimal" placeholder="100,000"></label>
       <label class="f">Years you'll keep receiving vests<input id="vestYears" inputmode="decimal" placeholder="4"></label>
       <label class="f">Sell new shares as they vest?<select id="sellVests"><option value="1">Yes, sell at vest</option><option value="0">No, hold them</option></select></label>
@@ -172,20 +221,20 @@
         <label class="f"><span class="lt">Your stock: volatility % <button type="button" class="info" aria-label="About: Your stock: volatility %" aria-expanded="false" aria-controls="tip-stkVol">i</button></span><span class="tip" id="tip-stkVol" role="note" hidden>How much the price typically swings in a year (the standard deviation of yearly returns). The broad US market is about 15–18%, and large tech stocks are often 25–45%. Higher volatility means a wider range of outcomes and more chance of a deep drop. It also lowers the typical result, because a 50% loss takes a 100% gain to recover.</span><input id="stkVol" inputmode="decimal"></label>
         <label class="f"><span class="lt">Simulated markets <button type="button" class="info" aria-label="About: Simulated markets" aria-expanded="false" aria-controls="tip-sims">i</button></span><span class="tip" id="tip-sims" role="note" hidden>How many random market histories to run. More histories give steadier numbers but take a bit longer. 5,000 is plenty for most plans.</span><select id="sims"><option value="2000">2,000 (fast)</option><option value="5000" selected>5,000</option><option value="10000">10,000</option></select></label>
       </div>
-      <p class="note" id="volNote" aria-live="polite"></p>
       <h3>Correlation with your stock</h3>
       <p class="sub" style="margin-top:-4px">From −1 to 1. Higher means the destination tends to rise and fall with your stock, so it diversifies less.</p>
       <div class="grid g3" id="rhoList"></div>
     </details>
 
-    <div class="row" style="margin-top:18px">
-      <button type="submit" id="run">Run the simulation</button>
-      <button type="button" class="ghost" id="share">Copy link to this scenario</button>
-      <span class="wsum" id="formErr"></span>
-    </div>
+  </details>
+  <div class="row actions">
+    <button type="button" class="ghost sm" id="share">Copy link to this scenario</button>
+    <span class="wsum" id="formErr"></span>
+  </div>
   </form>
 
-  <section id="results" aria-live="polite">
+  <details id="results" class="more">
+    <summary>See all the details <small>Charts, the year-by-year tax table and more</small></summary>
     <div class="verdict" id="verdict"></div>
     <div class="kpis" id="kpis"></div>
 
@@ -225,7 +274,7 @@
       <p class="sub">At today's price. Spreading sales across tax years can keep more of each year's gains in lower brackets. Use "Adjust amounts by year" to sell less in some years, like after you retire, and rerun.</p>
       <div class="scroll"><table id="sched"></table></div>
     </div>
-  </section>
+  </details>
 
   <section class="card explain">
     <h2>How this works</h2>

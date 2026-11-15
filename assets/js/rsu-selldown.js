@@ -15,7 +15,7 @@ const DEST = {
   gold: {label:'Gold (GLD / IAU)',                     mu:5.5, vol:15,   cls:'gold', rho:0.05, bench:'GLD',   color:'#c9a84c'},
   custom:{label:'Custom (enter your own)',             mu:8,   vol:20,   cls:'eq',   rho:0.5,  bench:'VTI',   color:'#e86ca8'}
 };
-const DEFAULTS = {ticker:'',value:500000,basis:300000,vests:100000,vestYears:4,sellVests:'1',planMode:'even',sellYears:3,keepPct:10,horizon:10,fedRate:'20',niit:'1',stateRate:5,stkMu:10,stkVol:30,sims:'5000',dests:[{k:'vti',w:100}]};
+const DEFAULTS = {ticker:'',value:500000,basis:300000,vests:100000,vestYears:4,sellVests:'1',planMode:'even',sellYears:3,keepPct:10,horizon:10,qState:'other',qIncome:'m500',fedRate:'15',niit:'1',stateRate:5,stkMu:10,stkVol:30,sims:'5000',dests:[{k:'vti',w:100}]};
 
 // Fallback volatility when price history can't be loaded.
 const VOL_PRESETS = [
@@ -32,10 +32,35 @@ const pctf = (n,d=0) => isFinite(n) ? (n*100).toFixed(d)+'%' : '—';
 const cssv = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 const esc = s => String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>t.classList.remove('on'),2200); }
-const FIELDS = ['ticker','value','basis','vests','vestYears','sellVests','planMode','sellYears','keepPct','horizon','fedRate','niit','stateRate','stkMu','stkVol','sims'];
+const FIELDS = ['qState','qIncome','ticker','value','basis','vests','vestYears','sellVests','planMode','sellYears','keepPct','horizon','fedRate','niit','stateRate','stkMu','stkVol','sims'];
 let dests = DEFAULTS.dests.map(d=>({...d}));
 let lastStats = null;      // measured stats for the current ticker, if any
 let pendingLookup = null;  // in-flight ticker lookup, awaited before a run
+
+/* ---------- quick taxes: state + income band → exact rate fields ---------- */
+// Approximate state rates on long-term gains for [under $100K, $100K–$500K, over $500K] household
+// income. Rounded and simplified; the exact field under Fine-tune is what the math uses.
+const STATES = {
+  none:['No state income tax (TX, FL, NV, TN…)',[0,0,0]], wa:['Washington',[0,0,0]], ca:['California',[6,9.3,10.3]],
+  ny:['New York',[5.5,6,6.85]], nj:['New Jersey',[5.5,6.37,8.97]], ma:['Massachusetts',[5,5,5]], or:['Oregon',[8.75,9.9,9.9]],
+  mn:['Minnesota',[6.8,7.85,9.85]], co:['Colorado',[4.4,4.4,4.4]], il:['Illinois',[4.95,4.95,4.95]], ga:['Georgia',[5.19,5.19,5.19]],
+  nc:['North Carolina',[4.25,4.25,4.25]], va:['Virginia',[5.75,5.75,5.75]], pa:['Pennsylvania',[3.07,3.07,3.07]],
+  az:['Arizona',[2.5,2.5,2.5]], ut:['Utah',[4.5,4.5,4.5]], other:['Another state',[4,5,5.5]],
+};
+const INCOME = { u100:{fed:'15',niit:'0',band:0}, m200:{fed:'15',niit:'0',band:1}, m500:{fed:'15',niit:'1',band:1}, o500:{fed:'20',niit:'1',band:2} };
+$('qState').innerHTML = Object.entries(STATES).map(([k,[l]])=>`<option value="${k}">${l}</option>`).join('');
+function applyQuickTax(){
+  const st=STATES[$('qState').value]||STATES.other, inc=INCOME[$('qIncome').value]||INCOME.m500;
+  $('fedRate').value=inc.fed; $('niit').value=inc.niit; $('stateRate').value=st[1][inc.band];
+  taxNote();
+}
+function taxNote(){
+  const f=+$('fedRate').value, n=$('niit').value==='1'?3.8:0, st=num($('stateRate').value)||0;
+  $('taxNote').innerHTML = `Estimated tax on your gains: ${f}% federal${n?' + 3.8% NIIT':''}${st?` + ${st}% state`:''} = <b>${(f+n+st).toFixed(1)}%</b>. Change it under Fine-tune → Taxes.` +
+    ($('qState').value==='wa' ? ' Washington also taxes long-term gains over about $280K in a year at 7%.' : '');
+}
+['qState','qIncome'].forEach(id=>$(id).addEventListener('change', applyQuickTax));
+['fedRate','niit','stateRate'].forEach(id=>$(id).addEventListener('input', taxNote));
 
 /* ---------- ticker lookup ---------- */
 function rhoFor(k){
@@ -150,7 +175,8 @@ $('schedRows').addEventListener('focusout', e => { if (e.target.dataset.f==='t')
 // Entering custom mode starts from the even split the user was just looking at.
 $('planMode').addEventListener('change', () => { if (custom()) evenSched(); renderSched(); });
 $('editSched').onclick = () => {
-  if (!custom()){ $('planMode').value='custom'; evenSched(); renderSched(); }
+  $('adv').open = true;
+  if (!custom()){ $('planMode').value='custom'; evenSched(); renderSched(); scheduleRun(); }
   $('schedBox').scrollIntoView({behavior:'smooth', block:'start'});
   setTimeout(()=>$('schedRows').querySelector('input[type=range]')?.focus({preventScroll:true}), 400);
 };
@@ -166,7 +192,7 @@ function fillForm(o){
   // The note is our own escaped HTML from an earlier lookup; links don't carry it.
   if (typeof o.volNote==='string') $('volNote').innerHTML = o.volNote;
   if (Array.isArray(o.sched)) sched=o.sched;
-  renderDests(); renderSched();
+  renderDests(); renderSched(); taxNote();
 }
 function toQuery(o){ const p=new URLSearchParams(); FIELDS.forEach(f=>{ if (o[f]!=='' && o[f]!==undefined) p.set(f,String(o[f]).replace(/,/g,'')); }); p.set('d',o.dests.map(d=>[d.k,num(d.w)||0,d.k==='custom'?num(d.mu):'',d.k==='custom'?num(d.vol):'',isFinite(num(d.rho))?num(d.rho):''].join(':')).join('|')); if (o.planMode==='custom') p.set('s',o.sched.map(x=>Math.round(x.a)+':'+x.inc[0]).join('|')); return p.toString(); }
 function fromQuery(){ try { const p=new URLSearchParams(location.search); if (!p.has('value')) return null; const o={}; FIELDS.forEach(f=>{ if (p.has(f)) o[f]=p.get(f); }); if (p.has('d')) o.dests=p.get('d').split('|').map(s=>{ const [k,w,mu,vol,rho]=s.split(':'); const d={k,w:num(w)||0}; if (k==='custom'){ d.mu=num(mu); d.vol=num(vol); } if (isFinite(num(rho))){ d.rho=num(rho); d.rhoSrc='user'; } return d; }); if (p.has('s')) o.sched=p.get('s').split('|').map(t=>{ const [a,c]=t.split(':'); return {a:num(a)||0, inc:{l:'low',z:'zero'}[c]||'work'}; }); return o; } catch(_){ return null; } }
@@ -265,6 +291,34 @@ function render(p, r){
     options:{responsive:true,maintainAspectRatio:false,animation:false,cutout:'60%',plugins:{legend:{position:'bottom',labels:{color:cssv('--muted'),boxWidth:10}},tooltip:{callbacks:{label:c=>`${c.label}: ${c.parsed.toFixed(0)}%`}}}}});
 }
 
+/* ---------- headline: the one answer most people need ---------- */
+function renderHeadline(p, r){
+  const name = esc((p.raw.ticker||'').toUpperCase()) || 'your stock', n=Math.round(p.sellYears);
+  const planName = p.schedule ? 'your year-by-year plan' : `selling over ${n} year${n>1?'s':''}`;
+  $('hlEyebrow').textContent = `Over the next ${p.horizon} years`;
+  const lh=r.hold.loss, lp=r.plan.loss;
+  $('hlBig').innerHTML = lh>lp+0.005
+    ? `If you hold, there's a <b>${pctf(lh)}</b> chance you end up with less than you put in. ${planName[0].toUpperCase()+planName.slice(1)} cuts that to <em>${pctf(lp)}</em>.`
+    : `Holding and ${planName} carry about the same chance of ending below what you put in (${pctf(lh)} vs ${pctf(lp)}).`;
+  // One shared scale for the three range bars: bad case (1 in 10) → great case (1 in 10).
+  const rows=[['hold',`Hold all ${name}`,'--hold'],['plan',planName[0].toUpperCase()+planName.slice(1),'--plan'],['now','Sell now','--now']];
+  const lo=Math.min(...rows.map(([k])=>r[k].p10)), hi=Math.max(...rows.map(([k])=>r[k].p90)), x=v=>((v-lo)/(hi-lo||1)*100).toFixed(2);
+  const old=$('hlRanges').querySelectorAll('.rng');
+  if (old.length!==3) $('hlRanges').innerHTML = rows.map(([k])=>`<div class="rng" data-k="${k}"><div class="lb"></div><div class="track"><div class="bar"></div><div class="mid"></div></div><div class="vals"><span></span><b></b><span></span></div></div>`).join('') +
+    '<div class="key"><span>Left: a bad decade (1 in 10 chance)</span><span>Middle mark: typical</span><span>Right: a great decade (1 in 10)</span></div>';
+  rows.forEach(([k,label,col])=>{
+    const el=$('hlRanges').querySelector(`[data-k="${k}"]`), c=cssv(col), v=el.querySelectorAll('.vals > *');
+    el.querySelector('.lb').innerHTML = `${label}<small>after tax</small>`;
+    Object.assign(el.querySelector('.bar').style,{left:x(r[k].p10)+'%',width:(x(r[k].p90)-x(r[k].p10))+'%',background:c});
+    Object.assign(el.querySelector('.mid').style,{left:x(r[k].p50)+'%',background:c});
+    v[0].textContent=fmt(r[k].p10); v[1].textContent=fmt(r[k].p50); v[2].textContent=fmt(r[k].p90);
+  });
+  const protect=r.plan.p10-r.hold.p10, giveUp=r.hold.p90-r.plan.p90;
+  $('hlSub').innerHTML = `In a bad decade, ${planName} leaves you <b>${fmt(Math.abs(protect))} ${protect>=0?'better':'worse'} off</b> than holding. In a great one, holding comes out ${fmt(Math.abs(giveUp))} ${giveUp>=0?'ahead':'behind'}. That's the trade: some upside for a smaller downside.`;
+  $('hlExample').hidden = !(p.raw.ticker==='' && num(p.raw.value)===DEFAULTS.value && num(p.raw.basis)===DEFAULTS.basis);
+  $('headline').hidden=false;
+}
+
 /* ---------- events ---------- */
 // ⓘ explainers: tap to toggle, tap elsewhere or Esc to close. One open at a time.
 function closeTips(except){ document.querySelectorAll('.rsu button.info[aria-expanded="true"]').forEach(b=>{ if (b===except) return; b.setAttribute('aria-expanded','false'); $(b.getAttribute('aria-controls')).hidden=true; }); }
@@ -277,13 +331,20 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('keydown', e => { if (e.key==='Escape') closeTips(); });
 
-$('form').addEventListener('submit', async e => {
-  e.preventDefault();
-  if (pendingLookup) { $('run').textContent='Looking up…'; await pendingLookup; }
-  const p=params(); if (!p) { $('run').textContent='Run the simulation'; return; }
-  $('run').textContent='Running…';
-  setTimeout(()=>{ const r=runSelldown(p); $('results').style.display='block'; render(p,r); save(p.raw); $('run').textContent='Run the simulation'; $('results').scrollIntoView({behavior:'smooth',block:'start'}); }, 30);
-});
+// Results update as you type (debounced); there's no Run button.
+let runTimer=null, runSeq=0;
+async function runNow(){
+  const seq=++runSeq;
+  if (pendingLookup) await pendingLookup;
+  if (seq!==runSeq) return;
+  const p=params(); if (!p) return;
+  const r=runSelldown(p); render(p,r); renderHeadline(p,r); save(p.raw);
+}
+function scheduleRun(){ clearTimeout(runTimer); runTimer=setTimeout(runNow, 350); }
+$('form').addEventListener('submit', e => { e.preventDefault(); runNow(); });
+$('form').addEventListener('input', scheduleRun);
+$('form').addEventListener('change', scheduleRun);
+$('form').addEventListener('click', e => { if (e.target.closest('#addDest,[data-del],#schedEven')) scheduleRun(); });
 $('share').onclick = async () => { const url = location.origin + location.pathname + '?' + toQuery(readForm()); try { await navigator.clipboard.writeText(url); toast('Link copied. Anyone with it sees this scenario.'); } catch(_){ toast('Copy failed. Your browser blocked the clipboard.'); } };
 document.querySelectorAll('.rsu input[inputmode="decimal"]').forEach(el=>el.addEventListener('blur',()=>{ const v=num(el.value); if (isFinite(v) && Math.abs(v)>=1000) el.value=Math.round(v).toLocaleString(); }));
 $('ctaLink').href = SUBSCRIBE_URL;
@@ -303,4 +364,5 @@ $('ctaLink').href = SUBSCRIBE_URL;
 /* ---------- init ---------- */
 const fromLink = fromQuery();
 fillForm(Object.assign({}, DEFAULTS, load()||{}, fromLink||{}));
-if (fromLink) { setVolNote(''); $('form').requestSubmit(); }
+if (fromLink) setVolNote('');
+runNow();
