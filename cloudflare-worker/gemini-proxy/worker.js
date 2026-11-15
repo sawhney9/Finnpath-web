@@ -25,8 +25,11 @@ const ALLOWED_ORIGINS = [
   'https://www.finnpath.com',
   'http://localhost:3000',
   'http://127.0.0.1:5500',
-  'https://rsu-selldown.finnpath-web.pages.dev', // TEMP: RSU planner preview — remove before merge
 ];
+
+// Branch previews of this site on Cloudflare Pages (only our own deployments get these hostnames).
+const PREVIEW_ORIGIN = /^https:\/\/[a-z0-9-]+\.finnpath-web\.pages\.dev$/;
+const originAllowed = origin => ALLOWED_ORIGINS.includes(origin) || PREVIEW_ORIGIN.test(origin);
 
 const GEMINI_ENDPOINT =
   `https://generativelanguage.googleapis.com/v1beta/models/${MODELS.gemini_fast}:generateContent`;
@@ -157,7 +160,7 @@ async function handleStats(request, env, origin) {
 }
 
 function corsResponse(body, status, origin, extraHeaders = {}) {
-  const isAllowed = ALLOWED_ORIGINS.includes(origin);
+  const isAllowed = originAllowed(origin);
   const headers = {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': isAllowed ? origin : 'https://finnpath.com',
