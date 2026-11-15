@@ -304,14 +304,14 @@ function renderHeadline(p, r){
   const rows=[['hold',`Hold all ${name}`,'--hold'],['plan',planName[0].toUpperCase()+planName.slice(1),'--plan'],['now','Sell now','--now']];
   const lo=Math.min(...rows.map(([k])=>r[k].p10)), hi=Math.max(...rows.map(([k])=>r[k].p90)), x=v=>((v-lo)/(hi-lo||1)*100).toFixed(2);
   const old=$('hlRanges').querySelectorAll('.rng');
-  if (old.length!==3) $('hlRanges').innerHTML = rows.map(([k])=>`<div class="rng" data-k="${k}"><div class="lb"></div><div class="track"><div class="bar"></div><div class="mid"></div></div><div class="vals"><span></span><b></b><span></span></div></div>`).join('') +
-    '<div class="key"><span>Left: a bad decade (1 in 10 chance)</span><span>Middle mark: typical</span><span>Right: a great decade (1 in 10)</span></div>';
+  if (old.length!==3) $('hlRanges').innerHTML = rows.map(([k])=>`<div class="rng" data-k="${k}"><div class="lb"></div><div class="track"><div class="bar"></div><div class="mid"></div></div><div class="vals"></div></div>`).join('') +
+    '<div class="key"><span>After tax. Bar runs from a bad decade to a great one (each a 1 in 10 chance); the mark is the typical result.</span></div>';
   rows.forEach(([k,label,col])=>{
-    const el=$('hlRanges').querySelector(`[data-k="${k}"]`), c=cssv(col), v=el.querySelectorAll('.vals > *');
-    el.querySelector('.lb').innerHTML = `${label}<small>after tax</small>`;
+    const el=$('hlRanges').querySelector(`[data-k="${k}"]`), c=cssv(col);
+    el.querySelector('.lb').textContent = label;
     Object.assign(el.querySelector('.bar').style,{left:x(r[k].p10)+'%',width:(x(r[k].p90)-x(r[k].p10))+'%',background:c});
     Object.assign(el.querySelector('.mid').style,{left:x(r[k].p50)+'%',background:c});
-    v[0].textContent=fmt(r[k].p10); v[1].textContent=fmt(r[k].p50); v[2].textContent=fmt(r[k].p90);
+    el.querySelector('.vals').innerHTML = `Bad <b>${fmt(r[k].p10)}</b> · Typical <b>${fmt(r[k].p50)}</b> · Great <b>${fmt(r[k].p90)}</b>`;
   });
   const protect=r.plan.p10-r.hold.p10, giveUp=r.hold.p90-r.plan.p90;
   $('hlSub').innerHTML = `In a bad decade, ${planName} leaves you <b>${fmt(Math.abs(protect))} ${protect>=0?'better':'worse'} off</b> than holding. In a great one, holding comes out ${fmt(Math.abs(giveUp))} ${giveUp>=0?'ahead':'behind'}. That's the trade: some upside for a smaller downside.`;
