@@ -64,8 +64,22 @@ export default {
       return corsResponse(JSON.stringify({ error: 'Invalid JSON body' }), 400, origin);
     }
 
+    // Only our two AI features, each with a server-built prompt: no free-form prompts.
+    const route = new URL(request.url).pathname;
+    if (route !== '/401k' && route !== '/pulse') {
+      return corsResponse(JSON.stringify({ error: 'Not found' }), 404, origin);
+    }
+    if (!originAllowed(origin)) {
+      return corsResponse(JSON.stringify({ error: 'Forbidden' }), 403, origin);
+    }
+    if (env.AI_LIMITER) {
+      const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+      const { success } = await env.AI_LIMITER.limit({ key: ip });
+      if (!success) return corsResponse(JSON.stringify({ error: 'rate_limited' }), 429, origin, { 'Retry-After': '60' });
+    }
+
     let prompt, generationConfig;
-    if (new URL(request.url).pathname === '/401k') {
+    if (route === '/401k') {
       const { docText } = body;
       if (!docText || typeof docText !== 'string') {
         return corsResponse(JSON.stringify({ error: 'Missing docText' }), 400, origin);
@@ -73,15 +87,8 @@ export default {
       prompt = build401kPrompt(docText.slice(0, MAX_401K_DOC_CHARS));
       generationConfig = { maxOutputTokens: 4096, temperature: 0.3, responseMimeType: 'application/json' };
     } else {
-      ({ prompt } = body);
-      if (!prompt || typeof prompt !== 'string') {
-        return corsResponse(JSON.stringify({ error: 'Missing prompt' }), 400, origin);
-      }
-
-      // Enforce prompt length to prevent abuse
-      if (prompt.length > 2000) {
-        return corsResponse(JSON.stringify({ error: 'Prompt too long' }), 400, origin);
-      }
+      prompt = buildPulsePrompt(body);
+      if (!prompt) return corsResponse(JSON.stringify({ error: 'Invalid request' }), 400, origin);
       // Output budget includes the model's (minimal) thinking tokens
       generationConfig = { maxOutputTokens: 512, temperature: 0.4 };
     }
@@ -226,4 +233,21 @@ Here is the 401k plan document text:
 ---
 ${docText}
 ---`;
+}
+
+// Portfolio Pulse: one-sentence explanation of a holding's move from recent headlines.
+// Input is structured (ticker, direction, up to 4 short headlines); the prompt is built here.
+function buildPulsePrompt(body) {
+  const ticker = normalizeSymbol(body?.ticker);
+  const direction = ['up', 'down', 'roughly flat'].includes(body?.direction) ? body.direction : null;
+  const headlines = Array.isArray(body?.headlines)
+    ? body.headlines.filter(h => typeof h === 'string' && h.trim()).slice(0, 4).map(h => h.replace(/\s+/g, ' ').slice(0, 200))
+    : [];
+  if (!ticker || !direction || !headlines.length) return null;
+  return `You are a concise financial analyst. Based on these recent headlines for ${ticker} (which is trading ${direction} today), write ONE plain-English sentence (max 25 words) explaining why the stock is moving. Be direct, no jargon. Don't start with "${ticker}".
+
+Headlines:
+${headlines.map(h => `- ${h}`).join('\n')}
+
+Respond with ONLY a JSON object: {"sentiment": "bullish"|"bearish"|"neutral", "synopsis": "your one sentence here"}`;
 }

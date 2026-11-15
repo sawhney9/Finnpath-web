@@ -1359,21 +1359,15 @@
 
   async function generateSentimentSynopsis(ticker, newsItems, dayChangePct) {
     if (!newsItems.length) return null;
-    const headlines = newsItems.map(n => `- ${n.headline}`).join('\n');
     const direction = dayChangePct > 1 ? 'up' : dayChangePct < -1 ? 'down' : 'roughly flat';
-    const prompt = `You are a concise financial analyst. Based on these recent headlines for ${ticker} (which is trading ${direction} today), write ONE plain-English sentence (max 25 words) explaining why the stock is moving. Be direct, no jargon. Don't start with "${ticker}".
-
-Headlines:
-${headlines}
-
-Respond with ONLY a JSON object: {"sentiment": "bullish"|"bearish"|"neutral", "synopsis": "your one sentence here"}`;
+    // The Worker builds the prompt from these fields (see /pulse in gemini-proxy).
 
     try {
       // Call our Cloudflare Worker proxy — the Gemini key never leaves the server
-      const res = await fetch(PULSE_PROXY_URL, {
+      const res = await fetch(`${PULSE_PROXY_URL}/pulse`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt })
+        body: JSON.stringify({ ticker, direction, headlines: newsItems.map(n => n.headline) })
       });
       if (!res.ok) return null;
       const json = await res.json();

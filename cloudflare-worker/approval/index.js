@@ -27,7 +27,7 @@ export default {
     const draft = await env.DRAFTS.get(`draft:${token}`, 'json')
     if (!draft) return page('<h1>Not Found</h1><p>This link has already been used or expired.</p>', 404)
 
-    if (action === 'approve') return handleApprove(draft, token, env)
+    if (action === 'approve') return request.method === 'POST' ? handleApprove(draft, token, env) : serveApproveConfirm(draft)
     if (action === 'skip') return handleSkip(draft, token, env)
     if (action === 'edit') {
       if (request.method === 'POST') return handleEditPost(request, draft, token, env)
@@ -54,12 +54,13 @@ function utf8ToB64(str) {
 }
 
 // ── serialize an article object exactly like the old agent's inject_article() ──
+// Both escape '<' as \x3C so text like "</script>" can't close blog.html's <script> block.
 function jsString(s) {
-  return `'${String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`
+  return `'${String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\r?\n/g, '\\n').replace(/</g, '\\x3C')}'`
 }
 
 function jsTemplate(s) {
-  return `\`${String(s).replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${')}\``
+  return `\`${String(s).replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${').replace(/</g, '\\x3C')}\``
 }
 
 function serializeArticle(a) {
@@ -115,7 +116,7 @@ async function githubPutFile(path, content, sha, message, env) {
 }
 
 async function handleApprove(draft, token, env) {
-  const { article } = draft
+  const article = await sanitizeArticle(draft.article)
   const MARKER = 'const ARTICLES = [\n'
 
   try {
@@ -131,14 +132,14 @@ async function handleApprove(draft, token, env) {
     await githubPutFile('blog.html', updated, file.sha, `content: publish "${article.title}"`, env)
   } catch (err) {
     console.error(`Publish failed: ${err.message}`)
-    return page(`<h1>Publish Failed</h1><p>${err.message}</p>`, 500)
+    return page(`<h1>Publish Failed</h1><p>${escHtml(err.message)}</p>`, 500)
   }
 
   await env.DRAFTS.delete(`draft:${token}`)
 
   return page(`
     <h1 style="color:#16a34a">✅ Published!</h1>
-    <p><strong>${article.title}</strong></p>
+    <p><strong>${escHtml(article.title)}</strong></p>
     <p>Committed to blog.html. Cloudflare Pages will redeploy in ~1 minute, and the
     SEO page rebuild Action will follow shortly after.</p>
     <p><a href="https://finnpath.com/blog/${article.id}">View live post →</a></p>
@@ -147,7 +148,7 @@ async function handleApprove(draft, token, env) {
 
 async function handleSkip(draft, token, env) {
   await env.DRAFTS.delete(`draft:${token}`)
-  return page(`<h1>Skipped</h1><p>"${draft.article.title}" has been discarded.</p>`)
+  return page(`<h1>Skipped</h1><p>"${escHtml(draft.article.title)}" has been discarded.</p>`)
 }
 
 function serveEditForm(draft, token) {
@@ -160,7 +161,7 @@ function serveEditForm(draft, token) {
   button{background:#0B5FFF;color:white;border:none;padding:12px 28px;font-size:16px;border-radius:6px;cursor:pointer;margin-top:12px}
 </style></head><body>
   <h1>Request Changes</h1>
-  <p class="sub">Post: <strong>${draft.article.title}</strong></p>
+  <p class="sub">Post: <strong>${escHtml(draft.article.title)}</strong></p>
   <form method="POST">
     <textarea name="notes" placeholder="e.g. Make the intro punchier, add a concrete dollar example, shorten the conclusion" required></textarea>
     <br><button type="submit">Send for Revision →</button>
@@ -257,4 +258,60 @@ function page(body, status = 200) {
     `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:sans-serif;max-width:640px;margin:60px auto;padding:0 20px}a{color:#0B5FFF}</style></head><body>${body}</body></html>`,
     { status, headers: { 'Content-Type': 'text/html' } }
   )
+}
+
+// Email link scanners can open links on their own, so a plain GET never publishes.
+function serveApproveConfirm(draft) {
+  return page(`<h1>Publish this post?</h1>
+  <p><strong>${escHtml(draft.article.title)}</strong></p>
+  <form method="POST"><button type="submit" style="background:#16a34a;color:#fff;border:0;padding:12px 26px;font-size:16px;border-radius:6px;cursor:pointer">Publish to finnpath.com</button></form>`)
+}
+
+function escHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
+}
+
+// Article HTML comes from the model, so only the tags and attributes real posts use survive.
+const KEEP_TAGS = new Set(['p', 'strong', 'b', 'em', 'i', 'ul', 'ol', 'li', 'h3', 'h4', 'br', 'a', 'div', 'span', 'blockquote'])
+const DROP_WITH_CONTENT = new Set(['script', 'style', 'iframe', 'object', 'embed', 'svg', 'math', 'template', 'noscript', 'form', 'textarea', 'select'])
+const SAFE_CLASS = /^[a-z0-9 _-]{1,80}$/i
+// Stat callouts color their number with a theme token, e.g. style="color:var(--sky)".
+const SAFE_STYLE = /^color:\s*var\(--[a-z-]+\);?$/i
+// http(s) links, or site-relative ones like "simulator.html" / "/tools/x" / "#id"; no other schemes.
+const safeHref = v => { const h = v.trim(); return /^https?:\/\//i.test(h) || (!/^[a-z][a-z0-9+.-]*:/i.test(h) && !h.startsWith('//') && !/[\s"'<>]/.test(h)) }
+
+async function sanitizeHtml(html) {
+  const rewriter = new HTMLRewriter()
+    .on('*', {
+      element(el) {
+        const tag = el.tagName.toLowerCase()
+        if (DROP_WITH_CONTENT.has(tag)) return el.remove()
+        if (!KEEP_TAGS.has(tag)) return el.removeAndKeepContent()
+        for (const [name, value] of [...el.attributes]) {
+          const ok = (name === 'class' && SAFE_CLASS.test(value))
+            || (name === 'href' && tag === 'a' && safeHref(value))
+            || (name === 'style' && SAFE_STYLE.test(value.trim()))
+            || (name === 'data-chart' && tag === 'div')
+          if (!ok) el.removeAttribute(name)
+        }
+        if (tag === 'a') el.setAttribute('rel', 'noopener')
+      },
+    })
+    .onDocument({ comments(c) { c.remove() } })
+  return rewriter.transform(new Response(String(html ?? ''))).text()
+}
+
+const plain = s => String(s ?? '').replace(/[<>]/g, '').trim()
+const slug = s => String(s ?? '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 80)
+
+async function sanitizeArticle(a) {
+  return {
+    ...a,
+    id: slug(a.id), category: slug(a.category), catClass: slug(a.catClass),
+    catLabel: plain(a.catLabel), emoji: plain(a.emoji), title: plain(a.title), excerpt: plain(a.excerpt),
+    readTime: plain(a.readTime), author: plain(a.author), authorEmoji: plain(a.authorEmoji),
+    authorRole: plain(a.authorRole), date: plain(a.date),
+    imageUrl: /^https:\/\//i.test(String(a.imageUrl || '')) ? String(a.imageUrl).replace(/["'<>\s]/g, '') : '',
+    content: await sanitizeHtml(a.content),
+  }
 }
