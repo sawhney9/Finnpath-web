@@ -1,5 +1,6 @@
 import './site-nav.js';
 import './info-tips.js';
+import { bindAskAI, AI_PREAMBLE } from './ask-ai.js';
 import { runSelldown, pct } from './sim-engine.js';
 
 const STATS_URL = 'https://finnpath-gemini-proxy.rimas2043.workers.dev/stats';
@@ -321,6 +322,33 @@ function renderHeadline(p, r){
   $('headline').hidden=false;
 }
 
+/* ---------- go deeper with AI ---------- */
+let last = null;
+function aiPrompt(){
+  if (!last) return '';
+  const {p, r} = last, name = (p.raw.ticker||'').toUpperCase() || 'my company stock', n = Math.round(p.sellYears);
+  const plan = p.schedule
+    ? 'a custom schedule: ' + p.schedule.map((x,i)=>x.a>0 ? `${new Date().getFullYear()+i}: sell ${fmt(x.a)}${x.inc!=='work'?' (lower-income year)':''}` : null).filter(Boolean).join('; ')
+    : `sell evenly over ${n} year${n>1?'s':''}`;
+  const row = k => `bad decade ${fmt(r[k].p10)}, typical ${fmt(r[k].p50)}, great decade ${fmt(r[k].p90)}; ${pctf(r[k].loss)} chance of ending below what I put in`;
+  return [
+    `I used Finnpath's RSU Selldown Planner (finnpath.com/tools/rsu-selldown), which simulates holding vs. selling a concentrated stock position after capital gains tax. Please explain my results in plain English, the trade-offs between the three choices, and what I should think about before deciding (taxes, timing, where to put the money). ${AI_PREAMBLE}`,
+    '', 'My inputs:',
+    `- ${name}: vested shares worth ${fmt(p.value)}, cost basis ${fmt(p.basis)}`,
+    p.vests ? `- New vests: ${fmt(p.vests)}/yr after tax for ${p.vestYears} more years; ${p.sellVests ? 'selling them as they vest' : 'holding them'}` : '- No more vests coming',
+    `- Plan: ${plan}, keeping ${p.keepPct}% of today's position`,
+    `- Money goes to: ${p.dests.map(d=>`${Math.round(d.w*100)}% ${d.label.split(' (')[0]}`).join(', ')}`,
+    `- Tax on gains: about ${(p.tax*100).toFixed(1)}% (${$('fedRate').value}% federal${$('niit').value==='1'?' + 3.8% NIIT':''} + ${num($('stateRate').value)||0}% state)`,
+    `- Assumptions: ${name} ${(p.stkMu*100).toFixed(0)}% expected return, ${(p.stkVol*100).toFixed(0)}% volatility; ${p.horizon}-year horizon; ${p.sims.toLocaleString()} simulated markets`,
+    '', 'Results (after tax, end of horizon):',
+    `- Hold everything: ${row('hold')}`,
+    `- My plan: ${row('plan')}`,
+    `- Sell now: ${row('now')}`,
+    `- My plan matched or beat holding in ${pctf(r.planBeats)} of simulated markets`,
+  ].join('\n');
+}
+bindAskAI($('askAI'), aiPrompt, toast);
+
 /* ---------- events ---------- */
 // Results update as you type (debounced); there's no Run button.
 let runTimer=null, runSeq=0;
@@ -329,7 +357,7 @@ async function runNow(){
   if (pendingLookup) await pendingLookup;
   if (seq!==runSeq) return;
   const p=params(); if (!p) return;
-  const r=runSelldown(p); render(p,r); renderHeadline(p,r); save(p.raw);
+  const r=runSelldown(p); render(p,r); renderHeadline(p,r); save(p.raw); last={p,r}; $('askAI').hidden=false;
 }
 function scheduleRun(){ clearTimeout(runTimer); runTimer=setTimeout(runNow, 350); }
 $('form').addEventListener('submit', e => { e.preventDefault(); runNow(); });

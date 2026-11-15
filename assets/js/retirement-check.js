@@ -1,5 +1,6 @@
 import './site-nav.js';
 import './info-tips.js';
+import { bindAskAI, AI_PREAMBLE } from './ask-ai.js';
 import { runRetirement } from './sim-engine.js';
 
 /* Retirement check: five questions → chance your money lasts, then optional detail.
@@ -211,12 +212,15 @@ function levers(p, r) {
   }
   $('levers').innerHTML = out.map((x, i) => { const d = Math.round((x.s - base) * 100);
     return `<div class="lever"><div class="what">${x.what}</div><div class="to ${tier(x.s)}">${pctf(x.s)} <small>${d > 0 ? '+' : ''}${d} pts</small></div><button type="button" class="ghost sm" data-lever="${i}">Try it</button></div>`; }).join('');
+  last.levers = out;
   $('levers').onclick = e => { const b = e.target.closest('[data-lever]'); if (!b) return; out[+b.dataset.lever].apply(); update(false); toast('Updated your plan'); };
 }
 
+let last = null;
 function update(fresh) {
   const p = params(); if (!p) return;
   const r = runRetirement(p);
+  last = { p, r, levers: [] };
   if (fresh) { shownPct = 0; $('ring').style.transition = 'none'; $('ring').style.strokeDashoffset = String(C); $('ring').getBoundingClientRect(); $('ring').style.transition = ''; }
   renderGauge(p, r); renderChart(p, r); levers(p, r); save(false);
 }
@@ -227,6 +231,35 @@ document.querySelectorAll('.rc input[inputmode="decimal"]').forEach(el => el.add
 
 function syncMix() { const c = $('mix').value === 'custom'; if (c && !$('stockPct').value) $('stockPct').value = 80; $('stockPct').disabled = !c; if (!c) $('stockPct').value = $('mix').value === 'tdf' ? '' : { idx: 100, m80: 80, m60: 60 }[$('mix').value]; $('stockPct').placeholder = c ? '' : 'Shifts with age'; }
 $('mix').addEventListener('change', syncMix);
+
+/* ---------- go deeper with AI ---------- */
+const MIX_LABEL = { tdf: 'a target-date fund (about 90% stocks while young, shifting to bonds near retirement)', idx: 'stock index funds only (no bonds)', m80: '80% stocks / 20% bonds', m60: '60% stocks / 40% bonds' };
+function aiPrompt() {
+  if (!last) return '';
+  const { p, r, levers: lv } = last, v = id => $(id).value, n = id => num($(id).value) || 0;
+  const atRetire = r.bands.find(b => b.age === p.retireAge);
+  const other = [n('pension') && `pension ${fmt(n('pension'))}/yr from ${v('pensionAge')}`, n('rental') && `rental ${fmt(n('rental'))}/yr`, n('side') && `part-time ${fmt(n('side'))}/yr`].filter(Boolean).join(', ') || 'none';
+  const pre = n('preTaxPct'), roth = n('rothPct');
+  return [
+    `I used Finnpath's Retirement Check (finnpath.com/tools/retirement-check), a Monte Carlo retirement simulator. Please explain my results in plain English, what the biggest risks in my plan are, and which 2–3 changes would help most. ${AI_PREAMBLE}`,
+    '', 'My inputs (today\'s dollars):',
+    `- Age ${p.age}, stop working at ${p.retireAge}, plan to age ${p.endAge}`,
+    `- Saved so far ${fmt(p.portfolio)}, adding ${fmt(p.savings)}/yr`,
+    `- Spending in retirement ${fmt(p.spending)}/yr`,
+    `- Social Security ${fmt(n('ssMonthly'))}/month from age ${v('ssAge')}; other income: ${other}`,
+    `- Invested in ${MIX_LABEL[p.mix] || `a custom mix, ${v('stockPct')}% stocks`}`,
+    `- Accounts: ${pre}% pre-tax, ${roth}% Roth, ${Math.max(0, 100 - pre - roth)}% brokerage; ${v('preTaxRate')}% tax on pre-tax withdrawals (blended ~${(p.wdTax * 100).toFixed(1)}%)`,
+    p.cut > 0 ? `- Would cut spending ${Math.round(p.cut * 100)}% when savings fall below ${Math.round(p.trigger * 100)}% of the retirement-day balance` : '- No spending cuts in bad years',
+    `- Assumptions after inflation: stocks ${v('stkMu')}% avg / ${v('stkVol')}% volatility, bonds ${v('bndMu')}% / ${v('bndVol')}%`,
+    '', `Results (${p.sims.toLocaleString()} simulated futures):`,
+    `- Chance the money lasts to ${p.endAge}: ${pctf(r.success)}`,
+    r.earlyDeplete ? `- When it falls short, it typically runs out around age ${Math.round(r.earlyDeplete)}` : '- No simulated future ran out of money',
+    atRetire ? `- Savings at ${p.retireAge}: typical ${fmt(atRetire.p50)}, 8 in 10 futures ${fmt(atRetire.p10)}–${fmt(atRetire.p90)}` : '',
+    `- Typical amount left at ${p.endAge}: ${fmt(r.endP50)}`,
+    lv.length ? `- One change at a time: ${lv.map(x => `${x.what} → ${pctf(x.s)}`).join('; ')}` : '',
+  ].filter(x => x !== '').join('\n');
+}
+bindAskAI($('askAI'), aiPrompt, toast);
 
 /* ---------- state: storage and share links ---------- */
 function readForm() { const o = {}; FIELDS.forEach(f => { o[f] = $(f).value; }); return o; }
