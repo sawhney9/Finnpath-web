@@ -51,6 +51,13 @@
     @media(min-width:700px){.rc .g3{grid-template-columns:repeat(3,1fr)}.rc .g5{grid-template-columns:repeat(5,1fr)}}
     @media(max-width:420px){.rc .grid{grid-template-columns:1fr}}
 
+    .rc label.f{position:relative}
+    .rc .lt{display:flex;align-items:center;gap:6px}
+    .rc button.info{flex:none;width:20px;height:20px;padding:0;border-radius:50%;background:transparent;border:1px solid var(--muted);color:var(--muted);font:italic 700 12px/1 Georgia,serif;display:inline-grid;place-items:center}
+    .rc button.info:hover,.rc button.info[aria-expanded="true"]{border-color:var(--accent);color:var(--accent)}
+    .rc .tip{position:absolute;top:26px;left:0;z-index:20;width:min(340px,100%);background:var(--navy-mid);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:11px 13px;font-size:13px;font-weight:400;line-height:1.5;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+    .rc .tip[hidden]{display:none}
+    @media(max-width:700px){.rc .tip{width:100%}}
     /* screens */
     .rc .screen{display:none;padding:0}
     .rc .screen.on{display:block;animation:fadeUp .45s ease-out}
@@ -251,45 +258,59 @@
 
     <details class="more">
       <summary>Social Security <small>We assume about $2,000 a month from age 67</small></summary>
-      <div class="inner grid g3">
-        <label class="f">Monthly benefit, today's $ <small>Your estimate is at ssa.gov/myaccount</small><input id="ssMonthly" inputmode="decimal"></label>
-        <label class="f">Start age <small>62 to 70; waiting pays more</small><input id="ssAge" inputmode="numeric"></label>
+      <div class="inner">
+      <div class="grid g3">
+        <label class="f"><span class="lt">Monthly benefit, today's $ <button type="button" class="info" aria-label="About: Monthly benefit, today's $" aria-expanded="false" aria-controls="tip-ssMonthly">i</button></span><span class="tip" id="tip-ssMonthly" role="note" hidden>Your estimated Social Security check, in today's dollars. Find yours on your statement at <b>ssa.gov/myaccount</b> (it takes a few minutes to set up). Not sure? The average retired worker gets about $2,000 a month, which is what we assume. Early in your career your statement may show less than you'll end up with, because it's based on the years you've worked so far.</span><input id="ssMonthly" inputmode="decimal"></label>
+        <label class="f"><span class="lt">Start age <button type="button" class="info" aria-label="About: Start age" aria-expanded="false" aria-controls="tip-ssAge">i</button></span><span class="tip" id="tip-ssAge" role="note" hidden>You can start as early as 62, but each year you wait, up to 70, raises your check for the rest of your life, by roughly 7–8% a year. For anyone born in 1960 or later, 67 is "full retirement age".</span><input id="ssAge" inputmode="numeric"></label>
+      </div>
       </div>
     </details>
     <details class="more">
-      <summary>Other income in retirement <small>Pension, rental property, part-time work</small></summary>
-      <div class="inner grid g3">
-        <label class="f">Pension ($/yr)<input id="pension" inputmode="decimal"></label>
-        <label class="f">Pension starts at age<input id="pensionAge" inputmode="numeric"></label>
-        <label class="f">Rental income after costs ($/yr)<input id="rental" inputmode="decimal"></label>
-        <label class="f">Part-time work ($/yr)<input id="side" inputmode="decimal"></label>
-        <label class="f">Part-time from age<input id="sideStart" inputmode="numeric"></label>
-        <label class="f">Part-time until age<input id="sideEnd" inputmode="numeric"></label>
+      <summary>How you invest <small>Index funds, target-date funds, or a mix of stocks and bonds</small></summary>
+      <div class="inner">
+      <div class="grid g3">
+        <label class="f"><span class="lt">What you invest in <button type="button" class="info" aria-label="About: What you invest in" aria-expanded="false" aria-controls="tip-mix">i</button></span><span class="tip" id="tip-mix" role="note" hidden><b>Target-date fund</b>: the default in most 401(k)s, like "Target Retirement 2060". It's about 90% stocks while you're young and shifts toward bonds as you near retirement. <b>Stock index funds only</b>: S&amp;P 500 or total-market funds like VOO, VTI or FXAIX, with no bonds, ever. Higher long-run growth, but bigger drops, which hurt most right after you retire. <b>80/20 and 60/40</b>: a fixed split of stock and bond funds.</span><select id="mix"><option value="tdf">Target-date fund</option><option value="idx">Stock index funds only</option><option value="m80">Mostly stocks (80/20)</option><option value="m60">Balanced (60/40)</option><option value="custom">Custom mix</option></select></label>
+        <label class="f"><span class="lt">Stocks in your mix (%) <button type="button" class="info" aria-label="About: Stocks in your mix (%)" aria-expanded="false" aria-controls="tip-stockPct">i</button></span><span class="tip" id="tip-stockPct" role="note" hidden>Only used with "Custom mix". The rest is in bonds. Stocks grow more over time, while bonds smooth out the drops.</span><input id="stockPct" inputmode="decimal"></label>
+        <label class="f"><span class="lt">Spend less in bad years (%) <button type="button" class="info" aria-label="About: Spend less in bad years (%)" aria-expanded="false" aria-controls="tip-cut">i</button></span><span class="tip" id="tip-cut" role="note" hidden>A "guardrail": if markets fall hard after you retire, you trim spending for a while, say skipping a trip. Even a 10% cut in bad stretches makes your money last much longer. 0 means you'd never cut.</span><input id="cut" inputmode="decimal"></label>
+        <label class="f"><span class="lt">…when savings drop below (%) <button type="button" class="info" aria-label="About: …when savings drop below (%)" aria-expanded="false" aria-controls="tip-trigger">i</button></span><span class="tip" id="tip-trigger" role="note" hidden>When to start trimming. 80 means: if your savings fall below 80% of what you had the day you retired, spend less until they recover.</span><input id="trigger" inputmode="decimal"></label>
+      </div>
       </div>
     </details>
     <details class="more">
-      <summary>How you invest <small>Stocks vs bonds, and cutting back in bad years</small></summary>
-      <div class="inner grid g3">
-        <label class="f">Stocks in your portfolio (%) <small>The rest is in bonds</small><input id="stockPct" inputmode="decimal"></label>
-        <label class="f">Cut spending in bad years by (%) <small>0 means never cut</small><input id="cut" inputmode="decimal"></label>
-        <label class="f">…when savings fall below (% of what you retired with)<input id="trigger" inputmode="decimal"></label>
+      <summary>Pre-tax vs Roth <small>Where your savings sit changes the tax when you take them out</small></summary>
+      <div class="inner">
+        <p class="note" id="taxMixNote" style="margin:0 0 12px"></p>
+      <div class="grid g3">
+        <label class="f"><span class="lt">Pre-tax accounts (%) <button type="button" class="info" aria-label="About: Pre-tax accounts (%)" aria-expanded="false" aria-controls="tip-preTaxPct">i</button></span><span class="tip" id="tip-preTaxPct" role="note" hidden>Traditional 401(k), 403(b) and traditional IRA. You got a tax break putting the money in, so what you take out in retirement is taxed as income.</span><input id="preTaxPct" inputmode="decimal"></label>
+        <label class="f"><span class="lt">Roth accounts (%) <button type="button" class="info" aria-label="About: Roth accounts (%)" aria-expanded="false" aria-controls="tip-rothPct">i</button></span><span class="tip" id="tip-rothPct" role="note" hidden>Roth 401(k) and Roth IRA. You paid tax going in, so withdrawals in retirement are <b>tax-free</b>. An HSA works the same way when it's spent on medical costs. Whatever isn't pre-tax or Roth counts as a regular brokerage account, where you only pay tax on the growth.</span><input id="rothPct" inputmode="decimal"></label>
+        <label class="f"><span class="lt">Tax rate on pre-tax withdrawals (%) <button type="button" class="info" aria-label="About: Tax rate on pre-tax withdrawals (%)" aria-expanded="false" aria-controls="tip-preTaxRate">i</button></span><span class="tip" id="tip-preTaxRate" role="note" hidden>Your average tax rate, federal plus state, on money from pre-tax accounts in retirement. It's usually lower than while you're working, because you're living on less: 10–15% is common for $50K–$100K a year.</span><input id="preTaxRate" inputmode="decimal"></label>
+      </div>
       </div>
     </details>
     <details class="more">
-      <summary>Taxes and timeline <small>Tax on withdrawals, how long to plan for</small></summary>
-      <div class="inner grid g3">
-        <label class="f">Tax on withdrawals (%) <small>Blended rate across 401(k), Roth and brokerage</small><input id="wdTax" inputmode="decimal"></label>
-        <label class="f">Plan to age<input id="endAge" inputmode="numeric"></label>
+      <summary>Other income in retirement <small>Rental property, part-time work, or a pension</small></summary>
+      <div class="inner">
+      <div class="grid g3">
+        <label class="f"><span class="lt">Rental income after costs ($/yr) <button type="button" class="info" aria-label="About: Rental income after costs ($/yr)" aria-expanded="false" aria-controls="tip-rental">i</button></span><span class="tip" id="tip-rental" role="note" hidden>What a rental property brings in each year after the mortgage, property tax, insurance and repairs. We assume it continues for life.</span><input id="rental" inputmode="decimal"></label>
+        <label class="f"><span class="lt">Part-time work ($/yr) <button type="button" class="info" aria-label="About: Part-time work ($/yr)" aria-expanded="false" aria-controls="tip-side">i</button></span><span class="tip" id="tip-side" role="note" hidden>Many people ease into retirement with part-time or consulting work. Even a few years of it lets your savings keep growing untouched for longer.</span><input id="side" inputmode="decimal"></label>
+        <label class="f"><span class="lt">Part-time from age <button type="button" class="info" aria-label="About: Part-time from age" aria-expanded="false" aria-controls="tip-sideStart">i</button></span><span class="tip" id="tip-sideStart" role="note" hidden>Leave blank to use the age you stop working.</span><input id="sideStart" inputmode="numeric"></label>
+        <label class="f"><span class="lt">Part-time until age <button type="button" class="info" aria-label="About: Part-time until age" aria-expanded="false" aria-controls="tip-sideEnd">i</button></span><span class="tip" id="tip-sideEnd" role="note" hidden>Leave blank to stop 5 years after you stop working.</span><input id="sideEnd" inputmode="numeric"></label>
+        <label class="f"><span class="lt">Pension ($/yr, if you have one) <button type="button" class="info" aria-label="About: Pension ($/yr, if you have one)" aria-expanded="false" aria-controls="tip-pension">i</button></span><span class="tip" id="tip-pension" role="note" hidden>A fixed yearly payment from an employer. Rare at private companies now, but common for teachers, government workers and the military. Leave at 0 if you don't have one.</span><input id="pension" inputmode="decimal"></label>
+        <label class="f"><span class="lt">Pension starts at age <button type="button" class="info" aria-label="About: Pension starts at age" aria-expanded="false" aria-controls="tip-pensionAge">i</button></span><span class="tip" id="tip-pensionAge" role="note" hidden>The age your pension payments begin.</span><input id="pensionAge" inputmode="numeric"></label>
+      </div>
       </div>
     </details>
     <details class="more">
-      <summary>Market assumptions <small>For the curious. Returns are after inflation.</small></summary>
-      <div class="inner grid g3">
-        <label class="f">Stocks: average return (%)<input id="stkMu" inputmode="decimal"></label>
-        <label class="f">Stocks: volatility (%)<input id="stkVol" inputmode="decimal"></label>
-        <label class="f">Bonds: average return (%)<input id="bndMu" inputmode="decimal"></label>
-        <label class="f">Bonds: volatility (%)<input id="bndVol" inputmode="decimal"></label>
-        <label class="f">Simulated futures<select id="sims"><option value="1000">1,000 (fast)</option><option value="2000" selected>2,000</option><option value="5000">5,000</option></select></label>
+      <summary>Market assumptions and timeline <small>For the curious. Returns are after inflation.</small></summary>
+      <div class="inner">
+      <div class="grid g3">
+        <label class="f"><span class="lt">Plan to age <button type="button" class="info" aria-label="About: Plan to age" aria-expanded="false" aria-controls="tip-endAge">i</button></span><span class="tip" id="tip-endAge" role="note" hidden>How long your money needs to last. 95 gives a cushion for a long life. Many people live into their 90s, and running out late is the outcome you most want to avoid.</span><input id="endAge" inputmode="numeric"></label>
+        <label class="f"><span class="lt">Stocks: average return (%) <button type="button" class="info" aria-label="About: Stocks: average return (%)" aria-expanded="false" aria-controls="tip-stkMu">i</button></span><span class="tip" id="tip-stkMu" role="note" hidden>Average yearly return after inflation. US stocks have averaged roughly 6–7% a year after inflation over the long run. Lower it if you want to be conservative.</span><input id="stkMu" inputmode="decimal"></label>
+        <label class="f"><span class="lt">Stocks: volatility (%) <button type="button" class="info" aria-label="About: Stocks: volatility (%)" aria-expanded="false" aria-controls="tip-stkVol">i</button></span><span class="tip" id="tip-stkVol" role="note" hidden>How much returns swing from year to year. About 17% for a broad stock index, which means a year of −20% or worse comes along every so often.</span><input id="stkVol" inputmode="decimal"></label>
+        <label class="f"><span class="lt">Bonds: average return (%) <button type="button" class="info" aria-label="About: Bonds: average return (%)" aria-expanded="false" aria-controls="tip-bndMu">i</button></span><span class="tip" id="tip-bndMu" role="note" hidden>Bonds have returned roughly 2% a year after inflation, with much smaller swings than stocks.</span><input id="bndMu" inputmode="decimal"></label>
+        <label class="f"><span class="lt">Bonds: volatility (%) <button type="button" class="info" aria-label="About: Bonds: volatility (%)" aria-expanded="false" aria-controls="tip-bndVol">i</button></span><span class="tip" id="tip-bndVol" role="note" hidden>How much bond returns swing from year to year. About 7% for a broad bond fund.</span><input id="bndVol" inputmode="decimal"></label>
+        <label class="f"><span class="lt">Simulated futures <button type="button" class="info" aria-label="About: Simulated futures" aria-expanded="false" aria-controls="tip-sims">i</button></span><span class="tip" id="tip-sims" role="note" hidden>How many random market histories to run. More gives steadier numbers but takes a little longer.</span><select id="sims"><option value="1000">1,000 (fast)</option><option value="2000" selected>2,000</option><option value="5000">5,000</option></select></label>
+      </div>
       </div>
     </details>
     <p class="note">Lots of your money in one company's stock? The <a href="/tools/rsu-selldown" style="color:var(--accent)">RSU selldown planner</a> shows what that risk does to you.</p>

@@ -1,4 +1,5 @@
 import './site-nav.js';
+import './info-tips.js';
 import { runSelldown, pct } from './sim-engine.js';
 
 const STATS_URL = 'https://finnpath-gemini-proxy.rimas2043.workers.dev/stats';
@@ -321,17 +322,6 @@ function renderHeadline(p, r){
 }
 
 /* ---------- events ---------- */
-// ⓘ explainers: tap to toggle, tap elsewhere or Esc to close. One open at a time.
-function closeTips(except){ document.querySelectorAll('.rsu button.info[aria-expanded="true"]').forEach(b=>{ if (b===except) return; b.setAttribute('aria-expanded','false'); $(b.getAttribute('aria-controls')).hidden=true; }); }
-document.addEventListener('click', e => {
-  const b = e.target.closest('.rsu button.info');
-  if (!b){ if (!e.target.closest('.rsu .tip')) closeTips(); return; }
-  e.preventDefault();
-  const open = b.getAttribute('aria-expanded')!=='true';
-  closeTips(b); b.setAttribute('aria-expanded', String(open)); $(b.getAttribute('aria-controls')).hidden=!open;
-});
-document.addEventListener('keydown', e => { if (e.key==='Escape') closeTips(); });
-
 // Results update as you type (debounced); there's no Run button.
 let runTimer=null, runSeq=0;
 async function runNow(){

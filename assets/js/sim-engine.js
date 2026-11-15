@@ -139,17 +139,18 @@ export function correlated(L, nrm) {
 /**
  * Year-by-year retirement simulation in real (after-inflation) dollars.
  * p: {age, retireAge, endAge, portfolio, savings, spending, wdTax, stockPct,
- *     cut, trigger, stkMu, stkVol, bndMu, bndVol, sims, seed?, incomeAt(age),
+ *     cut, trigger, stkMu, stkVol, bndMu, bndVol, sims, seed?, incomeAt(age), stockPctAt?(age),
  *     employer?, modelEmployer?, empMu?, empVol?, sellYears?, keepFrac?, basisRatio?, ltcg?}
  * A run succeeds if spending (net of other income, grossed up for tax) is met every year.
  * When portfolio < trigger × its value at retirement, spending drops by `cut`.
+ * stockPctAt(age), if given, overrides stockPct each year (e.g. a target-date glide path).
  */
 export function runRetirement(p) {
   const L = cholesky([[1, 0.1, 0.65], [0.1, 1, 0.05], [0.65, 0.05, 1]]);
   const years = Math.max(1, Math.round(p.endAge - p.age));
   const nrm = normal(rng(p.seed || 777));
   const paths = [], ends = []; let ok = 0; const depleteAges = [];
-  const sw = p.stockPct / 100;
+  const swAt = p.stockPctAt ? (age => p.stockPctAt(age) / 100) : (() => p.stockPct / 100);
   for (let i = 0; i < p.sims; i++) {
     let R = p.portfolio - (p.employer || 0), E = p.employer || 0, startRet = null, alive = true, deplAge = null;
     const path = [R + E];
@@ -177,6 +178,7 @@ export function runRetirement(p) {
       if (!alive) { R = 0; E = 0; if (deplAge === null) deplAge = age; }
       const z = correlated(L, nrm);
       const rs = lnRet(p.stkMu, p.stkVol, z[0]), rb = lnRet(p.bndMu, p.bndVol, z[1]), re = lnRet(p.empMu || 0, p.empVol || 0, z[2]);
+      const sw = swAt(age);
       R *= 1 + sw * rs + (1 - sw) * rb;
       E *= 1 + (p.modelEmployer ? re : rs);
       path.push(Math.max(0, R + E));

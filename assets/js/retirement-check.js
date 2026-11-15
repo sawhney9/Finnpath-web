@@ -1,4 +1,5 @@
 import './site-nav.js';
+import './info-tips.js';
 import { runRetirement } from './sim-engine.js';
 
 /* Retirement check: five questions → chance your money lasts, then optional detail.
@@ -8,13 +9,22 @@ const QUICK = ['age', 'retireAge', 'saved', 'savings', 'spending'];
 const DEFAULTS = {
   age: '', retireAge: '', saved: '', savings: '', spending: '',
   ssMonthly: 2000, ssAge: 67, pension: 0, pensionAge: 65, rental: 0, side: 0, sideStart: '', sideEnd: '',
-  stockPct: 80, cut: 0, trigger: 80, wdTax: 15, endAge: 95,
+  mix: 'tdf', stockPct: 80, cut: 0, trigger: 80, preTaxPct: 70, rothPct: 20, preTaxRate: 15, endAge: 95,
   stkMu: 6.5, stkVol: 17, bndMu: 2, bndVol: 7, sims: '2000',
 };
 const FIELDS = Object.keys(DEFAULTS);
 const MONEY = new Set(['saved', 'savings', 'spending', 'ssMonthly', 'pension', 'rental', 'side']);
 const LEVER_SIMS = 1000;
 const LS = 'finnpath-retirement-check-v1';
+// Brokerage withdrawals: roughly half is growth, taxed at a 15% long-term rate.
+const BROKERAGE_TAX = 7.5;
+
+// Stock share by fund choice. Target-date funds follow a typical glide path:
+// 90% stocks until 25 years out, easing to 50% at retirement and 30% seven years later.
+function allocFor(mix, retireAge, customPct) {
+  if (mix === 'tdf') return { stockPct: 90, stockPctAt: age => { const y = retireAge - age; if (y >= 25) return 90; if (y >= 0) return 50 + 40 * y / 25; const t = -y; return t < 7 ? 50 - 20 * t / 7 : 30; } };
+  return { stockPct: { idx: 100, m80: 80, m60: 60 }[mix] ?? customPct, stockPctAt: undefined };
+}
 
 const $ = id => document.getElementById(id);
 const num = v => { const n = parseFloat(String(v ?? '').replace(/[$,%\s]/g, '')); return isFinite(n) ? n : NaN; };
@@ -95,7 +105,7 @@ function params() {
   const p = {
     age, retireAge, endAge,
     portfolio: need('saved', 0, 1e10, 'saved so far'), savings: need('savings', 0, 1e8, 'added per year'), spending: need('spending', 1, 1e8, 'spending'),
-    wdTax: need('wdTax', 0, 50, 'tax on withdrawals') / 100, stockPct: need('stockPct', 0, 100, 'stocks %'),
+    stockPct: $('mix').value === 'custom' ? need('stockPct', 0, 100, 'stocks %') : NaN,
     cut: need('cut', 0, 50, 'spending cut') / 100, trigger: need('trigger', 10, 100, 'cut trigger') / 100,
     stkMu: need('stkMu', -5, 15, 'stock return') / 100, stkVol: need('stkVol', 1, 60, 'stock volatility') / 100,
     bndMu: need('bndMu', -5, 10, 'bond return') / 100, bndVol: need('bndVol', 0, 30, 'bond volatility') / 100,
@@ -106,6 +116,13 @@ function params() {
   const rental = need('rental', 0, 1e7, 'rental income'), side = need('side', 0, 1e7, 'part-time income');
   const sideStart = isFinite(opt('sideStart', 18, 100, 'part-time start')) ? num($('sideStart').value) : retireAge;
   const sideEnd = isFinite(opt('sideEnd', 18, 110, 'part-time end')) ? num($('sideEnd').value) : retireAge + 5;
+  const pre = need('preTaxPct', 0, 100, 'pre-tax %'), roth = need('rothPct', 0, 100, 'Roth %'), preRate = need('preTaxRate', 0, 50, 'pre-tax tax rate');
+  if (pre + roth > 100) { $('preTaxPct').classList.add('bad'); $('rothPct').classList.add('bad'); errs.push('pre-tax + Roth can\'t be over 100%'); }
+  const brokerage = Math.max(0, 100 - pre - roth);
+  p.wdTax = (pre * preRate + brokerage * BROKERAGE_TAX) / 10000;
+  if (isFinite(p.wdTax)) $('taxMixNote').innerHTML = `Regular brokerage: ${Math.round(brokerage)}%. Blended tax on what you withdraw: about <b>${(p.wdTax * 100).toFixed(1)}%</b>. Roth money comes out tax-free, so more Roth means a lower rate.`;
+  Object.assign(p, allocFor($('mix').value, retireAge, p.stockPct));
+  p.mix = $('mix').value;
   $('formErr').textContent = errs.length ? 'Check: ' + errs.join(', ') : '';
   if (errs.length) return null;
   p.incomeAt = a => (a >= ssAge ? ss : 0) + (a >= pensionAge ? pension : 0) + rental + (a >= sideStart && a < sideEnd ? side : 0);
@@ -171,12 +188,12 @@ function levers(p, r) {
   const add = (what, patch, apply) => out.push({ what, s: runRetirement({ ...p, ...patch, sims: LEVER_SIMS }).success, apply });
   const working = p.retireAge > p.age;
   if (base < .95) {
-    if (working && p.retireAge + 2 <= 85) add(`Stop working at ${p.retireAge + 2}`, { retireAge: p.retireAge + 2 }, () => { $('retireAge').value = p.retireAge + 2; });
+    if (working && p.retireAge + 2 <= 85) add(`Stop working at ${p.retireAge + 2}`, { retireAge: p.retireAge + 2, ...allocFor(p.mix, p.retireAge + 2, p.stockPct) }, () => { $('retireAge').value = p.retireAge + 2; });
     if (working) add(`Add ${fmt(5000)} more a year`, { savings: p.savings + 5000 }, () => { $('savings').value = money(p.savings + 5000); });
     else add(`Earn ${fmt(20000)}/yr part-time for 5 years`, { incomeAt: a => p.incomeAt(a) + (a < p.age + 5 ? 20000 : 0) }, () => { $('side').value = money(num($('side').value) + 20000); $('sideStart').value = p.age; $('sideEnd').value = p.age + 5; });
     add(`Spend ${fmt(p.spending * .9)} a year`, { spending: p.spending * .9 }, () => { $('spending').value = money(p.spending * .9); });
   } else {
-    if (working && p.retireAge - 2 >= p.age) add(`Stop working at ${p.retireAge - 2}`, { retireAge: p.retireAge - 2 }, () => { $('retireAge').value = p.retireAge - 2; });
+    if (working && p.retireAge - 2 >= p.age) add(`Stop working at ${p.retireAge - 2}`, { retireAge: p.retireAge - 2, ...allocFor(p.mix, p.retireAge - 2, p.stockPct) }, () => { $('retireAge').value = p.retireAge - 2; });
     add(`Spend ${fmt(p.spending * 1.1)} a year`, { spending: p.spending * 1.1 }, () => { $('spending').value = money(p.spending * 1.1); });
     if (p.cut === 0) add('Cut spending 10% in bad years', { cut: .1 }, () => { $('cut').value = 10; });
   }
@@ -193,12 +210,15 @@ function update(fresh) {
 }
 let timer = null;
 $('result').addEventListener('input', e => { if (e.target.matches('input,select')) { clearTimeout(timer); timer = setTimeout(() => update(false), 350); } });
-$('result').addEventListener('change', e => { if (e.target.matches('select')) update(false); });
+$('result').addEventListener('change', e => { if (e.target.matches('select')) setTimeout(() => update(false)); }); // after syncMix
 document.querySelectorAll('.rc input[inputmode="decimal"]').forEach(el => el.addEventListener('blur', () => { const v = num(el.value); if (isFinite(v) && Math.abs(v) >= 1000) el.value = money(v); }));
+
+function syncMix() { const c = $('mix').value === 'custom'; if (c && !$('stockPct').value) $('stockPct').value = 80; $('stockPct').disabled = !c; if (!c) $('stockPct').value = $('mix').value === 'tdf' ? '' : { idx: 100, m80: 80, m60: 60 }[$('mix').value]; $('stockPct').placeholder = c ? '' : 'Shifts with age'; }
+$('mix').addEventListener('change', syncMix);
 
 /* ---------- state: storage and share links ---------- */
 function readForm() { const o = {}; FIELDS.forEach(f => { o[f] = $(f).value; }); return o; }
-function fillForm(o) { FIELDS.forEach(f => { const v = o[f]; if (v === undefined || v === null) return; $(f).value = (MONEY.has(f) && isFinite(num(v)) && num(v) >= 1000) ? money(num(v)) : v; }); QUICK.forEach(k => { $('q-' + k).value = $(k).value; }); }
+function fillForm(o) { FIELDS.forEach(f => { const v = o[f]; if (v === undefined || v === null) return; $(f).value = (MONEY.has(f) && isFinite(num(v)) && num(v) >= 1000) ? money(num(v)) : v; }); if (!$('mix').value) $('mix').value = DEFAULTS.mix; QUICK.forEach(k => { $('q-' + k).value = $(k).value; }); syncMix(); }
 function save(restarting) { try { localStorage.setItem(LS, JSON.stringify({ ...readForm(), done: !restarting })); } catch (_) {} }
 function load() { try { return JSON.parse(localStorage.getItem(LS) || 'null'); } catch (_) { return null; } }
 function fromQuery() { const q = new URLSearchParams(location.search); if (!q.has('age')) return null; const o = {}; FIELDS.forEach(f => { if (q.has(f)) o[f] = q.get(f); }); o.done = true; return o; }
