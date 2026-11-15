@@ -106,7 +106,8 @@ KV_NAMESPACE_ID = os.environ['CLOUDFLARE_KV_NAMESPACE_ID']
 WORKER_URL = os.environ['APPROVAL_WORKER_URL'].rstrip('/')
 
 client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
-MODEL = 'gemini-3.8-flash'
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'config', 'models.json')) as _f:
+    MODEL = json.load(_f)['gemini_writer']
 
 
 # ─── Cloudflare KV (replaces the Neon Postgres processed-posts table) ────────

@@ -19,8 +19,9 @@ import { fileURLToPath } from 'url'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const REPO = resolve(__dirname, '../..')
 const SITE = 'https://finnpath.com'
-const CLAUDE_MODEL = 'claude-opus-4-8'
-const GEMINI_MODEL = 'gemini-3.8-flash'
+const MODELS = JSON.parse(readFileSync(join(REPO, 'config/models.json'), 'utf8'))
+const CLAUDE_MODEL = MODELS.claude_writer
+const GEMINI_MODEL = MODELS.gemini_writer
 const BG = '#0a1628'      // Finnpath navy
 const ACCENT = '#e8604c'  // Finnpath coral
 const FFMPEG = process.env.REEL_FFMPEG || 'ffmpeg'

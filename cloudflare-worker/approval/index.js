@@ -9,6 +9,8 @@
 //
 // Modeled on the SelfHealthLiving shl-approval Worker.
 
+import MODELS from '../../config/models.json';
+
 // Fill in after the first `wrangler deploy` (it prints this URL) — or your own
 // custom route/domain if you set one up for this Worker.
 const WORKER_URL = 'https://finnpath-approval.rimas2043.workers.dev'
@@ -187,7 +189,7 @@ Editor notes: "${notes}"
 Return ONLY a JSON object with updated "title", "excerpt", "readTime", and "content" fields. Keep the same HTML tag restrictions as the original (only <h3>, <p>, <ul class="article-list">, <li>, <div class="article-callout"><p>...</p></div>).`
 
   const geminiRes = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${env.GEMINI_API_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${MODELS.gemini_writer}:generateContent?key=${env.GEMINI_API_KEY}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
