@@ -166,17 +166,17 @@ function renderChart(p, r) {
   chart = new Chart($('chFan'), {
     type: 'line',
     data: { labels: B.map(b => b.age), datasets: [
-      { label: '_p90', data: B.map(b => b.p90), borderColor: 'transparent', pointRadius: 0, fill: false },
-      { label: '_p10', data: B.map(b => b.p10), borderColor: 'transparent', backgroundColor: acc + '22', pointRadius: 0, fill: '-1' },
-      { label: '_p75', data: B.map(b => b.p75), borderColor: 'transparent', pointRadius: 0, fill: false },
-      { label: '_p25', data: B.map(b => b.p25), borderColor: 'transparent', backgroundColor: acc + '44', pointRadius: 0, fill: '-1' },
+      { label: '_p90', data: B.map(b => b.p90), borderColor: 'transparent', pointHoverRadius: 0, pointRadius: 0, fill: false },
+      { label: '_p10', data: B.map(b => b.p10), borderColor: 'transparent', pointHoverRadius: 0, backgroundColor: acc + '22', pointRadius: 0, fill: '-1' },
+      { label: '_p75', data: B.map(b => b.p75), borderColor: 'transparent', pointHoverRadius: 0, pointRadius: 0, fill: false },
+      { label: '_p25', data: B.map(b => b.p25), borderColor: 'transparent', pointHoverRadius: 0, backgroundColor: acc + '44', pointRadius: 0, fill: '-1' },
       { label: 'Typical', data: B.map(b => b.p50), borderColor: acc, borderWidth: 2.5, pointRadius: 0, tension: .25 },
     ] },
     options: {
       responsive: true, maintainAspectRatio: false, animation: reduced ? false : { duration: 700 },
       interaction: { mode: 'index', intersect: false },
       plugins: { legend: { display: false }, tooltip: {
-        filter: c => !c.dataset.label.startsWith('_'), padding: 12, bodySpacing: 5, footerMarginTop: 8,
+        filter: c => !c.dataset.label.startsWith('_'), padding: 12, bodySpacing: 5, footerMarginTop: 8, displayColors: false,
         footerFont: { weight: 'normal', size: 11 }, footerColor: m,
         callbacks: {
           title: c => { const a = +c[0].label, d = a - p.retireAge; return `Age ${a} · ` + (d < 0 ? `${-d} year${d === -1 ? '' : 's'} until you stop working` : d === 0 ? 'the year you stop working' : `${d} year${d === 1 ? '' : 's'} into retirement`); },
