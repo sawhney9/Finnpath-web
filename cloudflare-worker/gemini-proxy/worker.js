@@ -17,6 +17,7 @@
  */
 
 import { getStats, normalizeSymbol } from './stats.js';
+import MODELS from '../../config/models.json';
 
 const ALLOWED_ORIGINS = [
   'https://finnpath.com',
@@ -27,7 +28,7 @@ const ALLOWED_ORIGINS = [
 ];
 
 const GEMINI_ENDPOINT =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent';
+  `https://generativelanguage.googleapis.com/v1beta/models/${MODELS.gemini_fast}:generateContent`;
 
 const MAX_401K_DOC_CHARS = 15000;
 
