@@ -1,0 +1,6 @@
+{
+  "_note": "Every AI model the repo calls. Change a name here, then redeploy both Workers (npx wrangler deploy in cloudflare-worker/approval and cloudflare-worker/gemini-proxy). The GitHub Actions scripts read this file on each run.",
+  "gemini_writer": "gemini-3.8-flash",
+  "gemini_fast": "gemini-3.5-flash-lite",
+  "claude_writer": "claude-sonnet-5-5"
+}
