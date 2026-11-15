@@ -1,0 +1,17 @@
+# Repo internals that live next to the site files but aren't part of the site.
+# Pages would otherwise serve them as static files.
+/scripts/*            /  302
+/cloudflare-worker/*  /  302
+/.github/*            /  302
+/config/*             /  302
+/node_modules/*       /  302
+/beehiiv-api.js       /  302
+/scratch-beehiiv.js   /  302
+/build_blog_pages.js  /  302
+/bump_css.py          /  302
+/fix_nav.py           /  302
+/generate_vo.py       /  302
+/temp.js              /  302
+/files.zip            /  302
+/package.json         /  302
+/package-lock.json    /  302
