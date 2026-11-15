@@ -17,6 +17,7 @@
  */
 
 import { getStats, normalizeSymbol } from './stats.js';
+import { getHistory, RANGES } from './history.js';
 import MODELS from '../../config/models.json';
 
 const ALLOWED_ORIGINS = [
@@ -43,6 +44,10 @@ export default {
 
     if (request.method === 'GET' && new URL(request.url).pathname === '/stats') {
       return handleStats(request, env, origin);
+    }
+
+    if (request.method === 'GET' && new URL(request.url).pathname === '/history') {
+      return handleHistory(request, env, origin);
     }
 
     if (request.method !== 'POST') {
@@ -106,19 +111,39 @@ export default {
   },
 };
 
+// Per-IP limit shared by the price routes. Returns a 429 response, or null to proceed.
+async function priceLimit(request, env, origin) {
+  if (!env.PRICE_LIMITER) return null;
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const { success } = await env.PRICE_LIMITER.limit({ key: ip });
+  return success ? null : corsResponse(JSON.stringify({ error: 'rate_limited' }), 429, origin, { 'Retry-After': '60' });
+}
+
+async function handleHistory(request, env, origin) {
+  const params = new URL(request.url).searchParams;
+  const sym = normalizeSymbol(params.get('symbol')), range = params.get('range') || '1mo';
+  if (!sym || !RANGES[range]) {
+    return corsResponse(JSON.stringify({ error: 'invalid_request' }), 400, origin);
+  }
+  const limited = await priceLimit(request, env, origin);
+  if (limited) return limited;
+
+  try {
+    const [status, body] = await getHistory(env, sym, range);
+    return corsResponse(JSON.stringify(body), status, origin, { 'Cache-Control': 'public, max-age=3600' });
+  } catch (err) {
+    console.error('history error:', sym, err.message);
+    return corsResponse(JSON.stringify({ error: 'upstream_unavailable' }), 502, origin);
+  }
+}
+
 async function handleStats(request, env, origin) {
   const sym = normalizeSymbol(new URL(request.url).searchParams.get('symbol'));
   if (!sym) {
     return corsResponse(JSON.stringify({ error: 'invalid_symbol' }), 400, origin);
   }
-
-  if (env.PRICE_LIMITER) {
-    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-    const { success } = await env.PRICE_LIMITER.limit({ key: ip });
-    if (!success) {
-      return corsResponse(JSON.stringify({ error: 'rate_limited' }), 429, origin, { 'Retry-After': '60' });
-    }
-  }
+  const limited = await priceLimit(request, env, origin);
+  if (limited) return limited;
 
   try {
     const [status, body] = await getStats(env, sym);
