@@ -160,7 +160,7 @@ function niceMax(x) { if (!(x > 0)) return undefined; const m = 10 ** Math.floor
 
 function renderChart(p, r) {
   const B = r.bands, acc = cssv('--accent'), m = cssv('--muted'), l = cssv('--line');
-  $('chartSub').textContent = `${p.retireAge > p.age ? `You stop working at ${p.retireAge}. ` : ''}Line: the typical future. Shaded: the middle half and the middle 80% of futures. Today's dollars.`;
+  $('chartSub').textContent = `${p.retireAge > p.age ? `You stop working at ${p.retireAge}. ` : ''}Line: the typical future. Darker shading: the middle half of futures; lighter: 8 in 10. Hover or tap the chart for details at any age. Today's dollars.`;
   if (chart) chart.destroy();
   if (!window.Chart) return;
   chart = new Chart($('chFan'), {
@@ -175,7 +175,19 @@ function renderChart(p, r) {
     options: {
       responsive: true, maintainAspectRatio: false, animation: reduced ? false : { duration: 700 },
       interaction: { mode: 'index', intersect: false },
-      plugins: { legend: { display: false }, tooltip: { filter: c => !c.dataset.label.startsWith('_'), callbacks: { title: c => `Age ${c[0].label}`, label: c => `Typical: ${fmt(c.parsed.y)}` } } },
+      plugins: { legend: { display: false }, tooltip: {
+        filter: c => !c.dataset.label.startsWith('_'), padding: 12, bodySpacing: 5, footerMarginTop: 8,
+        footerFont: { weight: 'normal', size: 11 }, footerColor: m,
+        callbacks: {
+          title: c => { const a = +c[0].label, d = a - p.retireAge; return `Age ${a} · ` + (d < 0 ? `${-d} year${d === -1 ? '' : 's'} until you stop working` : d === 0 ? 'the year you stop working' : `${d} year${d === 1 ? '' : 's'} into retirement`); },
+          label: c => { const x = B[c.dataIndex]; return [
+            `Typical future: ${fmt(x.p50)}`,
+            `Middle half of futures: ${fmt(x.p25)} – ${fmt(x.p75)}`,
+            `8 in 10 futures: ${fmt(x.p10)} – ${fmt(x.p90)}`,
+            `Money still left in ${pctf(x.funded)} of futures`,
+          ]; },
+          footer: c => { const a = +c[0].label; return a < p.retireAge ? 'Still working and saving.' : 'Living on savings plus other income.'; },
+        } } },
       // Cap the axis a bit above the upper-middle band so the best 10% of futures don't flatten the typical line.
       scales: { x: { ticks: { color: m, maxTicksLimit: 8 }, grid: { color: l } }, y: { ticks: { color: m, callback: v => fmt(v) }, grid: { color: l }, beginAtZero: true, max: niceMax(Math.max(...B.map(b => b.p75)) * 1.25) } },
     },

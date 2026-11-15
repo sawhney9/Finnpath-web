@@ -150,6 +150,7 @@ export function runRetirement(p) {
   const years = Math.max(1, Math.round(p.endAge - p.age));
   const nrm = normal(rng(p.seed || 777));
   const paths = [], ends = []; let ok = 0; const depleteAges = [];
+  const fundedCount = new Array(years + 1).fill(0);
   const swAt = p.stockPctAt ? (age => p.stockPctAt(age) / 100) : (() => p.stockPct / 100);
   for (let i = 0; i < p.sims; i++) {
     let R = p.portfolio - (p.employer || 0), E = p.employer || 0, startRet = null, alive = true, deplAge = null;
@@ -183,6 +184,7 @@ export function runRetirement(p) {
       E *= 1 + (p.modelEmployer ? re : rs);
       path.push(Math.max(0, R + E));
     }
+    path.forEach((v, y) => { if (v > 0) fundedCount[y]++; });
     if (alive) ok++; else depleteAges.push(deplAge);
     ends.push(Math.max(0, path[path.length - 1]));
     if (i < 1500) paths.push(path);
@@ -190,7 +192,8 @@ export function runRetirement(p) {
   const bands = [];
   for (let y = 0; y <= years; y++) {
     const col = paths.map(pp => pp[y]).sort((a, b) => a - b);
-    bands.push({ age: p.age + y, p10: pct(col, .1), p25: pct(col, .25), p50: pct(col, .5), p75: pct(col, .75), p90: pct(col, .9) });
+    // funded: share of all futures that still have money at this age.
+    bands.push({ age: p.age + y, p10: pct(col, .1), p25: pct(col, .25), p50: pct(col, .5), p75: pct(col, .75), p90: pct(col, .9), funded: fundedCount[y] / p.sims });
   }
   const se = ends.slice().sort((a, b) => a - b), da = depleteAges.sort((a, b) => a - b);
   return { success: ok / p.sims, bands, endP10: pct(se, .1), endP50: pct(se, .5), endP90: pct(se, .9), earlyDeplete: da.length ? pct(da, .5) : null };
