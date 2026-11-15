@@ -73,7 +73,7 @@ document.querySelectorAll('.chips').forEach(c => c.addEventListener('click', e =
 $('start').onclick = () => { show('wizard'); showStep(1); };
 
 function finishWizard() {
-  QUICK.forEach(k => { $(k).value = $('q-' + k).value; });
+  QUICK.forEach(k => { const v = $('q-' + k).value; $(k).value = MONEY.has(k) && isFinite(num(v)) ? money(num(v)) : v; });
   $('wizBar').style.width = '100%';
   show('crunch');
   $('crunchText').textContent = `Playing out ${num($('sims').value).toLocaleString()} possible futures…`;
@@ -139,6 +139,8 @@ function renderGauge(p, r) {
     ` Typical amount left at ${p.endAge}: <b>${fmt(r.endP50)}</b> in today's dollars.`;
 }
 
+function niceMax(x) { if (!(x > 0)) return undefined; const m = 10 ** Math.floor(Math.log10(x)), f = x / m; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * m; }
+
 function renderChart(p, r) {
   const B = r.bands, acc = cssv('--accent'), m = cssv('--muted'), l = cssv('--line');
   $('chartSub').textContent = `${p.retireAge > p.age ? `You stop working at ${p.retireAge}. ` : ''}Line: the typical future. Shaded: the middle half and the middle 80% of futures. Today's dollars.`;
@@ -157,7 +159,8 @@ function renderChart(p, r) {
       responsive: true, maintainAspectRatio: false, animation: reduced ? false : { duration: 700 },
       interaction: { mode: 'index', intersect: false },
       plugins: { legend: { display: false }, tooltip: { filter: c => !c.dataset.label.startsWith('_'), callbacks: { title: c => `Age ${c[0].label}`, label: c => `Typical: ${fmt(c.parsed.y)}` } } },
-      scales: { x: { ticks: { color: m, maxTicksLimit: 8 }, grid: { color: l } }, y: { ticks: { color: m, callback: v => fmt(v) }, grid: { color: l }, beginAtZero: true } },
+      // Cap the axis a bit above the upper-middle band so the best 10% of futures don't flatten the typical line.
+      scales: { x: { ticks: { color: m, maxTicksLimit: 8 }, grid: { color: l } }, y: { ticks: { color: m, callback: v => fmt(v) }, grid: { color: l }, beginAtZero: true, max: niceMax(Math.max(...B.map(b => b.p75)) * 1.25) } },
     },
   });
 }
@@ -168,7 +171,7 @@ function levers(p, r) {
   const add = (what, patch, apply) => out.push({ what, s: runRetirement({ ...p, ...patch, sims: LEVER_SIMS }).success, apply });
   const working = p.retireAge > p.age;
   if (base < .95) {
-    if (p.retireAge + 2 <= 85) add(`Stop working at ${p.retireAge + 2}`, { retireAge: p.retireAge + 2 }, () => { $('retireAge').value = p.retireAge + 2; });
+    if (working && p.retireAge + 2 <= 85) add(`Stop working at ${p.retireAge + 2}`, { retireAge: p.retireAge + 2 }, () => { $('retireAge').value = p.retireAge + 2; });
     if (working) add(`Add ${fmt(5000)} more a year`, { savings: p.savings + 5000 }, () => { $('savings').value = money(p.savings + 5000); });
     else add(`Earn ${fmt(20000)}/yr part-time for 5 years`, { incomeAt: a => p.incomeAt(a) + (a < p.age + 5 ? 20000 : 0) }, () => { $('side').value = money(num($('side').value) + 20000); $('sideStart').value = p.age; $('sideEnd').value = p.age + 5; });
     add(`Spend ${fmt(p.spending * .9)} a year`, { spending: p.spending * .9 }, () => { $('spending').value = money(p.spending * .9); });

@@ -29,6 +29,7 @@
     .rc{max-width:880px;margin:0 auto;padding:calc(var(--nav-bar-h) + 28px) 16px 56px}
     .rc .eyebrow{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
     .rc h1{font-family:'Playfair Display',serif;font-size:clamp(32px,6vw,52px);line-height:1.1;margin:10px 0 12px;letter-spacing:-.01em}
+    .rc h1.rh{font-size:clamp(26px,5vw,36px);margin:6px 0 18px}
     .rc .lede{color:var(--muted);font-size:18px;margin:0 0 26px;max-width:600px}
     .rc .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin-bottom:16px}
     .rc .card h2{font-size:18px;margin:0 0 4px;letter-spacing:-.01em}
@@ -204,6 +205,8 @@
 
   <!-- Results -->
   <section class="screen" id="result" aria-live="polite">
+    <div class="eyebrow">Your retirement check</div>
+    <h1 class="rh">Here's where you stand</h1>
     <div class="card gauge">
       <svg viewBox="0 0 170 170" role="img" aria-labelledby="gaugeLabel">
         <title id="gaugeLabel">Chance your money lasts</title>
