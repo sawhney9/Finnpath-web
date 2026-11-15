@@ -23,6 +23,7 @@ const ALLOWED_ORIGINS = [
   'https://www.finnpath.com',
   'http://localhost:3000',
   'http://127.0.0.1:5500',
+  'https://rsu-selldown.finnpath-web.pages.dev', // TEMP: RSU planner preview — remove before merge
 ];
 
 const GEMINI_ENDPOINT =
