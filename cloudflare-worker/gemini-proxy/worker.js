@@ -19,6 +19,24 @@
 import { getStats, normalizeSymbol } from './stats.js';
 import { getHistory, RANGES } from './history.js';
 import MODELS from '../../config/models.json';
+import { DurableObject } from 'cloudflare:workers';
+
+// Hard daily ceiling on Gemini usage across all visitors (the per-IP limiter is
+// approximate and per-location). A 401k analysis costs more than a Pulse sentence.
+const AI_DAILY_UNITS = 1000;
+const AI_COST = { '/401k': 5, '/pulse': 1 };
+
+// One instance holds today's count; Durable Objects give a single, exact counter.
+export class AiBudget extends DurableObject {
+  async take(units, limit) {
+    const day = new Date().toISOString().slice(0, 10);
+    const cur = (await this.ctx.storage.get('usage')) || {};
+    const used = cur.day === day ? cur.used : 0;
+    if (used + units > limit) return false;
+    await this.ctx.storage.put('usage', { day, used: used + units });
+    return true;
+  }
+}
 
 const ALLOWED_ORIGINS = [
   'https://finnpath.com',
@@ -91,6 +109,11 @@ export default {
       if (!prompt) return corsResponse(JSON.stringify({ error: 'Invalid request' }), 400, origin);
       // Output budget includes the model's (minimal) thinking tokens
       generationConfig = { maxOutputTokens: 512, temperature: 0.4 };
+    }
+
+    if (env.AI_BUDGET) {
+      const ok = await env.AI_BUDGET.get(env.AI_BUDGET.idFromName('global')).take(AI_COST[route], AI_DAILY_UNITS);
+      if (!ok) return corsResponse(JSON.stringify({ error: 'daily_limit' }), 429, origin, { 'Retry-After': '3600' });
     }
 
     // Call Gemini — key comes from Cloudflare secret, never from source

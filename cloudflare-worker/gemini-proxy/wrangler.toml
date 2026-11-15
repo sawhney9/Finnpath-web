@@ -1,6 +1,6 @@
 name = "finnpath-gemini-proxy"
 main = "worker.js"
-compatibility_date = "2024-01-01"
+compatibility_date = "2026-11-01"
 
 # Secrets (NEVER put real values here — set them with `wrangler secret put`)
 # Run: wrangler secret put GEMINI_API_KEY
@@ -30,3 +30,12 @@ namespace_id = "2002"
 [[kv_namespaces]]
 binding = "PRICE_CACHE"
 id = "a559b24f6ac74d119686e76997b0d1eb"
+
+# Global daily cap on Gemini calls (see AiBudget in worker.js).
+[[durable_objects.bindings]]
+name = "AI_BUDGET"
+class_name = "AiBudget"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["AiBudget"]
