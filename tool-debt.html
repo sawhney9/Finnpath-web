@@ -1076,7 +1076,7 @@
   setTimeout(triggerVizUpdate, 200);
 </script>
 <script type="module">
-  import { initializeApp }          from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+  import { initializeApp, getApps, getApp }          from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
   import { getAuth, signInWithPopup, signOut, GoogleAuthProvider, onAuthStateChanged }
                                     from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
   import { getFirestore, doc, setDoc, getDoc }
@@ -1091,7 +1091,8 @@
     appId: "1:1058942599170:web:9aef88c5417e18b157e71b"
   };
 
-  const app      = initializeApp(firebaseConfig);
+  // ticker.js may have started Firebase already; reuse that app instead of a second init.
+  const app      = getApps().length ? getApp() : initializeApp(firebaseConfig);
   const auth     = getAuth(app);
   const db       = getFirestore(app);
   const provider = new GoogleAuthProvider();
