@@ -74,7 +74,10 @@ export function blend(dests) {
 /**
  * Compare hold / sell over N years / sell now for a concentrated position.
  * p: {value, basis, vests, vestYears, sellVests, sellYears, keepPct, horizon,
- *     stkMu, stkVol, sims, tax, putIn, dests}
+ *     stkMu, stkVol, sims, tax, putIn, dests, schedule?}
+ * schedule (optional) replaces the even selldown for the plan strategy: one
+ * entry per year, {f, tax}, where f is the fraction of today's shares to sell
+ * that year and tax is that year's capital gains rate.
  */
 export function runSelldown(p) {
   const B = blend(p.dests), rho = B.rho, k = Math.sqrt(1 - rho * rho);
@@ -86,10 +89,13 @@ export function runSelldown(p) {
     for (let i = 0; i < p.sims; i++) {
       let S = p.value, SB = p.basis, D = 0, DB = 0, q = 1, peak = S, mdd = 0; const path = [];
       for (let y = 0; y < p.horizon; y++) {
-        let frac = 0;
+        let frac = 0, rate = p.tax;
         if (s === 'now' && y === 0) { frac = 1 - keep; q = keep; }
-        if (s === 'plan' && y < n && q > keep) { const sq = (q - keep) / (n - y); frac = sq / q; q -= sq; }
-        if (frac > 0 && S > 0) { const sale = S * frac, bs = SB * frac, tax = Math.max(0, sale - bs) * p.tax; S -= sale; SB -= bs; D += sale - tax; DB += sale - tax; }
+        if (s === 'plan' && q > keep) {
+          if (p.schedule) { const e = p.schedule[y]; if (e && e.f > 0) { const sq = Math.min(e.f, q - keep); frac = sq / q; q -= sq; rate = e.tax; } }
+          else if (y < n) { const sq = (q - keep) / (n - y); frac = sq / q; q -= sq; }
+        }
+        if (frac > 0 && S > 0) { const sale = S * frac, bs = SB * frac, tax = Math.max(0, sale - bs) * rate; S -= sale; SB -= bs; D += sale - tax; DB += sale - tax; }
         const z1 = nrm(), z2 = rho * z1 + k * nrm();
         S *= 1 + lnRet(p.stkMu, p.stkVol, z1); D *= 1 + lnRet(B.mu, B.vol, z2);
         if (y < p.vestYears && p.vests > 0) { if (p.sellVests && s !== 'hold') { D += p.vests; DB += p.vests; } else { S += p.vests; SB += p.vests; } }

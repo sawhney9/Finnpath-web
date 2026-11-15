@@ -60,6 +60,15 @@
     .rsu .destcustom{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:-2px 0 10px}
     .rsu .wsum{font-size:13px;color:var(--muted)}.rsu .wsum.bad{color:var(--bad);font-weight:600}
     .rsu .note{font-size:12.5px;color:var(--muted);margin:8px 0 0;min-height:1em}
+    .rsu .schedbox{margin-top:14px;padding:14px;border:1px solid var(--line);border-radius:var(--radius);background:rgba(0,0,0,.12)}
+    .rsu .srow{display:grid;grid-template-columns:52px 1fr 110px 250px;gap:6px 12px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
+    .rsu .srow.shead{font-size:12px;color:var(--muted);font-weight:600;padding-top:0}
+    .rsu .srow .sy{font:600 14px var(--mono)}
+    .rsu .srow input[type=range]{padding:0;border:0;background:transparent;accent-color:var(--accent);height:28px}
+    .rsu .srow input.samt,.rsu .srow select{padding:7px 9px;font-size:14px}
+    .rsu .srow .snote{grid-column:2/-1;font-size:12px;color:var(--vest)}
+    .rsu .srow .snote:empty{display:none}
+    @media(max-width:760px){.rsu .srow{grid-template-columns:44px 1fr 96px}.rsu .srow select{grid-column:2/-1}.rsu .srow.shead span:last-child{display:none}}
     .rsu details summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--accent);margin-top:14px}
     .rsu .kpis{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
     @media(min-width:760px){.rsu .kpis{grid-template-columns:repeat(4,1fr)}}
@@ -130,10 +139,17 @@
     </div>
 
     <h3>Your selldown plan</h3>
-    <div class="grid g3">
+    <div class="grid g4">
+      <label class="f">How to sell existing shares<select id="planMode"><option value="even">Evenly over a set number of years</option><option value="custom">Custom amount each year</option></select></label>
       <label class="f">Sell existing shares over (years)<input id="sellYears" inputmode="decimal" placeholder="3"></label>
       <label class="f">Keep this % of today's position <small>A small "conviction" slice</small><input id="keepPct" inputmode="decimal" placeholder="10"></label>
       <label class="f">Look ahead (years)<input id="horizon" inputmode="decimal" placeholder="10"></label>
+    </div>
+    <div id="schedBox" class="schedbox" hidden>
+      <p class="sub">Drag each year's slider to choose how much to sell, in today's dollars. For years when your income will be lower, like a sabbatical or after you retire, pick a lower tax rate. Anything you don't schedule stays in your stock.</p>
+      <div class="srow shead" aria-hidden="true"><span>Year</span><span>Amount to sell</span><span></span><span>Your income that year</span></div>
+      <div id="schedRows"></div>
+      <div class="row" style="justify-content:space-between;margin-top:6px"><button type="button" class="ghost sm" id="schedEven">Reset to an even split</button><span class="wsum" id="schedSum"></span></div>
     </div>
 
     <h3>Where the money goes</h3>

@@ -15,7 +15,7 @@ const DEST = {
   gold: {label:'Gold (GLD / IAU)',                     mu:5.5, vol:15,   cls:'gold', rho:0.05, bench:'GLD',   color:'#c9a84c'},
   custom:{label:'Custom (enter your own)',             mu:8,   vol:20,   cls:'eq',   rho:0.5,  bench:'VTI',   color:'#e86ca8'}
 };
-const DEFAULTS = {ticker:'',value:500000,basis:300000,vests:100000,vestYears:4,sellVests:'1',sellYears:3,keepPct:10,horizon:10,fedRate:'20',niit:'1',stateRate:5,stkMu:10,stkVol:30,sims:'5000',dests:[{k:'vti',w:100}]};
+const DEFAULTS = {ticker:'',value:500000,basis:300000,vests:100000,vestYears:4,sellVests:'1',planMode:'even',sellYears:3,keepPct:10,horizon:10,fedRate:'20',niit:'1',stateRate:5,stkMu:10,stkVol:30,sims:'5000',dests:[{k:'vti',w:100}]};
 
 // Fallback volatility when price history can't be loaded.
 const VOL_PRESETS = [
@@ -32,7 +32,7 @@ const pctf = (n,d=0) => isFinite(n) ? (n*100).toFixed(d)+'%' : '—';
 const cssv = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 const esc = s => String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>t.classList.remove('on'),2200); }
-const FIELDS = ['ticker','value','basis','vests','vestYears','sellVests','sellYears','keepPct','horizon','fedRate','niit','stateRate','stkMu','stkVol','sims'];
+const FIELDS = ['ticker','value','basis','vests','vestYears','sellVests','planMode','sellYears','keepPct','horizon','fedRate','niit','stateRate','stkMu','stkVol','sims'];
 let dests = DEFAULTS.dests.map(d=>({...d}));
 let lastStats = null;      // measured stats for the current ticker, if any
 let pendingLookup = null;  // in-flight ticker lookup, awaited before a run
@@ -102,17 +102,66 @@ $('dests').addEventListener('change', e => { if (e.target.dataset.f==='k'){ cons
 $('dests').addEventListener('click', e => { const b=e.target.closest('[data-del]'); if (!b) return; dests.splice(+b.dataset.del,1); renderDests(); });
 $('addDest').onclick = () => { if (dests.length>=5) return toast('Up to 5 destinations'); const used=new Set(dests.map(d=>d.k)); const k=['intl','gold','bond','div','cash','voo','bal'].find(x=>!used.has(x))||'custom'; dests.push({k,w:0}); renderDests(); };
 
+/* ---------- custom year-by-year schedule ---------- */
+// sched[y] = {a: dollars to sell that year at today's price, inc: 'work'|'low'|'zero'}
+const INC = {
+  work:{label:'Same rates as above'},
+  low:{label:'Lower income: 15% federal, no NIIT', fed:15, cap:545500, over:'20%'},
+  zero:{label:'Little other income: 0% federal', fed:0, cap:49450, over:'15%'},
+};
+let sched = [];
+const custom = () => $('planMode').value==='custom';
+function sellable(){ const v=num($('value').value), k=num($('keepPct').value); return isFinite(v)&&v>0 ? v*(1-(isFinite(k)?Math.max(0,Math.min(100,k)):0)/100) : 0; }
+function hzYears(){ const h=Math.round(num($('horizon').value)); return isFinite(h) ? Math.max(1,Math.min(40,h)) : 10; }
+function niceStep(x){ if (x<=0) return 100; const raw=x/200, m=10**Math.floor(Math.log10(raw)), f=raw/m; return Math.max(100,(f<2?1:f<5?2:5)*m); }
+function evenSched(){ const n=Math.max(1,Math.round(num($('sellYears').value))||1), cap=sellable(), H=hzYears();
+  sched = Array.from({length:H},(_,y)=>({a: y<n ? cap/Math.min(n,H) : 0, inc: sched[y]?.inc || 'work'})); }
+function fitSched(){ const H=hzYears(), cap=sellable();
+  sched = Array.from({length:H},(_,y)=>({a:Math.max(0,num(sched[y]?.a)||0), inc:INC[sched[y]?.inc]?sched[y].inc:'work'}));
+  const tot=sched.reduce((t,x)=>t+x.a,0); if (tot>cap && tot>0) sched.forEach(x=>x.a*=cap/tot); }
+function rowNote(y){ const x=sched[y], i=INC[x.inc], v=num($('value').value), b=num($('basis').value);
+  if (!i.cap || !(x.a>0) || !(v>0)) return ''; const gain=x.a*Math.max(0,1-(isFinite(b)?b:0)/v);
+  return gain>i.cap ? `That's about ${fmt(gain)} of gain. Gains above roughly ${fmt(i.cap)} (single filer; more if married) are taxed at ${i.over}, so this year's tax is understated.` : ''; }
+function schedSum(){ const cap=sellable(), tot=sched.reduce((t,x)=>t+x.a,0), left=Math.max(0,cap-tot), el=$('schedSum');
+  el.textContent = `Selling ${fmt(tot)} of ${fmt(cap)} available` + (left>=1 ? ` · ${fmt(left)} stays in your stock` : '');
+  el.classList.remove('bad'); }
+function renderSched(){
+  $('schedBox').hidden = !custom(); if (!custom()) return;
+  fitSched(); const cap=sellable(), step=niceStep(cap), Y=new Date().getFullYear();
+  $('schedRows').innerHTML = sched.map((x,y)=>`<div class="srow">
+    <span class="sy">${Y+y}</span>
+    <input type="range" min="0" max="${Math.round(cap)}" step="${step}" value="${Math.round(x.a)}" data-sy="${y}" data-f="a" aria-label="Amount to sell in ${Y+y}">
+    <input class="samt" inputmode="decimal" value="${Math.round(x.a).toLocaleString()}" data-sy="${y}" data-f="t" aria-label="Dollars to sell in ${Y+y}">
+    <select data-sy="${y}" data-f="inc" aria-label="Your income in ${Y+y}">${Object.entries(INC).map(([k,v])=>`<option value="${k}" ${k===x.inc?'selected':''}>${v.label}</option>`).join('')}</select>
+    <span class="snote" id="snote${y}">${rowNote(y)}</span></div>`).join('');
+  schedSum();
+}
+function setAmt(y, raw){ const cap=sellable(), other=sched.reduce((t,x,i)=>i===y?t:t+x.a,0);
+  sched[y].a = Math.max(0, Math.min(isFinite(raw)?raw:0, cap-other));
+  const row=$('schedRows').children[y]; row.querySelector('[data-f="a"]').value=Math.round(sched[y].a);
+  $('snote'+y).textContent=rowNote(y); schedSum(); return row; }
+$('schedRows').addEventListener('input', e => { const y=+e.target.dataset.sy, f=e.target.dataset.f; if (!(y>=0)) return;
+  if (f==='a'){ const row=setAmt(y, +e.target.value); row.querySelector('[data-f="t"]').value=Math.round(sched[y].a).toLocaleString(); }
+  if (f==='t') setAmt(y, num(e.target.value));
+  if (f==='inc'){ sched[y].inc=e.target.value; $('snote'+y).textContent=rowNote(y); } });
+$('schedRows').addEventListener('focusout', e => { if (e.target.dataset.f==='t') e.target.value=Math.round(sched[+e.target.dataset.sy].a).toLocaleString(); });
+$('planMode').addEventListener('change', () => { if (custom() && !sched.some(x=>x.a>0)) evenSched(); renderSched(); });
+$('schedEven').onclick = () => { evenSched(); renderSched(); };
+$('sellYears').addEventListener('change', () => { if (custom()){ evenSched(); renderSched(); } });
+['value','keepPct','horizon','basis'].forEach(id=>$(id).addEventListener('change', renderSched));
+
 /* ---------- state: URL, storage ---------- */
-function readForm(){ const o={}; FIELDS.forEach(f=>o[f]=$(f).value); o.dests=dests.map(d=>({...d})); o.volNote=$('volNote').innerHTML; return o; }
+function readForm(){ const o={}; FIELDS.forEach(f=>o[f]=$(f).value); o.dests=dests.map(d=>({...d})); o.sched=sched.map(x=>({...x})); o.volNote=$('volNote').innerHTML; return o; }
 function fillForm(o){
   FIELDS.forEach(f=>{ if (o[f]!==undefined && o[f]!==null) $(f).value = (typeof o[f]==='number' && Math.abs(o[f])>=1000) ? o[f].toLocaleString() : o[f]; });
   if (Array.isArray(o.dests) && o.dests.length) dests=o.dests.filter(d=>DEST[d.k]).slice(0,5);
   // The note is our own escaped HTML from an earlier lookup; links don't carry it.
   if (typeof o.volNote==='string') $('volNote').innerHTML = o.volNote;
-  renderDests();
+  if (Array.isArray(o.sched)) sched=o.sched;
+  renderDests(); renderSched();
 }
-function toQuery(o){ const p=new URLSearchParams(); FIELDS.forEach(f=>{ if (o[f]!=='' && o[f]!==undefined) p.set(f,String(o[f]).replace(/,/g,'')); }); p.set('d',o.dests.map(d=>[d.k,num(d.w)||0,d.k==='custom'?num(d.mu):'',d.k==='custom'?num(d.vol):'',isFinite(num(d.rho))?num(d.rho):''].join(':')).join('|')); return p.toString(); }
-function fromQuery(){ try { const p=new URLSearchParams(location.search); if (!p.has('value')) return null; const o={}; FIELDS.forEach(f=>{ if (p.has(f)) o[f]=p.get(f); }); if (p.has('d')) o.dests=p.get('d').split('|').map(s=>{ const [k,w,mu,vol,rho]=s.split(':'); const d={k,w:num(w)||0}; if (k==='custom'){ d.mu=num(mu); d.vol=num(vol); } if (isFinite(num(rho))){ d.rho=num(rho); d.rhoSrc='user'; } return d; }); return o; } catch(_){ return null; } }
+function toQuery(o){ const p=new URLSearchParams(); FIELDS.forEach(f=>{ if (o[f]!=='' && o[f]!==undefined) p.set(f,String(o[f]).replace(/,/g,'')); }); p.set('d',o.dests.map(d=>[d.k,num(d.w)||0,d.k==='custom'?num(d.mu):'',d.k==='custom'?num(d.vol):'',isFinite(num(d.rho))?num(d.rho):''].join(':')).join('|')); if (o.planMode==='custom') p.set('s',o.sched.map(x=>Math.round(x.a)+':'+x.inc[0]).join('|')); return p.toString(); }
+function fromQuery(){ try { const p=new URLSearchParams(location.search); if (!p.has('value')) return null; const o={}; FIELDS.forEach(f=>{ if (p.has(f)) o[f]=p.get(f); }); if (p.has('d')) o.dests=p.get('d').split('|').map(s=>{ const [k,w,mu,vol,rho]=s.split(':'); const d={k,w:num(w)||0}; if (k==='custom'){ d.mu=num(mu); d.vol=num(vol); } if (isFinite(num(rho))){ d.rho=num(rho); d.rhoSrc='user'; } return d; }); if (p.has('s')) o.sched=p.get('s').split('|').map(t=>{ const [a,c]=t.split(':'); return {a:num(a)||0, inc:{l:'low',z:'zero'}[c]||'work'}; }); return o; } catch(_){ return null; } }
 const LS='finnpath-rsu-selldown-v1';
 function save(o){ try{ localStorage.setItem(LS, JSON.stringify(o)); }catch(_){} }
 function load(){ try{ return JSON.parse(localStorage.getItem(LS)||'null'); }catch(_){ return null; } }
@@ -138,6 +187,10 @@ function params(){
   $('formErr').textContent = errs.length ? 'Check: '+errs.join(', ') : '';
   $('formErr').classList.toggle('bad', errs.length>0);
   if (errs.length) return null;
+  if (custom()){
+    fitSched(); const state = isFinite(num($('stateRate').value)) ? Math.max(0,Math.min(15,num($('stateRate').value))) : 0;
+    p.schedule = sched.map(x=>({a:x.a, inc:x.inc, f:x.a/p.value, tax: x.inc==='work' ? p.tax : (INC[x.inc].fed+state)/100}));
+  }
   p.startAfterTax = p.value - Math.max(0,p.value-p.basis)*p.tax;
   p.putIn = p.startAfterTax + p.vests*Math.min(p.vestYears,p.horizon);
   p.raw = o; return p;
@@ -154,7 +207,7 @@ function opts(extra={}){ const m=cssv('--muted'), l=cssv('--line'); return Objec
 function render(p, r){
   const name = esc((p.raw.ticker||'').toUpperCase()) || 'your stock';
   const n = Math.round(p.sellYears), C = {hold:cssv('--hold'),plan:cssv('--plan'),now:cssv('--now')};
-  const L = {hold:`Hold all ${name}`, plan:`Sell over ${n} yr${n>1?'s':''}${p.keepPct?`, keep ${p.keepPct}%`:''}`, now:`Sell now${p.keepPct?`, keep ${p.keepPct}%`:''}`};
+  const L = {hold:`Hold all ${name}`, plan:p.schedule ? `Your year-by-year plan${p.keepPct?`, keep ${p.keepPct}%`:''}` : `Sell over ${n} yr${n>1?'s':''}${p.keepPct?`, keep ${p.keepPct}%`:''}`, now:`Sell now${p.keepPct?`, keep ${p.keepPct}%`:''}`};
   document.querySelectorAll('.hz').forEach(e=>e.textContent=p.horizon);
   const protect = r.plan.p10 - r.hold.p10, giveUp = r.hold.p90 - r.plan.p90;
   $('verdict').innerHTML = `In ${pctf(r.planBeats)} of simulated markets your plan ended with as much or more than holding. In a bad market (worst 10%), diversifying left you <b>${fmt(Math.abs(protect))} ${protect>=0?'better':'worse'} off</b>. In a great market (best 10%), holding came out ${fmt(Math.abs(giveUp))} ${giveUp>=0?'ahead':'behind'}. That's the trade-off: some upside for a much smaller downside.`;
@@ -179,18 +232,20 @@ function render(p, r){
 
   // deterministic schedule at today's price
   const keepAmt = p.value*p.keepPct/100; let Sv=p.value, Sb=p.basis; const rows=[]; const Y=new Date().getFullYear();
-  for (let y=0;y<Math.max(n, p.sellVests ? Math.min(p.vestYears,p.horizon) : 0);y++){
-    let sale=0, gain=0, tax=0;
-    if (y<n && Sv>keepAmt){ sale=(Sv-keepAmt)/(n-y); const bs=Sb*(sale/Sv); gain=sale-bs; tax=Math.max(0,gain)*p.tax; Sv-=sale; Sb-=bs; }
+  const lastSale = p.schedule ? p.schedule.reduce((m,x,i)=>x.a>0?i+1:m,0) : n;
+  for (let y=0;y<Math.max(lastSale, p.sellVests ? Math.min(p.vestYears,p.horizon) : 0);y++){
+    let sale=0, gain=0, tax=0; const rate = p.schedule ? (p.schedule[y]?.tax ?? p.tax) : p.tax;
+    const want = p.schedule ? Math.min(p.schedule[y]?.a||0, Sv-keepAmt) : (y<n ? (Sv-keepAmt)/(n-y) : 0);
+    if (want>0 && Sv>keepAmt){ sale=want; const bs=Sb*(sale/Sv); gain=sale-bs; tax=Math.max(0,gain)*rate; Sv-=sale; Sb-=bs; }
     const vest = (p.sellVests && y<p.vestYears) ? p.vests : 0;
     if (!sale && !vest) continue;
-    rows.push({yr:Y+y, sale, vest, gain, tax, invest:sale-tax+vest});
+    rows.push({yr:Y+y, sale, vest, gain, tax, rate: sale ? rate : null, invest:sale-tax+vest});
   }
   const tot = k => rows.reduce((s,x)=>s+x[k],0);
-  $('sched').innerHTML = `<tr><th>Year</th><th>Sell existing</th><th>Sell new vests</th><th>Gain</th><th>Est. tax</th><th>Invested</th></tr>` +
-    rows.map(x=>`<tr><td>${x.yr}</td><td>${fmt(x.sale)}</td><td>${fmt(x.vest)}</td><td>${fmt(x.gain)}</td><td>${fmt(x.tax)}</td><td>${fmt(x.invest)}</td></tr>`).join('') +
-    `<tr><td><b>Total</b></td><td><b>${fmt(tot('sale'))}</b></td><td><b>${fmt(tot('vest'))}</b></td><td><b>${fmt(tot('gain'))}</b></td><td><b>${fmt(tot('tax'))}</b></td><td><b>${fmt(tot('invest'))}</b></td></tr>` +
-    p.dests.map(d=>`<tr><td class="sub-row"><span class="dot" style="background:${d.color}"></span>→ ${esc(d.label.split(' (')[0])} (${Math.round(d.w*100)}%)</td><td colspan="4"></td><td>${fmt(tot('invest')*d.w)}</td></tr>`).join('');
+  $('sched').innerHTML = `<tr><th>Year</th><th>Sell existing</th><th>Sell new vests</th><th>Gain</th><th>Tax rate</th><th>Est. tax</th><th>Invested</th></tr>` +
+    rows.map(x=>`<tr><td>${x.yr}</td><td>${fmt(x.sale)}</td><td>${fmt(x.vest)}</td><td>${fmt(x.gain)}</td><td>${x.rate===null?'—':pctf(x.rate,1)}</td><td>${fmt(x.tax)}</td><td>${fmt(x.invest)}</td></tr>`).join('') +
+    `<tr><td><b>Total</b></td><td><b>${fmt(tot('sale'))}</b></td><td><b>${fmt(tot('vest'))}</b></td><td><b>${fmt(tot('gain'))}</b></td><td></td><td><b>${fmt(tot('tax'))}</b></td><td><b>${fmt(tot('invest'))}</b></td></tr>` +
+    p.dests.map(d=>`<tr><td class="sub-row"><span class="dot" style="background:${d.color}"></span>→ ${esc(d.label.split(' (')[0])} (${Math.round(d.w*100)}%)</td><td colspan="5"></td><td>${fmt(tot('invest')*d.w)}</td></tr>`).join('');
 
   const fo = opts(); fo.scales.x.stacked=true; fo.scales.y.stacked=true;
   mk('chFlow',{type:'bar',data:{labels:rows.map(x=>x.yr),datasets:[
