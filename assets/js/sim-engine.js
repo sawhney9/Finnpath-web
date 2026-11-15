@@ -114,3 +114,90 @@ export function runSelldown(p) {
   let beats = 0; for (let i = 0; i < p.sims; i++) if (ends.plan[i] >= ends.hold[i]) beats++;
   out.planBeats = beats / p.sims; out.blend = B; return out;
 }
+
+/* ---------------------------------------------------------------------------
+ * Retirement Monte Carlo, ported from the FIRE Tracker prototype.
+ * ------------------------------------------------------------------------- */
+
+// Cholesky factor of a correlation matrix, for drawing correlated normals.
+export function cholesky(M) {
+  const n = M.length, L = M.map(() => Array(n).fill(0));
+  for (let i = 0; i < n; i++) for (let j = 0; j <= i; j++) {
+    let s = M[i][j];
+    for (let k = 0; k < j; k++) s -= L[i][k] * L[j][k];
+    L[i][j] = i === j ? Math.sqrt(Math.max(s, 1e-12)) : s / L[j][j];
+  }
+  return L;
+}
+
+export function correlated(L, nrm) {
+  const n = L.length, z = Array.from({ length: n }, nrm), out = Array(n).fill(0);
+  for (let i = 0; i < n; i++) { let s = 0; for (let k = 0; k <= i; k++) s += L[i][k] * z[k]; out[i] = s; }
+  return out;
+}
+
+/**
+ * Year-by-year retirement simulation in real (after-inflation) dollars.
+ * p: {age, retireAge, endAge, portfolio, savings, spending, wdTax, stockPct,
+ *     cut, trigger, stkMu, stkVol, bndMu, bndVol, sims, seed?, incomeAt(age),
+ *     employer?, modelEmployer?, empMu?, empVol?, sellYears?, keepFrac?, basisRatio?, ltcg?}
+ * A run succeeds if spending (net of other income, grossed up for tax) is met every year.
+ * When portfolio < trigger × its value at retirement, spending drops by `cut`.
+ */
+export function runRetirement(p) {
+  const L = cholesky([[1, 0.1, 0.65], [0.1, 1, 0.05], [0.65, 0.05, 1]]);
+  const years = Math.max(1, Math.round(p.endAge - p.age));
+  const nrm = normal(rng(p.seed || 777));
+  const paths = [], ends = []; let ok = 0; const depleteAges = [];
+  const sw = p.stockPct / 100;
+  for (let i = 0; i < p.sims; i++) {
+    let R = p.portfolio - (p.employer || 0), E = p.employer || 0, startRet = null, alive = true, deplAge = null;
+    const path = [R + E];
+    const sellN = Math.max(1, Math.round(p.sellYears || 1));
+    for (let y = 0; y < years; y++) {
+      const age = p.age + y;
+      // Employer stock is sold down into the diversified portfolio.
+      if (E > 0 && p.modelEmployer && y < sellN) {
+        const sellable = Math.max(0, E - p.employer * p.keepFrac), sale = sellable / (sellN - y);
+        const tax = sale * (1 - p.basisRatio) * p.ltcg; E -= sale; R += sale - tax;
+      }
+      if (age < p.retireAge) R += p.savings;
+      else {
+        if (startRet === null) startRet = R + E;
+        let spend = p.spending;
+        if (p.cut > 0 && (R + E) < startRet * p.trigger) spend *= (1 - p.cut);
+        const need = spend - p.incomeAt(age);
+        if (need > 0) {
+          let wd = need / (1 - p.wdTax);
+          const fromR = Math.min(R, wd); R -= fromR; wd -= fromR;
+          if (wd > 0) { const fromE = Math.min(E, wd); E -= fromE; wd -= fromE; }
+          if (wd > 1e-6) alive = false;
+        } else R += -need * (1 - p.wdTax);
+      }
+      if (!alive) { R = 0; E = 0; if (deplAge === null) deplAge = age; }
+      const z = correlated(L, nrm);
+      const rs = lnRet(p.stkMu, p.stkVol, z[0]), rb = lnRet(p.bndMu, p.bndVol, z[1]), re = lnRet(p.empMu || 0, p.empVol || 0, z[2]);
+      R *= 1 + sw * rs + (1 - sw) * rb;
+      E *= 1 + (p.modelEmployer ? re : rs);
+      path.push(Math.max(0, R + E));
+    }
+    if (alive) ok++; else depleteAges.push(deplAge);
+    ends.push(Math.max(0, path[path.length - 1]));
+    if (i < 1500) paths.push(path);
+  }
+  const bands = [];
+  for (let y = 0; y <= years; y++) {
+    const col = paths.map(pp => pp[y]).sort((a, b) => a - b);
+    bands.push({ age: p.age + y, p10: pct(col, .1), p25: pct(col, .25), p50: pct(col, .5), p75: pct(col, .75), p90: pct(col, .9) });
+  }
+  const se = ends.slice().sort((a, b) => a - b), da = depleteAges.sort((a, b) => a - b);
+  return { success: ok / p.sims, bands, endP10: pct(se, .1), endP50: pct(se, .5), endP90: pct(se, .9), earlyDeplete: da.length ? pct(da, .5) : null };
+}
+
+// Years for P growing at g with S saved per year to reach T (Infinity if never).
+export function yearsToTarget(P, S, g, T) {
+  if (P >= T) return 0;
+  if (g <= 0) return S > 0 ? (T - P) / S : Infinity;
+  const n = Math.log((T * g + S) / (P * g + S)) / Math.log(1 + g);
+  return isFinite(n) && n >= 0 ? n : Infinity;
+}

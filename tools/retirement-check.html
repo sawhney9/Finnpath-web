@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Retirement Check: Will Your Money Last? | Finnpath</title>
+  <meta name="description" content="Answer five quick questions and see your chance of retiring on time, across thousands of simulated markets. Free retirement Monte Carlo calculator, no sign-up."/>
+  <link rel="canonical" href="https://finnpath.com/tools/retirement-check"/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:site_name" content="Finnpath"/>
+  <meta property="og:title" content="Retirement Check: Will Your Money Last?"/>
+  <meta property="og:description" content="Five quick questions. Thousands of simulated futures. See where you stand and what would change it."/>
+  <meta property="og:url" content="https://finnpath.com/tools/retirement-check"/>
+  <meta name="twitter:card" content="summary"/>
+  <meta name="twitter:title" content="Retirement Check: Will Your Money Last?"/>
+  <meta name="twitter:description" content="Five quick questions. Thousands of simulated futures. See where you stand and what would change it."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/shared.css?v=7"/>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" integrity="sha384-bs/nf9FbdNouRbMiFcrcZfLXYPKiPaGVGplVbv7dLGECccEXDW+S3zjqSKR5ZEaD" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <style>
+    /* Page tokens, mapped onto the Finnpath palette in shared.css. */
+    :root{
+      --bg:var(--navy);--panel:var(--navy-soft);--ink:var(--white);--muted:rgba(250,249,247,.62);--line:rgba(250,249,247,.10);
+      --accent:#e8604c;--accent-soft:rgba(232,96,76,.12);--good:#3dba7e;--warn:#c9a84c;--bad:#ff7b68;
+      --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    }
+    .rc{max-width:880px;margin:0 auto;padding:calc(var(--nav-bar-h) + 28px) 16px 56px}
+    .rc .eyebrow{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+    .rc h1{font-family:'Playfair Display',serif;font-size:clamp(32px,6vw,52px);line-height:1.1;margin:10px 0 12px;letter-spacing:-.01em}
+    .rc .lede{color:var(--muted);font-size:18px;margin:0 0 26px;max-width:600px}
+    .rc .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin-bottom:16px}
+    .rc .card h2{font-size:18px;margin:0 0 4px;letter-spacing:-.01em}
+    .rc .sub{color:var(--muted);font-size:14px;margin:0 0 14px}
+    .rc .note{font-size:13px;color:var(--muted)}
+    .rc button{font:inherit;font-weight:650;font-size:16px;border:0;border-radius:12px;padding:14px 22px;cursor:pointer;background:var(--accent);color:#fff;transition:transform .12s ease,opacity .2s}
+    .rc button:active{transform:scale(.97)}
+    .rc button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+    .rc button.sm{padding:8px 14px;font-size:14px;border-radius:10px}
+    .rc button:disabled{opacity:.4;cursor:default}
+    .rc .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .rc input,.rc select{font:inherit;font-size:15px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px 11px;width:100%}
+    .rc select option{background:var(--navy-mid)}
+    .rc input:focus,.rc select:focus{outline:2px solid var(--accent);outline-offset:-1px}
+    .rc input.bad{border-color:var(--bad)}
+    .rc label.f{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:500;color:var(--muted)}
+    .rc label.f small{font-weight:400;font-size:12px}
+    .rc .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media(min-width:700px){.rc .g3{grid-template-columns:repeat(3,1fr)}.rc .g5{grid-template-columns:repeat(5,1fr)}}
+    @media(max-width:420px){.rc .grid{grid-template-columns:1fr}}
+
+    /* screens */
+    .rc .screen{display:none}
+    .rc .screen.on{display:block;animation:fadeUp .45s ease-out}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+    .rc .trust{display:flex;gap:16px;flex-wrap:wrap;margin-top:16px;font-size:13px;color:var(--muted)}
+    .rc .trust span::before{content:'✓ ';color:var(--good)}
+
+    /* wizard */
+    .rc .progress{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:4px 0 8px}
+    .rc .progress i{display:block;height:100%;width:0;background:var(--accent);border-radius:3px;transition:width .4s ease}
+    .rc .stepcount{font-size:13px;color:var(--muted);margin-bottom:18px}
+    .rc .step{display:none}
+    .rc .step.on{display:block;animation:slideIn .35s ease-out}
+    .rc .step.on.back{animation-name:slideBack}
+    @keyframes slideIn{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}
+    @keyframes slideBack{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}
+    .rc .step h2{font-family:'Playfair Display',serif;font-size:clamp(26px,5vw,36px);line-height:1.2;margin:0 0 8px}
+    .rc .step .hint{color:var(--muted);font-size:16px;margin:0 0 20px}
+    .rc .big{position:relative;max-width:360px}
+    .rc .big input{font-size:30px;font-weight:650;padding:14px 16px;border-radius:14px}
+    .rc .big.money input{padding-left:38px}
+    .rc .big.money::before{content:'$';position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:26px;color:var(--muted);pointer-events:none}
+    .rc .chips{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 0}
+    .rc .chips button{background:transparent;border:1px solid var(--line);color:var(--ink);font-size:14px;font-weight:600;padding:8px 14px;border-radius:999px}
+    .rc .chips button:hover{border-color:var(--accent)}
+    .rc .err{color:var(--bad);font-size:14px;min-height:1.4em;margin:10px 0 0}
+    .rc .wiznav{display:flex;justify-content:space-between;margin-top:26px}
+
+    /* crunch */
+    .rc .crunch{text-align:center;padding:60px 10px}
+    .rc .crunch .progress{max-width:320px;margin:18px auto 0}
+    .rc .crunch p{font-size:18px}
+
+    /* results */
+    .rc .gauge{display:grid;grid-template-columns:170px 1fr;gap:22px;align-items:center}
+    @media(max-width:560px){.rc .gauge{grid-template-columns:1fr;text-align:center}.rc .gauge svg{margin:0 auto}}
+    .rc .gauge svg{display:block;width:170px;height:170px}
+    .rc .gauge .ring-bg{stroke:var(--line)}
+    .rc .gauge .ring{transition:stroke-dashoffset 1.1s cubic-bezier(.2,.8,.2,1),stroke .3s}
+    .rc .gauge .pct{font:700 40px/1 'Playfair Display',serif;fill:var(--ink)}
+    .rc .gauge .pctl{font-size:11px;fill:var(--muted)}
+    .rc .verdict{font-family:'Playfair Display',serif;font-size:clamp(24px,4vw,32px);line-height:1.2;margin:0 0 8px}
+    .rc .vdetail{font-size:16px;color:var(--muted);margin:0}
+    .rc .vdetail b{color:var(--ink)}
+    .rc .answers .grid input{font-weight:600}
+    .rc .levers{display:grid;grid-template-columns:1fr;gap:10px}
+    @media(min-width:700px){.rc .levers{grid-template-columns:repeat(3,1fr)}}
+    .rc .lever{border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px;background:rgba(0,0,0,.12)}
+    .rc .lever .what{font-size:14px;font-weight:600}
+    .rc .lever .to{font:700 26px/1.1 var(--mono)}
+    .rc .lever .to small{font:500 13px 'Plus Jakarta Sans',sans-serif;color:var(--muted)}
+    .rc .good{color:var(--good)}.rc .warn{color:var(--warn)}.rc .bad{color:var(--bad)}
+    .rc .chart{position:relative;height:300px}
+    .rc details.more{margin-bottom:12px}
+    .rc details.more>summary{list-style:none;cursor:pointer;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px 20px;font-size:16px;font-weight:650}
+    .rc details.more>summary::-webkit-details-marker{display:none}
+    .rc details.more>summary::before{content:'+ ';color:var(--accent)}
+    .rc details.more[open]>summary::before{content:'− '}
+    .rc details.more>summary small{display:block;font-size:13px;font-weight:400;color:var(--muted);margin-top:3px}
+    .rc details.more .inner{padding:16px 4px 4px}
+    .rc .explain ul{padding-left:20px;margin:10px 0}.rc .explain li{font-size:15px;margin-bottom:6px}
+    .rc .disc{font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px;margin-top:8px}
+    .rc .cta{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+    .rc .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--white);color:var(--navy);padding:9px 14px;border-radius:9px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:300}.rc .toast.on{opacity:1}
+    @media(prefers-reduced-motion:reduce){.rc .screen.on,.rc .step.on{animation:none}.rc .gauge .ring,.rc .progress i{transition:none}}
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/index.html" class="logo">Finnpath<span class="logo-dot">.</span></a>
+  <ul class="nav-links">
+    <li><a href="/index.html">Home</a></li>
+    <li><a href="/learn.html">Learn</a></li>
+    <li class="nav-dropdown">
+      <a href="/tools.html" class="nav-dropdown-toggle active">Tools <span class="nav-caret">▾</span></a>
+      <div class="nav-dropdown-menu">
+        <a href="/calculator.html">🧮 Calculator</a>
+        <a href="/simulator.html">📈 Portfolio Tracker</a>
+        <a href="/401k.html">📄 401k Decoder</a>
+        <a href="/tools/rsu-selldown">🧩 RSU Selldown</a>
+        <a href="/tools/retirement-check" class="active">🏖️ Retirement Check</a>
+      </div>
+    </li>
+    <li><a href="/paths.html">Your Path</a></li>
+    <li><a href="/blog.html">Money Moves</a></li>
+  </ul>
+  <button class="nav-burger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+</nav>
+<div class="nav-backdrop"></div>
+
+<main class="rc">
+
+  <!-- 0. Intro -->
+  <section class="screen on" id="intro">
+    <div class="eyebrow">Finnpath · Retirement check</div>
+    <h1>Will your money last?</h1>
+    <p class="lede">Five quick questions, about a minute. We'll play out thousands of possible futures for the markets and show where you stand, and what would change it.</p>
+    <button type="button" id="start">Let's go →</button>
+    <div class="trust"><span>Free</span><span>No sign-up</span><span>Your numbers stay in your browser</span></div>
+  </section>
+
+  <!-- 1–5. Questions -->
+  <section class="screen" id="wizard" aria-live="polite">
+    <div class="progress" aria-hidden="true"><i id="wizBar"></i></div>
+    <div class="stepcount" id="stepCount"></div>
+    <form id="wiz" novalidate>
+      <div class="step" data-step="1">
+        <h2>How old are you?</h2>
+        <p class="hint">We'll plan your money out to age 95.</p>
+        <div class="big"><input id="q-age" inputmode="numeric" placeholder="30" aria-label="Your age"></div>
+      </div>
+      <div class="step" data-step="2">
+        <h2>When would you like to stop working?</h2>
+        <p class="hint">The age you'd stop needing a paycheck. Already retired? Enter your current age.</p>
+        <div class="big"><input id="q-retireAge" inputmode="numeric" placeholder="60" aria-label="Retirement age"></div>
+        <div class="chips" data-for="q-retireAge"><button type="button" data-v="50">50</button><button type="button" data-v="55">55</button><button type="button" data-v="60">60</button><button type="button" data-v="65">65</button><button type="button" data-v="67">67</button></div>
+      </div>
+      <div class="step" data-step="3">
+        <h2>How much have you saved and invested so far?</h2>
+        <p class="hint">Add up your 401(k), IRA, brokerage, HSA and any savings set aside for the long term. Leave out your home.</p>
+        <div class="big money"><input id="q-saved" inputmode="decimal" placeholder="50,000" aria-label="Saved so far, in dollars"></div>
+        <div class="chips" data-for="q-saved"><button type="button" data-v="10000">$10K</button><button type="button" data-v="50000">$50K</button><button type="button" data-v="150000">$150K</button><button type="button" data-v="500000">$500K</button></div>
+      </div>
+      <div class="step" data-step="4">
+        <h2>How much do you add each year?</h2>
+        <p class="hint">Everything you invest for the long run in a year, including your employer's 401(k) match.</p>
+        <div class="big money"><input id="q-savings" inputmode="decimal" placeholder="12,000" aria-label="Saved per year, in dollars"></div>
+        <div class="chips" data-for="q-savings"><button type="button" data-v="6000">$6K</button><button type="button" data-v="12000">$12K</button><button type="button" data-v="25000">$25K</button><button type="button" data-v="50000">$50K</button></div>
+      </div>
+      <div class="step" data-step="5">
+        <h2>How much would you spend each year once you stop working?</h2>
+        <p class="hint">In today's dollars, and before tax. Many people plan on about 70–80% of what they spend now.</p>
+        <div class="big money"><input id="q-spending" inputmode="decimal" placeholder="60,000" aria-label="Yearly spending in retirement, in dollars"></div>
+        <div class="chips" data-for="q-spending"><button type="button" data-v="40000">$40K</button><button type="button" data-v="60000">$60K</button><button type="button" data-v="80000">$80K</button><button type="button" data-v="120000">$120K</button></div>
+      </div>
+      <p class="err" id="wizErr" role="alert"></p>
+      <div class="wiznav">
+        <button type="button" class="ghost" id="back">← Back</button>
+        <button type="submit" id="next">Next →</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- Crunching -->
+  <section class="screen" id="crunch">
+    <div class="crunch">
+      <p id="crunchText">Playing out 2,000 possible futures…</p>
+      <div class="progress"><i id="crunchBar"></i></div>
+    </div>
+  </section>
+
+  <!-- Results -->
+  <section class="screen" id="result" aria-live="polite">
+    <div class="card gauge">
+      <svg viewBox="0 0 170 170" role="img" aria-labelledby="gaugeLabel">
+        <title id="gaugeLabel">Chance your money lasts</title>
+        <circle class="ring-bg" cx="85" cy="85" r="72" fill="none" stroke-width="14"/>
+        <circle class="ring" id="ring" cx="85" cy="85" r="72" fill="none" stroke-width="14" stroke-linecap="round" transform="rotate(-90 85 85)" stroke-dasharray="452.4" stroke-dashoffset="452.4"/>
+        <text class="pct" id="ringPct" x="85" y="88" text-anchor="middle">0%</text>
+        <text class="pctl" x="85" y="110" text-anchor="middle">chance it lasts</text>
+      </svg>
+      <div>
+        <p class="verdict" id="verdict"></p>
+        <p class="vdetail" id="vdetail"></p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>What would change it</h2>
+      <p class="sub">Each one on its own. Tap "Try it" to use it in your plan.</p>
+      <div class="levers" id="levers"></div>
+    </div>
+
+    <div class="card">
+      <h2>Your money over time</h2>
+      <p class="sub" id="chartSub"></p>
+      <div class="chart"><canvas id="chFan"></canvas></div>
+    </div>
+
+    <div class="card answers">
+      <h2>Your answers</h2>
+      <p class="sub">Change any of these and the results update.</p>
+      <div class="grid g5">
+        <label class="f">Age<input id="age" inputmode="numeric"></label>
+        <label class="f">Stop working at<input id="retireAge" inputmode="numeric"></label>
+        <label class="f">Saved so far ($)<input id="saved" inputmode="decimal"></label>
+        <label class="f">Added per year ($)<input id="savings" inputmode="decimal"></label>
+        <label class="f">Spending per year ($)<input id="spending" inputmode="decimal"></label>
+      </div>
+      <p class="wsum note" id="formErr"></p>
+    </div>
+
+    <h2 style="font-size:18px;margin:26px 0 4px">Add more detail</h2>
+    <p class="sub" style="color:var(--muted);margin:0 0 12px">Optional. Each one makes the answer more like your real situation.</p>
+
+    <details class="more">
+      <summary>Social Security <small>We assume about $2,000 a month from age 67</small></summary>
+      <div class="inner grid g3">
+        <label class="f">Monthly benefit, today's $ <small>Your estimate is at ssa.gov/myaccount</small><input id="ssMonthly" inputmode="decimal"></label>
+        <label class="f">Start age <small>62 to 70; waiting pays more</small><input id="ssAge" inputmode="numeric"></label>
+      </div>
+    </details>
+    <details class="more">
+      <summary>Other income in retirement <small>Pension, rental property, part-time work</small></summary>
+      <div class="inner grid g3">
+        <label class="f">Pension ($/yr)<input id="pension" inputmode="decimal"></label>
+        <label class="f">Pension starts at age<input id="pensionAge" inputmode="numeric"></label>
+        <label class="f">Rental income after costs ($/yr)<input id="rental" inputmode="decimal"></label>
+        <label class="f">Part-time work ($/yr)<input id="side" inputmode="decimal"></label>
+        <label class="f">Part-time from age<input id="sideStart" inputmode="numeric"></label>
+        <label class="f">Part-time until age<input id="sideEnd" inputmode="numeric"></label>
+      </div>
+    </details>
+    <details class="more">
+      <summary>How you invest <small>Stocks vs bonds, and cutting back in bad years</small></summary>
+      <div class="inner grid g3">
+        <label class="f">Stocks in your portfolio (%) <small>The rest is in bonds</small><input id="stockPct" inputmode="decimal"></label>
+        <label class="f">Cut spending in bad years by (%) <small>0 means never cut</small><input id="cut" inputmode="decimal"></label>
+        <label class="f">…when savings fall below (% of what you retired with)<input id="trigger" inputmode="decimal"></label>
+      </div>
+    </details>
+    <details class="more">
+      <summary>Taxes and timeline <small>Tax on withdrawals, how long to plan for</small></summary>
+      <div class="inner grid g3">
+        <label class="f">Tax on withdrawals (%) <small>Blended rate across 401(k), Roth and brokerage</small><input id="wdTax" inputmode="decimal"></label>
+        <label class="f">Plan to age<input id="endAge" inputmode="numeric"></label>
+      </div>
+    </details>
+    <details class="more">
+      <summary>Market assumptions <small>For the curious. Returns are after inflation.</small></summary>
+      <div class="inner grid g3">
+        <label class="f">Stocks: average return (%)<input id="stkMu" inputmode="decimal"></label>
+        <label class="f">Stocks: volatility (%)<input id="stkVol" inputmode="decimal"></label>
+        <label class="f">Bonds: average return (%)<input id="bndMu" inputmode="decimal"></label>
+        <label class="f">Bonds: volatility (%)<input id="bndVol" inputmode="decimal"></label>
+        <label class="f">Simulated futures<select id="sims"><option value="1000">1,000 (fast)</option><option value="2000" selected>2,000</option><option value="5000">5,000</option></select></label>
+      </div>
+    </details>
+    <p class="note">Lots of your money in one company's stock? The <a href="/tools/rsu-selldown" style="color:var(--accent)">RSU selldown planner</a> shows what that risk does to you.</p>
+
+    <div class="row" style="margin:18px 0 28px">
+      <button type="button" class="ghost sm" id="share">Copy link to these results</button>
+      <button type="button" class="ghost sm" id="restart">Start over</button>
+    </div>
+  </section>
+
+  <section class="card explain">
+    <h2>How this works</h2>
+    <ul>
+      <li><b>Thousands of possible futures.</b> Each one plays out your plan year by year with random market returns: stocks and bonds have good and bad years, sometimes several in a row. The percentage is how many of those futures never run out of money before your plan-to age.</li>
+      <li><b>Everything is in today's dollars.</b> Returns are after inflation, so $60,000 of spending at 70 buys what $60,000 buys today.</li>
+      <li><b>In retirement,</b> other income (Social Security, pension, rental, part-time work) covers part of your spending, and the rest comes out of your savings, plus tax on what you withdraw.</li>
+      <li><b>What it leaves out.</b> Changing tax brackets and account types, required minimum distributions, healthcare and long-term-care shocks, and big one-off costs. Real life can land outside every simulated future.</li>
+    </ul>
+    <p class="note">Many planners aim for roughly an 80–90% chance, with the flexibility to cut back in a bad stretch, instead of 100%, which usually means working longer than you need to.</p>
+    <p class="disc">Education only, not investment, tax or legal advice. Results are hypothetical, rely on simplified assumptions, and are not a prediction or guarantee. Talk with a qualified financial advisor before acting.</p>
+  </section>
+
+  <section class="card cta">
+    <div><h2 style="margin:0">Get the plain-English version of retirement planning</h2><p class="sub" style="margin:4px 0 0">Short guides on saving, investing and retiring early, in your inbox.</p></div>
+    <a href="https://insights.finnpath.com/subscribe" target="_blank" rel="noopener"><button type="button">Subscribe to the newsletter</button></a>
+  </section>
+  <div class="toast" id="toast"></div>
+</main>
+
+<script type="module" src="/assets/js/retirement-check.js"></script>
+</body>
+</html>

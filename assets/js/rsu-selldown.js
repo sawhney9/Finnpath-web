@@ -1,3 +1,4 @@
+import './site-nav.js';
 import { runSelldown, pct } from './sim-engine.js';
 
 const STATS_URL = 'https://finnpath-gemini-proxy.rimas2043.workers.dev/stats';
@@ -348,18 +349,6 @@ $('form').addEventListener('click', e => { if (e.target.closest('#addDest,[data-
 $('share').onclick = async () => { const url = location.origin + location.pathname + '?' + toQuery(readForm()); try { await navigator.clipboard.writeText(url); toast('Link copied. Anyone with it sees this scenario.'); } catch(_){ toast('Copy failed. Your browser blocked the clipboard.'); } };
 document.querySelectorAll('.rsu input[inputmode="decimal"]').forEach(el=>el.addEventListener('blur',()=>{ const v=num(el.value); if (isFinite(v) && Math.abs(v)>=1000) el.value=Math.round(v).toLocaleString(); }));
 $('ctaLink').href = SUBSCRIBE_URL;
-
-/* ---------- mobile nav (same behavior as the other site pages) ---------- */
-(function(){
-  const burger=document.querySelector('.nav-burger'), links=document.querySelector('.nav-links'), backdrop=document.querySelector('.nav-backdrop');
-  if (!burger || !links) return;
-  const closeNav = () => { links.classList.remove('open'); burger.classList.remove('open'); backdrop && backdrop.classList.remove('open'); document.body.classList.remove('nav-open'); };
-  burger.addEventListener('click', () => { const open=links.classList.toggle('open'); burger.classList.toggle('open',open); backdrop && backdrop.classList.toggle('open',open); document.body.classList.toggle('nav-open',open); });
-  backdrop && backdrop.addEventListener('click', closeNav);
-  links.querySelectorAll('a').forEach(a=>a.addEventListener('click', closeNav));
-  const checkPos = () => { if (window.innerWidth<=720){ if (links.parentNode!==document.body) document.body.appendChild(links); } else if (links.parentNode===document.body){ document.querySelector('nav').insertBefore(links, burger); closeNav(); } };
-  checkPos(); window.addEventListener('resize', () => { if (window.innerWidth>720) closeNav(); checkPos(); });
-})();
 
 /* ---------- init ---------- */
 const fromLink = fromQuery();
