@@ -1137,6 +1137,7 @@
   });
 
   // COMPARE CHART
+  const PRICE_PROXY_URL = 'https://finnpath-gemini-proxy.rimas2043.workers.dev';
   document.querySelectorAll('.tf-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
@@ -1156,46 +1157,30 @@
     const btn = document.getElementById('btn-compare');
     btn.disabled = true; btn.innerText = 'Loading...';
 
-    // TF → Yahoo Finance interval/range mapping
-    const yahooMap = {
-      '1mo': { interval: '1d',  range: '1mo'  },
-      '3mo': { interval: '1d',  range: '3mo'  },
-      '6mo': { interval: '1d',  range: '6mo'  },
-      '1y':  { interval: '1wk', range: '1y'   },
-      '2y':  { interval: '1wk', range: '2y'   }
-    };
-
     try {
+      // Yahoo blocks browser requests (no CORS header), so prices come through
+      // our Worker, which returns % change from the first close.
       const fetchHistory = async (ticker) => {
-        const { interval, range } = yahooMap[tf];
-        // Use a public Yahoo Finance proxy that doesn't require an API key
-        const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=${interval}&range=${range}&events=div`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`Could not reach data source for ${ticker}`);
-        const json = await res.json();
-        const result = json?.chart?.result?.[0];
-        if (!result) throw new Error(`"${ticker}" not found — check the ticker symbol and try again`);
-        const timestamps = result.timestamp;
-        const closes = result.indicators?.quote?.[0]?.close;
-        if (!timestamps || !closes || closes.length === 0) {
-          throw new Error(`No price history available for "${ticker}"`);
-        }
-        // Filter out any null/undefined close values (e.g. weekends in weekly bars)
-        const pairs = timestamps.map((t, i) => ({ t, c: closes[i] })).filter(p => p.c != null);
-        return { t: pairs.map(p => p.t), c: pairs.map(p => p.c) };
+        const res = await fetch(`${PRICE_PROXY_URL}/history?symbol=${encodeURIComponent(ticker)}&range=${tf}`);
+        const json = await res.json().catch(() => ({}));
+        if (res.status === 404) throw new Error(`"${ticker}" not found — check the ticker symbol and try again`);
+        if (res.status === 429) throw new Error('Too many lookups. Wait a minute and try again.');
+        if (!res.ok || !json.points) throw new Error(`Couldn't load price history for ${ticker}. Try again in a moment.`);
+        return json;
       };
 
       const [d1, d2] = await Promise.all([fetchHistory(t1), fetchHistory(t2)]);
 
-      const p1 = d1.c;
-      const p2 = d2.c;
-
-      // Align to the shorter dataset length so indices match
-      const len = Math.min(p1.length, p2.length);
-      const t1Slice = d1.t.slice(0, len);
-      const norm1 = p1.slice(0, len).map(p => ((p - p1[0]) / p1[0]) * 100);
-      const norm2 = p2.slice(0, len).map(p => ((p - p2[0]) / p2[0]) * 100);
-      const labels = t1Slice.map(ts => new Date(ts * 1000).toLocaleDateString());
+      // Line the two up by calendar date (crypto trades on weekends, stocks don't),
+      // then re-base both to 0% on the first shared date.
+      const day = ts => new Date(ts * 1000).toISOString().slice(0, 10);
+      const m2 = new Map(d2.points.map(([t, p]) => [day(t), p]));
+      const shared = d1.points.filter(([t]) => m2.has(day(t))).map(([t, p]) => [t, p, m2.get(day(t))]);
+      if (shared.length < 2) throw new Error(`${t1} and ${t2} don't have overlapping price history for this period.`);
+      const rebase = (p, p0) => ((1 + p / 100) / (1 + p0 / 100) - 1) * 100;
+      const norm1 = shared.map(([, a]) => rebase(a, shared[0][1]));
+      const norm2 = shared.map(([, , b]) => rebase(b, shared[0][2]));
+      const labels = shared.map(([t]) => new Date(t * 1000).toLocaleDateString());
 
       if (chartInstance) chartInstance.destroy();
       const ctx = document.getElementById('cmp-chart').getContext('2d');
@@ -1229,18 +1214,19 @@
       document.getElementById('leg-b').innerText = t2;
       document.getElementById('cmp-stats').style.display = 'grid';
 
-      const updateStat = (id, ticker, closes) => {
-        const start = closes[0];
-        const end   = closes[len - 1];
-        const ret   = ((end - start) / start) * 100;
+      // Prices on the first and last shared dates, so they match the % shown.
+      const updateStat = (id, ticker, d, col) => {
+        const at = p => d.start * (1 + p / 100);
+        const start = at(shared[0][col]), end = at(shared[shared.length - 1][col]);
+        const ret = (end / start - 1) * 100;
         document.getElementById(`stat-${id}-name`).innerText  = ticker;
         document.getElementById(`stat-${id}-ret`).innerText   = `${ret >= 0 ? '+' : ''}${ret.toFixed(2)}%`;
         document.getElementById(`stat-${id}-ret`).className   = `s-return ${ret >= 0 ? 'up' : 'dn'}`;
         document.getElementById(`stat-${id}-start`).innerText = fmt$(start);
         document.getElementById(`stat-${id}-end`).innerText   = fmt$(end);
       };
-      updateStat('a', t1, p1.slice(0, len));
-      updateStat('b', t2, p2.slice(0, len));
+      updateStat('a', t1, d1, 1);
+      updateStat('b', t2, d2, 2);
 
     } catch (e) {
       alert(e.message || 'Failed to fetch historical data. Please check the ticker symbols and try again.');
