@@ -254,10 +254,10 @@ function aiPrompt() {
     '', `Results (${p.sims.toLocaleString()} simulated futures):`,
     `- Chance the money lasts to ${p.endAge}: ${pctf(r.success)}`,
     r.earlyDeplete ? `- When it falls short, it typically runs out around age ${Math.round(r.earlyDeplete)}` : '- No simulated future ran out of money',
-    atRetire ? `- Savings at ${p.retireAge}: typical ${fmt(atRetire.p50)}, 8 in 10 futures ${fmt(atRetire.p10)}–${fmt(atRetire.p90)}` : '',
-    `- Typical amount left at ${p.endAge}: ${fmt(r.endP50)}`,
-    lv.length ? `- One change at a time: ${lv.map(x => `${x.what} → ${pctf(x.s)}`).join('; ')}` : '',
-  ].filter(x => x !== '').join('\n');
+    atRetire ? `- Savings at ${p.retireAge}: typical ${fmt(atRetire.p50)}, 8 in 10 futures ${fmt(atRetire.p10)}–${fmt(atRetire.p90)}` : null,
+    r.endP50 >= 1000 ? `- Typical amount left at ${p.endAge}: ${fmt(r.endP50)}` : `- In the typical future the money is gone before ${p.endAge}`,
+    lv.length ? `- One change at a time: ${lv.map(x => `${x.what} → ${pctf(x.s)}`).join('; ')}` : null,
+  ].filter(x => x !== null).join('\n');
 }
 bindAskAI($('askAI'), aiPrompt, toast);
 
