@@ -15,6 +15,15 @@ namespace_id = "2001"
   limit = 20
   period = 60
 
+# Per-IP limit for the Gemini routes (/401k, /pulse).
+[[ratelimits]]
+name = "AI_LIMITER"
+namespace_id = "2002"
+
+  [ratelimits.simple]
+  limit = 10
+  period = 60
+
 # 12h cache for /stats results. Create once with:
 #   npx wrangler kv namespace create PRICE_CACHE
 # then paste the printed id below.

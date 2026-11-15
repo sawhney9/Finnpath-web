@@ -393,6 +393,11 @@
   }
 
   // ── Render results ──
+  // Gemini output is untrusted (a crafted PDF could steer it), so every field is escaped.
+  function esc(v) { return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function list(v) { return Array.isArray(v) ? v : []; }
+  function oneOf(v, allowed, fallback) { return allowed.includes(v) ? v : fallback; }
+
   function renderResults(d) {
     const el = document.getElementById('results');
     el.classList.add('visible');
@@ -402,16 +407,16 @@
       <div class="result-section">
         <h3>
           <div class="section-icon icon-blue">📋</div>
-          ${d.planName || 'Your 401k Plan'}
+          ${esc(d.planName || 'Your 401k Plan')}
         </h3>
-        <p style="color:var(--white-dim);font-size:.9rem;line-height:1.8;margin-bottom:20px">${d.summary}</p>
+        <p style="color:var(--white-dim);font-size:.9rem;line-height:1.8;margin-bottom:20px">${esc(d.summary)}</p>
 
         <div class="facts-grid">
-          ${(d.keyFacts || []).map(f => `
+          ${list(d.keyFacts).map(f => `
             <div class="fact-card">
-              <div class="fact-label">${f.label}</div>
-              <div class="fact-val ${f.color || 'sky'}">${f.value}</div>
-              <div class="fact-note">${f.note}</div>
+              <div class="fact-label">${esc(f.label)}</div>
+              <div class="fact-val ${oneOf(f.color, ['sky','green','gold'], 'sky')}">${esc(f.value)}</div>
+              <div class="fact-note">${esc(f.note)}</div>
             </div>
           `).join('')}
         </div>
@@ -427,13 +432,13 @@
           <div class="list-group">
             <div class="list-group-title green">✓ What's Allowed</div>
             <ul class="check-list">
-              ${(d.allowed || []).map(i => `<li>${i}</li>`).join('')}
+              ${list(d.allowed).map(i => `<li>${esc(i)}</li>`).join('')}
             </ul>
           </div>
           <div class="list-group">
             <div class="list-group-title coral">✗ What's Not Allowed</div>
             <ul class="check-list cross-list">
-              ${(d.notAllowed || []).map(i => `<li>${i}</li>`).join('')}
+              ${list(d.notAllowed).map(i => `<li>${esc(i)}</li>`).join('')}
             </ul>
           </div>
         </div>
@@ -445,23 +450,23 @@
           <div class="section-icon icon-gold">💡</div>
           Hypothetical Investing Scenarios
         </h3>
-        ${(d.scenarios || []).map(s => `
-          <div class="scenario-card ${s.type}">
-            <div class="scenario-label">${s.label}</div>
-            <div class="scenario-title">${s.title}</div>
-            <div class="scenario-body">${s.body}</div>
+        ${list(d.scenarios).map(s => `
+          <div class="scenario-card ${oneOf(s.type, ['best','moderate','conservative'], 'moderate')}">
+            <div class="scenario-label">${esc(s.label)}</div>
+            <div class="scenario-title">${esc(s.title)}</div>
+            <div class="scenario-body">${esc(s.body)}</div>
           </div>
         `).join('')}
       </div>
 
-      ${d.watchOuts && d.watchOuts.length ? `
+      ${list(d.watchOuts).length ? `
       <!-- WATCH OUTS -->
       <div class="result-section" style="border-color:rgba(201,168,76,.2); background:rgba(201,168,76,.04);">
         <h3 style="color:var(--gold)">
           <div class="section-icon icon-gold">⚠️</div>
           Things People Often Miss
         </h3>
-        ${d.watchOuts.map(w => `<p style="font-size:.88rem;color:var(--white-dim);line-height:1.75;margin-bottom:8px">• ${w}</p>`).join('')}
+        ${list(d.watchOuts).map(w => `<p style="font-size:.88rem;color:var(--white-dim);line-height:1.75;margin-bottom:8px">• ${esc(w)}</p>`).join('')}
       </div>` : ''}
 
       <!-- DISCLAIMER -->
