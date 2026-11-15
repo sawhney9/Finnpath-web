@@ -147,7 +147,13 @@ $('schedRows').addEventListener('input', e => { const y=+e.target.dataset.sy, f=
   if (f==='t') setAmt(y, num(e.target.value));
   if (f==='inc'){ sched[y].inc=e.target.value; $('snote'+y).textContent=rowNote(y); } });
 $('schedRows').addEventListener('focusout', e => { if (e.target.dataset.f==='t') e.target.value=Math.round(sched[+e.target.dataset.sy].a).toLocaleString(); });
-$('planMode').addEventListener('change', () => { if (custom() && !sched.some(x=>x.a>0)) evenSched(); renderSched(); });
+// Entering custom mode starts from the even split the user was just looking at.
+$('planMode').addEventListener('change', () => { if (custom()) evenSched(); renderSched(); });
+$('editSched').onclick = () => {
+  if (!custom()){ $('planMode').value='custom'; evenSched(); renderSched(); }
+  $('schedBox').scrollIntoView({behavior:'smooth', block:'start'});
+  setTimeout(()=>$('schedRows').querySelector('input[type=range]')?.focus({preventScroll:true}), 400);
+};
 $('schedEven').onclick = () => { evenSched(); renderSched(); };
 $('sellYears').addEventListener('change', () => { if (custom()){ evenSched(); renderSched(); } });
 ['value','keepPct','horizon','basis','vests','vestYears'].forEach(id=>$(id).addEventListener('change', renderSched));
