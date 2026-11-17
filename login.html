@@ -111,7 +111,7 @@
 
 <!-- NAV -->
 <nav>
-  <a href="index.html" class="logo">Finnpath<span class="logo-dot">.</span></a>
+  <a href="/" class="logo">Finnpath<span class="logo-dot">.</span></a>
 </nav>
 
 <div class="login-wrap">
@@ -155,7 +155,7 @@
   // If already logged in, go straight to simulator
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      window.location.href = 'simulator.html';
+      window.location.href = '/simulator';
     }
   });
 

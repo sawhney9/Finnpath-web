@@ -248,15 +248,36 @@ const staticPages = [
   '', 'blog', 'learn', 'paths', 'calculator',
   'simulator', 'compete', '401k', 'roth',
   'tool-debt', 'tool-dca', 'tool-index', 'tool-save', 'tools',
+  'tools/rsu-selldown', 'tools/retirement-check',
 ];
 const today = new Date().toISOString().slice(0, 10);
+
+// lastmod must reflect real changes or Google ignores it: static pages use the
+// last commit that touched the file, articles use their publish date.
+function gitDate(file) {
+  try {
+    const out = require('child_process')
+      .execFileSync('git', ['log', '-1', '--format=%cs', '--', file], { cwd: ROOT, encoding: 'utf8' })
+      .trim();
+    return out || today;
+  } catch { return today; }
+}
+function articleDate(a) {
+  const d = new Date(`${a.date} UTC`);
+  return isNaN(d) ? today : d.toISOString().slice(0, 10);
+}
+
 const urls = [
-  ...staticPages.map(p => ({ loc: `${SITE}/${p}`, pri: p === '' ? '1.0' : '0.7' })),
-  ...articles.filter(a => a.id).map(a => ({ loc: `${SITE}/blog/${a.id}`, pri: '0.6' })),
+  ...staticPages.map(p => ({
+    loc: `${SITE}/${p}`,
+    pri: p === '' ? '1.0' : p.startsWith('tools/') ? '0.8' : '0.7',
+    mod: gitDate(`${p || 'index'}.html`),
+  })),
+  ...articles.filter(a => a.id).map(a => ({ loc: `${SITE}/blog/${a.id}`, pri: '0.6', mod: articleDate(a) })),
 ];
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.map(u => `  <url><loc>${u.loc}</loc><lastmod>${today}</lastmod><priority>${u.pri}</priority></url>`).join('\n')}
+${urls.map(u => `  <url><loc>${u.loc}</loc><lastmod>${u.mod}</lastmod><priority>${u.pri}</priority></url>`).join('\n')}
 </urlset>
 `;
 fs.writeFileSync(path.join(ROOT, 'sitemap.xml'), sitemap);
