@@ -24,7 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0  # full history so sitemap lastmod can use each page's last commit date
 
       - uses: actions/setup-node@v4
         with:

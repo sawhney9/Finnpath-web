@@ -6,6 +6,14 @@
   <title>Paper Trading Platform — Finnpath</title>
   <link rel="canonical" href="https://finnpath.com/simulator"/>
   <meta name="description" content="Track stocks, options, puts, and crypto. Compare tickers side-by-side. Paper trade like a pro."/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:site_name" content="Finnpath"/>
+  <meta property="og:title" content="Paper Trading Platform — Finnpath"/>
+  <meta property="og:description" content="Track stocks, options, puts, and crypto. Compare tickers side-by-side. Paper trade like a pro."/>
+  <meta property="og:url" content="https://finnpath.com/simulator"/>
+  <meta name="twitter:card" content="summary"/>
+  <meta name="twitter:title" content="Paper Trading Platform — Finnpath"/>
+  <meta name="twitter:description" content="Track stocks, options, puts, and crypto. Compare tickers side-by-side. Paper trade like a pro."/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="shared.css?v=7"/>
@@ -238,22 +246,22 @@
 
 <!-- NAV -->
 <nav>
-  <a href="index.html" class="logo">Finnpath<span class="logo-dot">.</span></a>
+  <a href="/" class="logo">Finnpath<span class="logo-dot">.</span></a>
   <ul class="nav-links">
-    <li><a href="index.html">Home</a></li>
-    <li><a href="learn.html">Learn</a></li>
+    <li><a href="/">Home</a></li>
+    <li><a href="/learn">Learn</a></li>
     <li class="nav-dropdown">
       <a href="#" class="nav-dropdown-toggle">Tools <span class="nav-caret">▾</span></a>
       <div class="nav-dropdown-menu">
-        <a href="calculator.html">🧮 Calculator</a>
-        <a href="simulator.html" class="active">📈 Portfolio Tracker</a>
-        <a href="401k.html">📄 401k Decoder</a>
+        <a href="/calculator">🧮 Calculator</a>
+        <a href="/simulator" class="active">📈 Portfolio Tracker</a>
+        <a href="/401k">📄 401k Decoder</a>
         <a href="/tools/rsu-selldown">🧩 RSU Selldown</a>
         <a href="/tools/retirement-check">🏖️ Retirement Check</a>
       </div>
     </li>
-    <li><a href="paths.html">Your Path</a></li>
-    <li><a href="blog.html">Money Moves</a></li>
+    <li><a href="/paths">Your Path</a></li>
+    <li><a href="/blog">Money Moves</a></li>
   </ul>
   <div id="user-menu">
     <img src="" alt="Avatar" class="user-avatar" id="avatar"/>
@@ -278,7 +286,7 @@
       <div class="hbadge">Portfolio Pulse</div>
       <div class="hbadge">Trade Journal</div>
     </div>
-    <a href="login.html" class="btn-primary" style="display:inline-block; text-decoration:none; text-align:center;">
+    <a href="/login" class="btn-primary" style="display:inline-block; text-decoration:none; text-align:center;">
       Log In to Start
     </a>
   </div>
@@ -466,7 +474,7 @@
         <div style="font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:900;margin-bottom:4px">Roth IRA Tracker</div>
         <p style="font-size:.85rem;color:var(--white-dim)">Monitor your 2026 contributions toward the annual limit.</p>
       </div>
-      <a href="roth.html" class="btn-out-green" style="text-decoration:none">📖 Roth IRA Guide</a>
+      <a href="/roth" class="btn-out-green" style="text-decoration:none">📖 Roth IRA Guide</a>
     </div>
 
     <!-- Year + Age selector -->
@@ -554,7 +562,7 @@
         <div style="font-weight:700;font-size:.95rem;margin-bottom:4px">You may need the Backdoor Roth IRA</div>
         <div style="font-size:.82rem;color:var(--white-dim);line-height:1.6">Your income is at or above the phase-out threshold. You can still get money into a Roth IRA using the legal Backdoor Roth strategy — contribute to a Traditional IRA first, then convert.</div>
       </div>
-      <a href="roth.html#backdoor" style="background:var(--sky);color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:700;font-size:.82rem;white-space:nowrap">Learn How →</a>
+      <a href="/roth#backdoor" style="background:var(--sky);color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:700;font-size:.82rem;white-space:nowrap">Learn How →</a>
     </div>
 
     <!-- Key facts strip -->
@@ -695,7 +703,7 @@
   });
 
   document.getElementById('btn-out').addEventListener('click', () => {
-    signOut(auth).then(() => { window.location.href = 'index.html'; });
+    signOut(auth).then(() => { window.location.href = '/'; });
   });
 
   // TABS
